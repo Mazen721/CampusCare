@@ -1,5 +1,5 @@
 import type { HydratedDocument } from 'mongoose';
-import type { IUser } from '../../modules/auth/user.model';
+import type { IUser } from '../modules/auth/user.model';
 
 declare global {
   namespace Express {

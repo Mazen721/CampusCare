@@ -2,6 +2,7 @@ import { ChevronDown, LogOut, Menu, UserRound, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BrandMark } from '@/components/shared/BrandMark';
+import { NotificationBell } from '@/components/shared/NotificationBell';
 import { SidebarContent } from '@/components/shared/Sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,18 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/profile': 'Profile',
   '/forbidden': 'Access denied',
+  '/users': 'Users',
+  '/locations': 'Locations',
+  '/maintenance/requests': 'Maintenance requests',
+  '/maintenance/requests/new': 'New request',
+  '/maintenance/request-queue': 'Request queue',
 };
+
+function getPageTitle(pathname: string): string {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  if (/^\/maintenance\/requests\/[^/]+$/.test(pathname)) return 'Request details';
+  return 'CampusCare';
+}
 
 function UserMenu() {
   const { user, logout } = useAuth();
@@ -95,7 +107,7 @@ export function AppShell() {
 
   if (!user) return null;
 
-  const title = PAGE_TITLES[location.pathname] ?? 'CampusCare';
+  const title = getPageTitle(location.pathname);
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,7 +154,10 @@ export function AppShell() {
             </Button>
             <BrandMark className="min-w-0" />
           </div>
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <NotificationBell poll={false} />
+            <UserMenu />
+          </div>
         </header>
 
         <header className="sticky top-0 z-30 hidden h-16 shrink-0 items-center justify-between border-b border-border bg-background/90 px-8 backdrop-blur lg:flex">
@@ -153,7 +168,10 @@ export function AppShell() {
             </span>
             <span className="font-medium text-foreground">{title}</span>
           </div>
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <UserMenu />
+          </div>
         </header>
 
         <main

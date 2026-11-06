@@ -87,12 +87,18 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
 
   if (error instanceof multer.MulterError) {
     const isSizeError = error.code === 'LIMIT_FILE_SIZE';
+    const isCountError = error.code === 'LIMIT_FILE_COUNT' || error.code === 'LIMIT_UNEXPECTED_FILE';
+
     res
       .status(isSizeError ? 413 : 400)
       .json(
         buildErrorBody(
           isSizeError ? 'UPLOAD_TOO_LARGE' : 'UPLOAD_INVALID',
-          isSizeError ? 'Each image must be 5 MB or smaller' : error.message,
+          isSizeError
+            ? 'Each image must be 5 MB or smaller'
+            : isCountError
+              ? 'A maximum of 3 images can be attached'
+              : error.message,
         ),
       );
     return;

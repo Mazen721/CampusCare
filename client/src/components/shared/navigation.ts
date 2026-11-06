@@ -42,8 +42,8 @@ export interface NavigationGroup {
 
 const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
   STUDENT_EMPLOYEE: [
-    { label: 'New request', to: '/maintenance/requests/new', icon: PlusCircle, soon: true },
-    { label: 'My requests', to: '/maintenance/requests', icon: ClipboardList, soon: true },
+    { label: 'New request', to: '/maintenance/requests/new', icon: PlusCircle },
+    { label: 'My requests', to: '/maintenance/requests', icon: ClipboardList, end: true },
     { label: 'Report lost / found', to: '/lost-found/report', icon: PackagePlus, soon: true },
     { label: 'Browse lost & found', to: '/lost-found', icon: Search, soon: true },
     { label: 'My claims', to: '/lost-found/claims', icon: BadgeCheck, soon: true },
@@ -54,7 +54,7 @@ const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
     { label: 'My schedule', to: '/maintenance/calendar', icon: CalendarDays, soon: true },
   ],
   MAINTENANCE_MANAGER: [
-    { label: 'Request queue', to: '/maintenance/request-queue', icon: Inbox, soon: true },
+    { label: 'Request queue', to: '/maintenance/request-queue', icon: Inbox },
     { label: 'Work orders', to: '/work-orders', icon: ClipboardCheck, soon: true },
     { label: 'Technicians', to: '/technicians', icon: UsersRound, soon: true },
     { label: 'Calendar', to: '/maintenance/calendar', icon: CalendarDays, soon: true },
@@ -68,10 +68,10 @@ const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
     { label: 'Handovers', to: '/lost-found/handovers', icon: Handshake, soon: true },
   ],
   SUPER_ADMIN: [
-    { label: 'Users', to: '/users', icon: Users, soon: true },
-    { label: 'Locations', to: '/locations', icon: MapPin, soon: true },
+    { label: 'Users', to: '/users', icon: Users },
+    { label: 'Locations', to: '/locations', icon: MapPin },
     { label: 'Activity logs', to: '/activity-logs', icon: ScrollText, soon: true },
-    { label: 'Maintenance view', to: '/maintenance/requests', icon: Eye, soon: true },
+    { label: 'Maintenance view', to: '/maintenance/requests', icon: Eye },
     { label: 'Lost & Found view', to: '/lost-found/items', icon: Eye, soon: true },
   ],
 };

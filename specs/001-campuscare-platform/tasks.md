@@ -52,19 +52,19 @@ its own shell. **Independent test**: log in as each role (password and demo butt
 **Goal**: Users submit requests; managers review and approve (WO auto-created). **Independent
 test**: submit → under review → approve creates exactly one WO; reject needs notes.
 
-- [ ] T020 [P] [US9] Locations slice: service/routes (`GET` any; `POST`/`PATCH`/`DELETE`=deactivate ADM; duplicate → 409) and Admin Locations page in `server/src/modules/locations/`, `client/src/features/locations/`
-- [ ] T021 [P] [US9] Users slice (ADM): list/get/create/update/status with activity logs; Admin Users page in `server/src/modules/users/`, `client/src/features/users/`
-- [ ] T022 [P] Meta endpoint `GET /meta` (categories, priorities, statuses, match thresholds) in `server/src/modules/meta/` and `useMeta()` hook in `client/src/lib/`
-- [ ] T023 Implement `notify(userIds, payload, session?)` and `logActivity(entry, session?)` (insert only; no update/delete path) in `server/src/shared/services/`
-- [ ] T024 [US8] Notifications slice: `GET /notifications` (own, `unreadCount`), `PATCH /:id/read`, `PATCH /read-all`; NotificationBell with dropdown, 30 s `refetchInterval`, click → `linkUrl` in `server/src/modules/notifications/`, `client/src/components/shared/NotificationBell.tsx`
-- [ ] T025 Implement upload middleware + service: multer memory, JPEG/PNG/WebP only, ≤5 MB, ≤3 files, Cloudinary stream; local `server/uploads/` fallback only when Cloudinary vars empty and not production; returns `{ url, publicId }[]` in `server/src/shared/middleware/upload.ts`, `server/src/shared/services/upload.service.ts`
-- [ ] T026 [P] Build ImageUpload (previews) and Lightbox components in `client/src/components/shared/`
-- [ ] T027 [US2] Implement request state machine (data-model.md "Request" table; `assertTransition(from,to,actor)` → 409) in `server/src/shared/state-machines/request.sm.ts`
-- [ ] T028 [P] [US2] Unit tests: every allowed and several forbidden request transitions in `server/tests/unit/request.sm.test.ts`
-- [ ] T029 [US2] Requests slice backend: `POST /maintenance/requests` (USER, multipart, notify managers, log), `GET` list (USER own; MGR/ADM all; HIGH/CRITICAL first), `GET /:id` (owner, MGR, ADM, TECH of its WO) in `server/src/modules/maintenance/requests/`
-- [ ] T030 [US2] Review endpoint `PATCH /maintenance/requests/:id/review` (`UNDER_REVIEW` | `APPROVE` in transaction creating WO `PENDING_ASSIGNMENT`/`REACTIVE` only if no non-cancelled WO linked, set `currentWorkOrderId` | `REJECT` with required notes); notify + log in `server/src/modules/maintenance/requests/`
-- [ ] T031 [US2] Pages: New Maintenance Request, My Requests + detail (USER), Request Queue + review dialog (MGR) in `client/src/features/maintenance/requests/`
-- [ ] T032 **Verify Day 2**: tests pass; typecheck clean; manual: submit with images → review → approve (one WO) and reject path; notifications appear; logs written; bad file type rejected
+- [X] T020 [P] [US9] Locations slice: service/routes (`GET` any; `POST`/`PATCH`/`DELETE`=deactivate ADM; duplicate → 409) and Admin Locations page in `server/src/modules/locations/`, `client/src/features/locations/`
+- [X] T021 [P] [US9] Users slice (ADM): list/get/create/update/status with activity logs; Admin Users page in `server/src/modules/users/`, `client/src/features/users/`
+- [X] T022 [P] Meta endpoint `GET /meta` (categories, priorities, statuses, match thresholds) in `server/src/modules/meta/` and `useMeta()` hook in `client/src/lib/`
+- [X] T023 Implement `notify(userIds, payload, session?)` and `logActivity(entry, session?)` (insert only; no update/delete path) in `server/src/shared/services/`
+- [X] T024 [US8] Notifications slice: `GET /notifications` (own, `unreadCount`), `PATCH /:id/read`, `PATCH /read-all`; NotificationBell with dropdown, 30 s `refetchInterval`, click → `linkUrl` in `server/src/modules/notifications/`, `client/src/components/shared/NotificationBell.tsx`
+- [X] T025 Implement upload middleware + service: multer memory, JPEG/PNG/WebP only, ≤5 MB, ≤3 files, Cloudinary stream; local `server/uploads/` fallback only when Cloudinary vars empty and not production; returns `{ url, publicId }[]` in `server/src/shared/middleware/upload.ts`, `server/src/shared/services/upload.service.ts`
+- [X] T026 [P] Build ImageUpload (previews) and Lightbox components in `client/src/components/shared/`
+- [X] T027 [US2] Implement request state machine (data-model.md "Request" table; `assertTransition(from,to,actor)` → 409) in `server/src/shared/state-machines/request.sm.ts`
+- [X] T028 [P] [US2] Unit tests: every allowed and several forbidden request transitions in `server/tests/unit/request.sm.test.ts`
+- [X] T029 [US2] Requests slice backend: `POST /maintenance/requests` (USER, multipart, notify managers, log), `GET` list (USER own; MGR/ADM all; HIGH/CRITICAL first), `GET /:id` (owner, MGR, ADM, TECH of its WO) in `server/src/modules/maintenance/requests/`
+- [X] T030 [US2] Review endpoint `PATCH /maintenance/requests/:id/review` (`UNDER_REVIEW` | `APPROVE` in transaction creating WO `PENDING_ASSIGNMENT`/`REACTIVE` only if no non-cancelled WO linked, set `currentWorkOrderId` | `REJECT` with required notes); notify + log in `server/src/modules/maintenance/requests/`
+- [X] T031 [US2] Pages: New Maintenance Request, My Requests + detail (USER), Request Queue + review dialog (MGR) in `client/src/features/maintenance/requests/`
+- [X] T032 **Verify Day 2**: tests pass; typecheck clean; manual: submit with images → review → approve (one WO) and reject path; notifications appear; logs written; bad file type rejected
 
 ---
 
