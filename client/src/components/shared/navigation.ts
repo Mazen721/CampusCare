@@ -50,16 +50,16 @@ const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
     { label: 'My reports', to: '/lost-found/my-reports', icon: FolderSearch, soon: true },
   ],
   TECHNICIAN: [
-    { label: 'My work orders', to: '/work-orders', icon: Wrench, soon: true },
+    { label: 'My work orders', to: '/work-orders', icon: Wrench },
     { label: 'My schedule', to: '/maintenance/calendar', icon: CalendarDays, soon: true },
   ],
   MAINTENANCE_MANAGER: [
     { label: 'Request queue', to: '/maintenance/request-queue', icon: Inbox },
-    { label: 'Work orders', to: '/work-orders', icon: ClipboardCheck, soon: true },
-    { label: 'Technicians', to: '/technicians', icon: UsersRound, soon: true },
+    { label: 'Work orders', to: '/work-orders', icon: ClipboardCheck },
+    { label: 'Technicians', to: '/technicians', icon: UsersRound },
     { label: 'Calendar', to: '/maintenance/calendar', icon: CalendarDays, soon: true },
     { label: 'Preventive plans', to: '/maintenance/preventive', icon: Repeat2, soon: true },
-    { label: 'Feedback', to: '/maintenance/feedback', icon: Star, soon: true },
+    { label: 'Feedback', to: '/maintenance/feedback', icon: Star },
   ],
   LOST_FOUND_OFFICER: [
     { label: 'All reports', to: '/lost-found/items', icon: Files, soon: true },

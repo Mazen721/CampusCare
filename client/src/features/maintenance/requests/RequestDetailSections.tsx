@@ -7,6 +7,7 @@ import {
   UserRound,
   Wrench,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { humanizeEnum } from '@/lib/labels';
@@ -121,7 +122,14 @@ export function RequestWorkOrderCard({ request }: SectionProps) {
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Work order number
           </p>
-          <p className="mt-1 text-sm font-medium text-foreground">{workOrder.workOrderNumber}</p>
+          <p className="mt-1 text-sm font-medium">
+            <Link
+              to={`/work-orders/${workOrder.id}`}
+              className="font-mono text-primary hover:underline"
+            >
+              {workOrder.workOrderNumber}
+            </Link>
+          </p>
         </div>
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">

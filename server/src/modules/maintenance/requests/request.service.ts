@@ -2,6 +2,7 @@ import { Types, type FilterQuery } from 'mongoose';
 import type { RequestStatus, Role } from '../../../config/constants';
 import type { ImageAsset } from '../../../shared/schemas/image.schema';
 import { assertTransition } from '../../../shared/state-machines/request.sm';
+import { assertWorkOrderTransition } from '../../../shared/state-machines/workOrder.sm';
 import { logActivity } from '../../../shared/services/activityLog.service';
 import { nextNumber } from '../../../shared/services/counter.service';
 import { notify } from '../../../shared/services/notification.service';
@@ -18,6 +19,7 @@ import {
 import type {
   CreateRequestInput,
   ListRequestsQuery,
+  ReopenRequestInput,
   ReviewRequestInput,
 } from './request.validation';
 
@@ -586,4 +588,137 @@ export async function reviewRequest(
   });
 
   return { request: await getSerializedRequest(id) };
+}
+
+export async function confirmRequest(
+  actor: RequestActor,
+  id: string,
+): Promise<SerializedRequest> {
+  const request = await MaintenanceRequest.findById(id);
+
+  if (!request) {
+    throw ApiError.notFound('Maintenance request not found');
+  }
+
+  const requesterId = request.requesterId.toString();
+  const isOwner = requesterId === actor.id;
+  const isManager = actor.role === 'MAINTENANCE_MANAGER' || actor.role === 'SUPER_ADMIN';
+
+  if (!isOwner && !isManager) {
+    throw ApiError.forbidden('Only the requester or a manager can confirm this request');
+  }
+
+  if (request.status === 'COMPLETED') {
+    assertTransition('COMPLETED', 'CLOSED', isOwner ? 'OWNER' : 'MAINTENANCE_MANAGER');
+  } else if (request.status === 'REOPENED') {
+    if (!isManager) {
+      throw ApiError.forbidden('Only a manager can close a reopened request');
+    }
+    assertTransition('REOPENED', 'CLOSED', 'MAINTENANCE_MANAGER');
+  } else {
+    assertTransition(request.status, 'CLOSED', isOwner ? 'OWNER' : 'MAINTENANCE_MANAGER');
+  }
+
+  request.status = 'CLOSED';
+  await request.save();
+
+  await logActivity({
+    actorId: actor.id,
+    action: isOwner ? 'REQUEST_CONFIRMED' : 'REQUEST_CLOSED',
+    entityType: 'MaintenanceRequest',
+    entityId: request._id,
+    description: isOwner
+      ? `Requester confirmed resolution of request ${request.requestNumber}`
+      : `Manager closed request ${request.requestNumber}`,
+  });
+
+  return getSerializedRequest(id);
+}
+
+export async function reopenRequest(
+  actor: RequestActor,
+  id: string,
+  input: ReopenRequestInput,
+): Promise<SerializedRequest> {
+  await withTransaction(async (session) => {
+    const request = await MaintenanceRequest.findById(id).session(session);
+
+    if (!request) {
+      throw ApiError.notFound('Maintenance request not found');
+    }
+
+    const requesterId = request.requesterId.toString();
+    const isOwner = requesterId === actor.id;
+    const isManager = actor.role === 'MAINTENANCE_MANAGER' || actor.role === 'SUPER_ADMIN';
+
+    if (!isOwner && !isManager) {
+      throw ApiError.forbidden('Only the requester or a manager can reopen this request');
+    }
+
+    assertTransition(request.status, 'REOPENED', isOwner ? 'OWNER' : 'MAINTENANCE_MANAGER');
+
+    if (!request.currentWorkOrderId) {
+      throw ApiError.badRequest('No work order is linked to this maintenance request');
+    }
+
+    const wo = await WorkOrder.findById(request.currentWorkOrderId).session(session);
+    if (!wo) {
+      throw ApiError.notFound('Linked work order not found');
+    }
+
+    assertWorkOrderTransition(wo.status, 'ASSIGNED', 'SYSTEM');
+
+    if (wo.resolutionDetails) {
+      wo.technicianNotes.push({
+        note: `Previous resolution (reopened #${(request.reopenCount ?? 0) + 1}: ${input.reason}): ${wo.resolutionDetails}`,
+        authorId: new Types.ObjectId(actor.id),
+        createdAt: new Date(),
+        isSystem: true,
+      });
+    }
+
+    wo.completedAt = undefined;
+    wo.resolutionDetails = undefined;
+    wo.status = 'ASSIGNED';
+    await wo.save({ session });
+
+    request.reopenCount = (request.reopenCount ?? 0) + 1;
+    request.status = 'REOPENED';
+    await request.save({ session });
+
+    if (wo.assignedTechnicianId) {
+      await notify(
+        [wo.assignedTechnicianId],
+        {
+          type: 'REQUEST_REOPENED',
+          title: 'Work order reopened',
+          message: `Request ${request.requestNumber} was reopened: ${input.reason}. Work order ${wo.workOrderNumber} is back in your assigned queue.`,
+          relatedEntityType: 'WorkOrder',
+          relatedEntityId: wo._id,
+          linkUrl: `/work-orders/${wo._id.toString()}`,
+        },
+        session,
+      );
+    }
+
+    await logActivity(
+      {
+        actorId: actor.id,
+        action: 'REQUEST_REOPENED',
+        entityType: 'MaintenanceRequest',
+        entityId: request._id,
+        description: `Reopened request ${request.requestNumber}: ${input.reason}`,
+        metadata: {
+          reason: input.reason,
+          reopenCount: request.reopenCount,
+          workOrderId: wo._id.toString(),
+        },
+      },
+      session,
+    );
+
+    return { success: true };
+  });
+
+  return getSerializedRequest(id);
 }

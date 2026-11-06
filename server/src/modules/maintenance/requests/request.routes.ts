@@ -4,14 +4,17 @@ import { authorizeRoles } from '../../../shared/middleware/authorizeRoles';
 import { validate } from '../../../shared/middleware/validate';
 import { uploadRequestImages } from '../../../shared/middleware/upload';
 import {
+  confirmRequest,
   createRequest,
   getRequest,
   listRequests,
+  reopenRequest,
   reviewRequest,
 } from './request.controller';
 import {
   createRequestSchema,
   listRequestsQuerySchema,
+  reopenRequestSchema,
   requestIdSchema,
   reviewRequestSchema,
 } from './request.validation';
@@ -53,4 +56,19 @@ maintenanceRequestRouter.patch(
   validate(requestIdSchema, 'params'),
   validate(reviewRequestSchema),
   reviewRequest,
+);
+
+maintenanceRequestRouter.patch(
+  '/:id/confirm',
+  authorizeRoles('STUDENT_EMPLOYEE', 'MAINTENANCE_MANAGER', 'SUPER_ADMIN'),
+  validate(requestIdSchema, 'params'),
+  confirmRequest,
+);
+
+maintenanceRequestRouter.patch(
+  '/:id/reopen',
+  authorizeRoles('STUDENT_EMPLOYEE', 'MAINTENANCE_MANAGER', 'SUPER_ADMIN'),
+  validate(requestIdSchema, 'params'),
+  validate(reopenRequestSchema),
+  reopenRequest,
 );

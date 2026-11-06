@@ -62,6 +62,15 @@ export const requestIdSchema = z.object({
   id: z.string().regex(/^[a-f\d]{24}$/i, 'Request id is not valid'),
 });
 
+export const reopenRequestSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(5, 'Reopen reason must be at least 5 characters')
+    .max(1000, 'Reopen reason must be 1000 characters or fewer'),
+});
+
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 export type ListRequestsQuery = z.infer<typeof listRequestsQuerySchema>;
 export type ReviewRequestInput = z.infer<typeof reviewRequestSchema>;
+export type ReopenRequestInput = z.infer<typeof reopenRequestSchema>;

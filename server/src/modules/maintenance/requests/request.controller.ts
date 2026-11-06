@@ -3,14 +3,17 @@ import { uploadImages } from '../../../shared/services/upload.service';
 import { ApiError } from '../../../shared/utils/ApiError';
 import { asyncHandler } from '../../../shared/utils/asyncHandler';
 import {
+  confirmRequest as confirmRequestService,
   createRequest as createRequestService,
   getRequest as getRequestService,
   listRequests as listRequestsService,
+  reopenRequest as reopenRequestService,
   reviewRequest as reviewRequestService,
 } from './request.service';
 import type {
   CreateRequestInput,
   ListRequestsQuery,
+  ReopenRequestInput,
   ReviewRequestInput,
 } from './request.validation';
 import type { RequestActor } from './request.service';
@@ -68,4 +71,22 @@ export const reviewRequest = asyncHandler(async (req: Request, res: Response) =>
     req.body as ReviewRequestInput,
   );
   res.status(200).json(result);
+});
+
+export const confirmRequest = asyncHandler(async (req: Request, res: Response) => {
+  const actor = requireActor(req);
+  const { id } = req.params as { id: string };
+  const request = await confirmRequestService(actor, id);
+  res.status(200).json({ request });
+});
+
+export const reopenRequest = asyncHandler(async (req: Request, res: Response) => {
+  const actor = requireActor(req);
+  const { id } = req.params as { id: string };
+  const request = await reopenRequestService(
+    actor,
+    id,
+    req.body as ReopenRequestInput,
+  );
+  res.status(200).json({ request });
 });

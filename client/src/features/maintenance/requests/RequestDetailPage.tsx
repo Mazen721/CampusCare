@@ -1,7 +1,8 @@
-import { ArrowLeft, ClipboardCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ClipboardCheck, Loader2, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -9,6 +10,8 @@ import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/AuthContext';
+import { FeedbackCard } from '@/features/maintenance/feedback/FeedbackCard';
+import { ReopenRequestDialog } from '@/features/maintenance/requests/ReopenRequestDialog';
 import {
   RequestDescriptionCard,
   RequestMetaCard,
@@ -31,7 +34,7 @@ function backTarget(role: string | undefined): { to: string; label: string } {
     return { to: '/maintenance/requests', label: 'Back to maintenance requests' };
   }
   if (role === 'TECHNICIAN') {
-    return { to: '/dashboard', label: 'Back to dashboard' };
+    return { to: '/work-orders', label: 'Back to work orders' };
   }
   return { to: '/maintenance/requests', label: 'Back to my requests' };
 }
@@ -39,7 +42,9 @@ function backTarget(role: string | undefined): { to: string; label: string } {
 export function RequestDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [reopenOpen, setReopenOpen] = useState(false);
 
   const requestQuery = useQuery({
     queryKey: ['request', id],
@@ -50,10 +55,31 @@ export function RequestDetailPage() {
     },
   });
 
+  const confirmMutation = useMutation({
+    mutationFn: () => {
+      if (!id) throw new Error('Missing request id');
+      return requestsApi.confirm(id);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['request', id] });
+      await queryClient.invalidateQueries({ queryKey: ['requests'] });
+      toast.success('Request closed successfully!');
+    },
+    onError: (err) => {
+      toast.error(err instanceof ApiError ? err.message : 'Unable to confirm request');
+    },
+  });
+
   const back = backTarget(user?.role);
   const request = requestQuery.data?.request;
-  const canReview =
-    user?.role === 'MAINTENANCE_MANAGER' && request ? REVIEWABLE.includes(request.status) : false;
+
+  const isOwner = Boolean(user && request?.requester && user.id === request.requester.id);
+  const isManager = user?.role === 'MAINTENANCE_MANAGER' || user?.role === 'SUPER_ADMIN';
+
+  const canReview = isManager && request ? REVIEWABLE.includes(request.status) : false;
+  const canConfirm = (isOwner || isManager) && request?.status === 'COMPLETED';
+  const canReopen = (isOwner || isManager) && request?.status === 'COMPLETED';
+  const canCloseReopened = isManager && request?.status === 'REOPENED';
 
   const backLink = (
     <Link
@@ -105,16 +131,55 @@ export function RequestDetailPage() {
         title={request.title}
         description={`${request.category} · ${locationLabel}`}
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={request.status} />
             <PriorityBadge priority={request.priority} />
-            {canReview ? (
+
+            {canReview && (
               <Button onClick={() => setReviewOpen(true)}>
-                <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+                <ClipboardCheck className="mr-1.5 h-4 w-4" aria-hidden="true" />
                 Review request
               </Button>
-            ) : null}
-          </>
+            )}
+
+            {canConfirm && (
+              <Button
+                onClick={() => confirmMutation.mutate()}
+                disabled={confirmMutation.isPending}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                {confirmMutation.isPending ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                )}
+                Confirm Resolution
+              </Button>
+            )}
+
+            {canReopen && (
+              <Button
+                variant="outline"
+                onClick={() => setReopenOpen(true)}
+                className="text-amber-600 border-amber-500/40 hover:bg-amber-500/10"
+              >
+                <RotateCcw className="mr-1.5 h-4 w-4" />
+                Reopen
+              </Button>
+            )}
+
+            {canCloseReopened && (
+              <Button
+                onClick={() => confirmMutation.mutate()}
+                disabled={confirmMutation.isPending}
+              >
+                {confirmMutation.isPending && (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                )}
+                Close Request
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -123,6 +188,9 @@ export function RequestDetailPage() {
           <RequestDescriptionCard request={request} />
           <RequestReviewCard request={request} />
           <RequestWorkOrderCard request={request} />
+          {request.status === 'CLOSED' && (
+            <FeedbackCard request={request} isOwner={isOwner} />
+          )}
         </div>
 
         <div className="space-y-6">
@@ -135,6 +203,12 @@ export function RequestDetailPage() {
         request={request}
         open={reviewOpen}
         onOpenChange={setReviewOpen}
+      />
+
+      <ReopenRequestDialog
+        request={request}
+        open={reopenOpen}
+        onOpenChange={setReopenOpen}
       />
     </div>
   );

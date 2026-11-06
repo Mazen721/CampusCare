@@ -40,4 +40,10 @@ export const requestsApi = {
   review(id: string, input: ReviewRequestInput): Promise<ReviewRequestResponse> {
     return api.patch<ReviewRequestResponse>(`/maintenance/requests/${id}/review`, input);
   },
+  confirm(id: string): Promise<{ request: MaintenanceRequestRecord }> {
+    return api.patch<{ request: MaintenanceRequestRecord }>(`/maintenance/requests/${id}/confirm`);
+  },
+  reopen(id: string, reason: string): Promise<{ request: MaintenanceRequestRecord }> {
+    return api.patch<{ request: MaintenanceRequestRecord }>(`/maintenance/requests/${id}/reopen`, { reason });
+  },
 };

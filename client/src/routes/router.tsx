@@ -4,10 +4,14 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { ProfilePage } from '@/features/auth/ProfilePage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { LocationsPage } from '@/features/locations/LocationsPage';
+import { FeedbackPage } from '@/features/maintenance/feedback/FeedbackPage';
 import { NewRequestPage } from '@/features/maintenance/requests/NewRequestPage';
 import { RequestDetailPage } from '@/features/maintenance/requests/RequestDetailPage';
 import { RequestQueuePage } from '@/features/maintenance/requests/RequestQueuePage';
 import { RequestsListPage } from '@/features/maintenance/requests/RequestsListPage';
+import { TechniciansPage } from '@/features/maintenance/technicians/TechniciansPage';
+import { WorkOrderDetailPage } from '@/features/maintenance/work-orders/WorkOrderDetailPage';
+import { WorkOrdersPage } from '@/features/maintenance/work-orders/WorkOrdersPage';
 import { UsersPage } from '@/features/users/UsersPage';
 import { ForbiddenPage } from '@/routes/ForbiddenPage';
 import { NotFoundPage } from '@/routes/NotFoundPage';
@@ -28,6 +32,26 @@ export function AppRouter() {
           <Route element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']} />}>
             <Route path="users" element={<UsersPage />} />
             <Route path="locations" element={<LocationsPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={['MAINTENANCE_MANAGER', 'SUPER_ADMIN']} />
+            }
+          >
+            <Route path="technicians" element={<TechniciansPage />} />
+            <Route path="maintenance/feedback" element={<FeedbackPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={['MAINTENANCE_MANAGER', 'SUPER_ADMIN', 'TECHNICIAN']}
+              />
+            }
+          >
+            <Route path="work-orders" element={<WorkOrdersPage />} />
+            <Route path="work-orders/:id" element={<WorkOrderDetailPage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['STUDENT_EMPLOYEE']} />}>
