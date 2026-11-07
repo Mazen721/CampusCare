@@ -5,6 +5,7 @@ import { ProfilePage } from '@/features/auth/ProfilePage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { LocationsPage } from '@/features/locations/LocationsPage';
 import { FeedbackPage } from '@/features/maintenance/feedback/FeedbackPage';
+import { CalendarPage } from '@/features/maintenance/calendar/CalendarPage';
 import { NewRequestPage } from '@/features/maintenance/requests/NewRequestPage';
 import { RequestDetailPage } from '@/features/maintenance/requests/RequestDetailPage';
 import { RequestQueuePage } from '@/features/maintenance/requests/RequestQueuePage';
@@ -12,6 +13,11 @@ import { RequestsListPage } from '@/features/maintenance/requests/RequestsListPa
 import { TechniciansPage } from '@/features/maintenance/technicians/TechniciansPage';
 import { WorkOrderDetailPage } from '@/features/maintenance/work-orders/WorkOrderDetailPage';
 import { WorkOrdersPage } from '@/features/maintenance/work-orders/WorkOrdersPage';
+import { AllReportsPage } from '@/features/lost-found/items/AllReportsPage';
+import { BrowseItemsPage } from '@/features/lost-found/items/BrowseItemsPage';
+import { ItemDetailPage } from '@/features/lost-found/items/ItemDetailPage';
+import { MyReportsPage } from '@/features/lost-found/items/MyReportsPage';
+import { ReportItemPage } from '@/features/lost-found/items/ReportItemPage';
 import { UsersPage } from '@/features/users/UsersPage';
 import { ForbiddenPage } from '@/routes/ForbiddenPage';
 import { NotFoundPage } from '@/routes/NotFoundPage';
@@ -52,11 +58,35 @@ export function AppRouter() {
           >
             <Route path="work-orders" element={<WorkOrdersPage />} />
             <Route path="work-orders/:id" element={<WorkOrderDetailPage />} />
+            <Route path="maintenance/calendar" element={<CalendarPage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['STUDENT_EMPLOYEE']} />}>
             <Route path="maintenance/requests/new" element={<NewRequestPage />} />
           </Route>
+
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT_EMPLOYEE', 'LOST_FOUND_OFFICER']} />
+            }
+          >
+            <Route path="lost-found/report" element={<ReportItemPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={['STUDENT_EMPLOYEE']} />}>
+            <Route path="lost-found/my-reports" element={<MyReportsPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={['LOST_FOUND_OFFICER', 'SUPER_ADMIN']} />
+            }
+          >
+            <Route path="lost-found/items" element={<AllReportsPage />} />
+          </Route>
+
+          <Route path="lost-found" element={<BrowseItemsPage />} />
+          <Route path="lost-found/items/:id" element={<ItemDetailPage />} />
 
           <Route
             element={

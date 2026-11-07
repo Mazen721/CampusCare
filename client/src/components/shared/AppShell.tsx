@@ -34,11 +34,19 @@ const PAGE_TITLES: Record<string, string> = {
   '/maintenance/requests': 'Maintenance requests',
   '/maintenance/requests/new': 'New request',
   '/maintenance/request-queue': 'Request queue',
+  '/maintenance/calendar': 'Maintenance calendar',
+  '/lost-found': 'Lost & Found',
+  '/lost-found/report': 'Report an item',
+  '/lost-found/my-reports': 'My reports',
+  '/lost-found/items': 'All reports',
+  '/work-orders': 'Work orders',
 };
 
 function getPageTitle(pathname: string): string {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
   if (/^\/maintenance\/requests\/[^/]+$/.test(pathname)) return 'Request details';
+  if (/^\/work-orders\/[^/]+$/.test(pathname)) return 'Work order details';
+  if (/^\/lost-found\/items\/[^/]+$/.test(pathname)) return 'Lost & Found item';
   return 'CampusCare';
 }
 

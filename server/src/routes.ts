@@ -1,12 +1,15 @@
 import { Router } from 'express';
+import { aiRouter } from './modules/ai/ai.routes';
 import { authRouter } from './modules/auth/auth.routes';
 import { locationRouter } from './modules/locations/location.routes';
 import { metaRouter } from './modules/meta/meta.routes';
 import { notificationRouter } from './modules/notifications/notification.routes';
+import { calendarRouter } from './modules/maintenance/calendar/calendar.routes';
 import { maintenanceRequestRouter } from './modules/maintenance/requests/request.routes';
 import { technicianRouter } from './modules/maintenance/technicians/technician.routes';
 import { workOrderRouter } from './modules/maintenance/work-orders/workOrder.routes';
 import { feedbackRouter } from './modules/maintenance/feedback/feedback.routes';
+import { lostFoundItemRouter } from './modules/lost-found/items/item.routes';
 import { userRouter } from './modules/users/user.routes';
 
 export const apiRouter = Router();
@@ -21,5 +24,8 @@ apiRouter.use('/technicians', technicianRouter);
 apiRouter.use('/maintenance/technicians', technicianRouter);
 apiRouter.use('/work-orders', workOrderRouter);
 apiRouter.use('/maintenance/work-orders', workOrderRouter);
+apiRouter.use('/maintenance/calendar', calendarRouter);
 apiRouter.use('/feedback', feedbackRouter);
 apiRouter.use('/maintenance/feedback', feedbackRouter);
+apiRouter.use('/lost-found/items', lostFoundItemRouter);
+apiRouter.use('/ai', aiRouter);

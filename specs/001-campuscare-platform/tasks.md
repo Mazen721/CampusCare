@@ -89,15 +89,15 @@ quickstart scenario 1 except AI.
 **Goal**: AI summary works with fallback; items can be reported and browsed without leaking private
 details. **Independent test**: spec US4 and US6 scenarios.
 
-- [ ] T041 [US6] Gemini client with 15 s timeout, 429/network catch, fence stripping, `{ available:false, message }` fallback in `server/src/modules/ai/gemini.client.ts`
-- [ ] T042 [US6] `POST /ai/work-order-summary` (TECH assigned, MGR; return existing `aiSummary`; send only title+description; Zod non-empty < 300 chars; store `aiSummary{text,generatedAt}`; never change status/priority/assignment) + "Summarize Issue with AI" button with AI-generated label in `server/src/modules/ai/`, `client/src/features/ai/SummaryButton.tsx`
-- [ ] T043 [US10] **OPTIONAL** Calendar: `GET /maintenance/calendar?from&to&technicianId&status` (MGR all, TECH own, ADM read; overdue flag) + Calendar/My Schedule page Month/Week toggle, red overdue in `server/src/modules/maintenance/calendar/`, `client/src/features/maintenance/calendar/`
-- [ ] T044 [US3] Implement item state machine (data-model.md "Item" table) in `server/src/shared/state-machines/item.sm.ts`
-- [ ] T045 [US4] Implement `toPublicItem(doc)` returning only public fields of MASTER_SPEC 6.1 (no `privateIdentificationDetails`, no reporter contact) in `server/src/modules/lost-found/items/item.projection.ts`
-- [ ] T046 [US4] L&F items backend: `POST /lost-found/items` (USER, OFF; multipart; `LF-` number; status OPEN), `GET` list (public projection; filters keyword/category/type/location/building/date range/color/brand/status, `mine`), `GET /:id` (public; full with `.select('+privateIdentificationDetails')` for reporter, OFF, ADM), `PATCH /:id` (reporter own while OPEN; OFF; close via item SM) in `server/src/modules/lost-found/items/`
-- [ ] T047 [P] [US4] Unit test `toPublicItem` and integration test (supertest + MongoMemoryReplSet) proving list/detail/search never return `privateIdentificationDetails` for non-privileged users in `server/tests/unit/projection.test.ts`, `server/tests/integration/public-items.test.ts`
-- [ ] T048 [US4] Pages: Report Lost/Found (warning not to put identifying details in public fields), Browse (search + filters), Item detail, My Reports, All Reports (OFF) in `client/src/features/lost-found/items/`
-- [ ] T049 **Verify Day 4**: tests pass; typecheck clean; manual: AI summary + cached repeat + bad key fallback; report and browse items; private details visible only to reporter/OFF/ADM; calendar (if built)
+- [X] T041 [US6] Gemini client with 15 s timeout, 429/network catch, fence stripping, `{ available:false, message }` fallback in `server/src/modules/ai/gemini.client.ts`
+- [X] T042 [US6] `POST /ai/work-order-summary` (TECH assigned, MGR; return existing `aiSummary`; send only title+description; Zod non-empty < 300 chars; store `aiSummary{text,generatedAt}`; never change status/priority/assignment) + "Summarize Issue with AI" button with AI-generated label in `server/src/modules/ai/`, `client/src/features/ai/SummaryButton.tsx`
+- [X] T043 [US10] **OPTIONAL** Calendar: `GET /maintenance/calendar?from&to&technicianId&status` (MGR all, TECH own, ADM read; overdue flag) + Calendar/My Schedule page Month/Week toggle, red overdue in `server/src/modules/maintenance/calendar/`, `client/src/features/maintenance/calendar/`
+- [X] T044 [US3] Implement item state machine (data-model.md "Item" table) in `server/src/shared/state-machines/item.sm.ts`
+- [X] T045 [US4] Implement `toPublicItem(doc)` returning only public fields of MASTER_SPEC 6.1 (no `privateIdentificationDetails`, no reporter contact) in `server/src/modules/lost-found/items/item.projection.ts`
+- [X] T046 [US4] L&F items backend: `POST /lost-found/items` (USER, OFF; multipart; `LF-` number; status OPEN), `GET` list (public projection; filters keyword/category/type/location/building/date range/color/brand/status, `mine`), `GET /:id` (public; full with `.select('+privateIdentificationDetails')` for reporter, OFF, ADM), `PATCH /:id` (reporter own while OPEN; OFF; close via item SM) in `server/src/modules/lost-found/items/`
+- [X] T047 [P] [US4] Unit test `toPublicItem` and integration test (supertest + MongoMemoryReplSet) proving list/detail/search never return `privateIdentificationDetails` for non-privileged users in `server/tests/unit/projection.test.ts`, `server/tests/integration/public-items.test.ts`
+- [X] T048 [US4] Pages: Report Lost/Found (warning not to put identifying details in public fields), Browse (search + filters), Item detail, My Reports, All Reports (OFF) in `client/src/features/lost-found/items/`
+- [X] T049 **Verify Day 4**: tests pass; typecheck clean; manual: AI summary + cached repeat + bad key fallback; report and browse items; private details visible only to reporter/OFF/ADM; calendar (if built)
 
 ---
 

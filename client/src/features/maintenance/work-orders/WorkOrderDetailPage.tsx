@@ -7,6 +7,7 @@ import {
   MapPin,
   MessageSquarePlus,
   Play,
+  Sparkles,
   UserCheck,
   XCircle,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useAuth } from '@/features/auth/AuthContext';
+import { SummaryButton } from '@/features/ai/SummaryButton';
 import { AddNoteDialog } from '@/features/maintenance/work-orders/AddNoteDialog';
 import { AssignWorkOrderDialog } from '@/features/maintenance/work-orders/AssignWorkOrderDialog';
 import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/CancelWorkOrderDialog';
@@ -73,6 +75,8 @@ export function WorkOrderDetailPage() {
   const isAssignedTech = Boolean(
     isTechnician && workOrder?.assignedTechnician?.id === user?.id,
   );
+  const canSummarize =
+    isAssignedTech || user?.role === 'MAINTENANCE_MANAGER';
 
   const isOverdue = Boolean(
     workOrder &&
@@ -223,6 +227,44 @@ export function WorkOrderDetailPage() {
               <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
                 {workOrder.description}
               </p>
+            </CardContent>
+          </Card>
+
+          <Card className={workOrder.aiSummary ? 'border-primary/30 bg-primary/[0.03]' : undefined}>
+            <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+                  Issue summary
+                </CardTitle>
+                <CardDescription>
+                  A short factual summary written from the work order title and description.
+                </CardDescription>
+              </div>
+              {canSummarize ? (
+                <SummaryButton
+                  workOrderId={workOrder.id}
+                  hasSummary={Boolean(workOrder.aiSummary)}
+                />
+              ) : null}
+            </CardHeader>
+            <CardContent>
+              {workOrder.aiSummary ? (
+                <div className="space-y-2">
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {workOrder.aiSummary.text}
+                  </p>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                    AI-generated · {formatDate(workOrder.aiSummary.generatedAt)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {canSummarize
+                    ? 'No summary has been generated for this work order yet.'
+                    : 'No AI summary is available for this work order.'}
+                </p>
+              )}
             </CardContent>
           </Card>
 

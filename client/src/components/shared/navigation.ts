@@ -44,25 +44,25 @@ const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
   STUDENT_EMPLOYEE: [
     { label: 'New request', to: '/maintenance/requests/new', icon: PlusCircle },
     { label: 'My requests', to: '/maintenance/requests', icon: ClipboardList, end: true },
-    { label: 'Report lost / found', to: '/lost-found/report', icon: PackagePlus, soon: true },
-    { label: 'Browse lost & found', to: '/lost-found', icon: Search, soon: true },
+    { label: 'Report lost / found', to: '/lost-found/report', icon: PackagePlus },
+    { label: 'Browse lost & found', to: '/lost-found', icon: Search },
     { label: 'My claims', to: '/lost-found/claims', icon: BadgeCheck, soon: true },
-    { label: 'My reports', to: '/lost-found/my-reports', icon: FolderSearch, soon: true },
+    { label: 'My reports', to: '/lost-found/my-reports', icon: FolderSearch },
   ],
   TECHNICIAN: [
     { label: 'My work orders', to: '/work-orders', icon: Wrench },
-    { label: 'My schedule', to: '/maintenance/calendar', icon: CalendarDays, soon: true },
+    { label: 'My schedule', to: '/maintenance/calendar', icon: CalendarDays },
   ],
   MAINTENANCE_MANAGER: [
     { label: 'Request queue', to: '/maintenance/request-queue', icon: Inbox },
     { label: 'Work orders', to: '/work-orders', icon: ClipboardCheck },
     { label: 'Technicians', to: '/technicians', icon: UsersRound },
-    { label: 'Calendar', to: '/maintenance/calendar', icon: CalendarDays, soon: true },
+    { label: 'Calendar', to: '/maintenance/calendar', icon: CalendarDays },
     { label: 'Preventive plans', to: '/maintenance/preventive', icon: Repeat2, soon: true },
     { label: 'Feedback', to: '/maintenance/feedback', icon: Star },
   ],
   LOST_FOUND_OFFICER: [
-    { label: 'All reports', to: '/lost-found/items', icon: Files, soon: true },
+    { label: 'All reports', to: '/lost-found/items', icon: Files },
     { label: 'Match suggestions', to: '/lost-found/matches', icon: GitCompareArrows, soon: true },
     { label: 'Claims', to: '/lost-found/claims', icon: ShieldCheck, soon: true },
     { label: 'Handovers', to: '/lost-found/handovers', icon: Handshake, soon: true },
@@ -72,7 +72,7 @@ const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
     { label: 'Locations', to: '/locations', icon: MapPin },
     { label: 'Activity logs', to: '/activity-logs', icon: ScrollText, soon: true },
     { label: 'Maintenance view', to: '/maintenance/requests', icon: Eye },
-    { label: 'Lost & Found view', to: '/lost-found/items', icon: Eye, soon: true },
+    { label: 'Lost & Found view', to: '/lost-found/items', icon: Eye },
   ],
 };
 
