@@ -2,7 +2,7 @@ import { RotateCcw, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { humanizeEnum } from '@/lib/labels';
 import {
-  ITEM_STATUSES,
+  ACTIVE_BROWSE_STATUSES,
   LOST_FOUND_CATEGORIES,
   REPORT_TYPES,
   type ItemStatus,
@@ -38,6 +38,7 @@ interface ItemFiltersProps {
   values: ItemFilterState;
   onChange: (patch: Partial<ItemFilterState>) => void;
   onReset: () => void;
+  allowedStatuses?: readonly ItemStatus[];
 }
 
 const fieldClass =
@@ -45,7 +46,12 @@ const fieldClass =
 const labelClass =
   'mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground';
 
-export function ItemFilters({ values, onChange, onReset }: ItemFiltersProps) {
+export function ItemFilters({
+  values,
+  onChange,
+  onReset,
+  allowedStatuses = ACTIVE_BROWSE_STATUSES,
+}: ItemFiltersProps) {
   return (
     <section className="rounded-lg border bg-card p-4 shadow-panel" aria-label="Lost and found filters">
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -166,7 +172,7 @@ export function ItemFilters({ values, onChange, onReset }: ItemFiltersProps) {
             className={fieldClass}
           >
             <option value="ALL">All statuses</option>
-            {ITEM_STATUSES.map((status) => (
+            {allowedStatuses.map((status) => (
               <option key={status} value={status}>
                 {humanizeEnum(status)}
               </option>

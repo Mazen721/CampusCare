@@ -33,6 +33,7 @@ interface ReportsTableProps {
   emptyTitle: string;
   emptyDescription: string;
   emptyAction?: ReactNode;
+  allowedStatuses?: readonly ItemStatus[];
 }
 
 export function ReportsTable({
@@ -53,6 +54,7 @@ export function ReportsTable({
   emptyTitle,
   emptyDescription,
   emptyAction,
+  allowedStatuses = ITEM_STATUSES,
 }: ReportsTableProps) {
   const columns: Array<DataTableColumn<LostFoundItem>> = [
     {
@@ -157,7 +159,7 @@ export function ReportsTable({
           value: status,
           options: [
             { label: 'All statuses', value: 'ALL' },
-            ...ITEM_STATUSES.map((itemStatus) => ({
+            ...allowedStatuses.map((itemStatus) => ({
               label: humanizeEnum(itemStatus),
               value: itemStatus,
             })),

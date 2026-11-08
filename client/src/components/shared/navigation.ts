@@ -1,4 +1,5 @@
 import {
+  Archive,
   BadgeCheck,
   CalendarDays,
   ClipboardCheck,
@@ -45,7 +46,7 @@ const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
     { label: 'New request', to: '/maintenance/requests/new', icon: PlusCircle },
     { label: 'My requests', to: '/maintenance/requests', icon: ClipboardList, end: true },
     { label: 'Report lost / found', to: '/lost-found/report', icon: PackagePlus },
-    { label: 'Browse lost & found', to: '/lost-found', icon: Search },
+    { label: 'Browse lost & found', to: '/lost-found', icon: Search, end: true },
     { label: 'My claims', to: '/lost-found/claims', icon: BadgeCheck },
     { label: 'My reports', to: '/lost-found/my-reports', icon: FolderSearch },
   ],
@@ -63,6 +64,7 @@ const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
   ],
   LOST_FOUND_OFFICER: [
     { label: 'All reports', to: '/lost-found/items', icon: Files },
+    { label: 'Archived items', to: '/lost-found/archived', icon: Archive },
     { label: 'Match suggestions', to: '/lost-found/matches', icon: GitCompareArrows },
     { label: 'Claims', to: '/lost-found/claims', icon: ShieldCheck },
     { label: 'Handovers', to: '/lost-found/handovers', icon: Handshake },

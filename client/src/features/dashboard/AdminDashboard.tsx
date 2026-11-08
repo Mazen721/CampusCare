@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { InsightSections } from '@/features/ai/InsightSections';
+import { AdminCharts } from '@/features/dashboard/AdminCharts';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,7 @@ import { formatDate } from '@/lib/utils';
 import type { AdminDashboard as AdminDashboardData } from '@/types/dashboard';
 
 export function AdminDashboard({ data }: { data: AdminDashboardData }) {
-  const { totals, latestInsights } = data;
+  const { totals, latestInsights, analytics } = data;
 
   return (
     <div className="space-y-6">
@@ -71,6 +72,8 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
           hint="Review or verification"
         />
       </div>
+
+      {analytics ? <AdminCharts analytics={analytics} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card className="shadow-none">

@@ -3,6 +3,7 @@ import type {
   RequestStatus,
   WorkOrderStatus,
 } from '@/types/meta';
+import type { Role } from '@/types/auth';
 import type { InsightContent } from '@/types/insights';
 
 export const DASHBOARD_PERIODS = ['7d', '30d', '90d', 'all'] as const;
@@ -75,6 +76,11 @@ export interface AdminDashboard extends DashboardBase {
     rangeEnd: string;
     insights: InsightContent;
   } | null;
+  analytics: {
+    usersByRole: Array<{ role: Role; count: number }>;
+    activityByBuilding: Array<{ building: string; maintenance: number; lostFound: number }>;
+    moduleVolume: Array<{ module: string; count: number }>;
+  };
 }
 
 export interface TechnicianScheduleItem {
@@ -104,6 +110,14 @@ export interface TechnicianDashboard extends DashboardBase {
     completed: number;
   };
   schedule: TechnicianScheduleItem[];
+  analytics: {
+    byPriority: Array<{ priority: string; count: number }>;
+    byCategory: Array<{ category: string; count: number }>;
+    statusDistribution: Array<{ status: string; count: number }>;
+    averageResolutionHours: number | null;
+    averageRating: number | null;
+    feedbackCount: number;
+  };
 }
 
 export interface OfficerDashboard extends DashboardBase {
@@ -118,6 +132,11 @@ export interface OfficerDashboard extends DashboardBase {
     underVerificationClaims: number;
     claimsAwaitingHandover: number;
     completedHandovers: number;
+  };
+  analytics: {
+    itemsByStatus: Array<{ status: string; count: number }>;
+    itemsByCategory: Array<{ category: string; lost: number; found: number }>;
+    claimsByStatus: Array<{ status: string; count: number }>;
   };
 }
 

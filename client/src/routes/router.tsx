@@ -16,6 +16,7 @@ import { PreventivePlansPage } from '@/features/maintenance/preventive/Preventiv
 import { WorkOrderDetailPage } from '@/features/maintenance/work-orders/WorkOrderDetailPage';
 import { WorkOrdersPage } from '@/features/maintenance/work-orders/WorkOrdersPage';
 import { AllReportsPage } from '@/features/lost-found/items/AllReportsPage';
+import { ArchivedReportsPage } from '@/features/lost-found/items/ArchivedReportsPage';
 import { BrowseItemsPage } from '@/features/lost-found/items/BrowseItemsPage';
 import { ItemDetailPage } from '@/features/lost-found/items/ItemDetailPage';
 import { MyReportsPage } from '@/features/lost-found/items/MyReportsPage';
@@ -107,6 +108,7 @@ export function AppRouter() {
             }
           >
             <Route path="lost-found/items" element={<AllReportsPage />} />
+            <Route path="lost-found/archived" element={<ArchivedReportsPage />} />
           </Route>
 
           <Route path="lost-found" element={<BrowseItemsPage />} />

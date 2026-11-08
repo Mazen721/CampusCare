@@ -62,6 +62,7 @@ export const listItemsQuerySchema = z
     color: z.string().trim().max(60).optional(),
     brand: z.string().trim().max(80).optional(),
     status: z.enum(ITEM_STATUSES).optional(),
+    scope: z.enum(['active', 'archived', 'all']).optional(),
     mine: z
       .enum(['true', 'false'])
       .optional()

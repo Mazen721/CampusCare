@@ -1,7 +1,14 @@
 import { subDays } from 'date-fns';
 import { Types } from 'mongoose';
 import {
+  CLAIM_STATUSES,
+  ITEM_STATUSES,
+  PRIORITIES,
   REQUEST_STATUSES,
+  ROLES,
+  type ClaimStatus,
+  type ItemStatus,
+  type Priority,
   type RequestStatus,
   type Role,
   type WorkOrderStatus,
@@ -83,6 +90,11 @@ export interface AdminDashboard {
     rangeEnd: Date;
     insights: InsightContent;
   } | null;
+  analytics: {
+    usersByRole: Array<{ role: Role; count: number }>;
+    activityByBuilding: Array<{ building: string; maintenance: number; lostFound: number }>;
+    moduleVolume: Array<{ module: string; count: number }>;
+  };
 }
 
 export interface TechnicianDashboard {
@@ -113,6 +125,14 @@ export interface TechnicianDashboard {
       room: string;
     } | null;
   }>;
+  analytics: {
+    byPriority: Array<{ priority: string; count: number }>;
+    byCategory: Array<{ category: string; count: number }>;
+    statusDistribution: Array<{ status: string; count: number }>;
+    averageResolutionHours: number | null;
+    averageRating: number | null;
+    feedbackCount: number;
+  };
 }
 
 export interface OfficerDashboard {
@@ -130,6 +150,11 @@ export interface OfficerDashboard {
     underVerificationClaims: number;
     claimsAwaitingHandover: number;
     completedHandovers: number;
+  };
+  analytics: {
+    itemsByStatus: Array<{ status: string; count: number }>;
+    itemsByCategory: Array<{ category: string; lost: number; found: number }>;
+    claimsByStatus: Array<{ status: string; count: number }>;
   };
 }
 
@@ -506,6 +531,14 @@ async function getAdminDashboard(
     pendingMatches,
     pendingClaims,
     latestInsight,
+    userRoleRows,
+    mrBuildingRows,
+    lfBuildingRows,
+    requestsInRange,
+    workOrdersInRange,
+    lostInRange,
+    foundInRange,
+    claimsInRange,
   ] = await Promise.all([
     User.countDocuments({}),
     User.countDocuments({ isActive: true }),
@@ -520,7 +553,75 @@ async function getAdminDashboard(
     ItemMatch.countDocuments({ status: 'SUGGESTED' }),
     ClaimRequest.countDocuments({ status: { $in: ['PENDING_REVIEW', 'UNDER_VERIFICATION'] } }),
     AiInsightCache.findOne({}).sort({ generatedAt: -1 }).lean(),
+    User.aggregate<CountRow>([{ $group: { _id: '$role', count: { $sum: 1 } } }]),
+    MaintenanceRequest.aggregate<CountRow>([
+      { $match: createdAtMatch(range) },
+      {
+        $lookup: {
+          from: 'locations',
+          localField: 'locationId',
+          foreignField: '_id',
+          as: 'location',
+        },
+      },
+      { $unwind: { path: '$location', preserveNullAndEmptyArrays: false } },
+      { $group: { _id: '$location.buildingName', count: { $sum: 1 } } },
+    ]),
+    LostFoundItem.aggregate<CountRow>([
+      { $match: createdAtMatch(range) },
+      {
+        $lookup: {
+          from: 'locations',
+          localField: 'locationId',
+          foreignField: '_id',
+          as: 'location',
+        },
+      },
+      { $unwind: { path: '$location', preserveNullAndEmptyArrays: false } },
+      { $group: { _id: '$location.buildingName', count: { $sum: 1 } } },
+    ]),
+    MaintenanceRequest.countDocuments(createdAtMatch(range)),
+    WorkOrder.countDocuments(createdAtMatch(range)),
+    LostFoundItem.countDocuments({ reportType: 'LOST', ...createdAtMatch(range) }),
+    LostFoundItem.countDocuments({ reportType: 'FOUND', ...createdAtMatch(range) }),
+    ClaimRequest.countDocuments(createdAtMatch(range)),
   ]);
+
+  const userRoleMap = new Map(userRoleRows.map((row) => [row._id, row.count]));
+  const usersByRole = ROLES.map((role) => ({
+    role,
+    count: userRoleMap.get(role) ?? 0,
+  }));
+
+  const buildingActivityMap = new Map<string, { maintenance: number; lostFound: number }>();
+  mrBuildingRows.forEach((row) => {
+    if (!row._id) return;
+    const current = buildingActivityMap.get(row._id) ?? { maintenance: 0, lostFound: 0 };
+    current.maintenance = row.count;
+    buildingActivityMap.set(row._id, current);
+  });
+  lfBuildingRows.forEach((row) => {
+    if (!row._id) return;
+    const current = buildingActivityMap.get(row._id) ?? { maintenance: 0, lostFound: 0 };
+    current.lostFound = row.count;
+    buildingActivityMap.set(row._id, current);
+  });
+  const activityByBuilding = Array.from(buildingActivityMap.entries())
+    .map(([building, counts]) => ({
+      building,
+      maintenance: counts.maintenance,
+      lostFound: counts.lostFound,
+    }))
+    .sort((a, b) => b.maintenance + b.lostFound - (a.maintenance + a.lostFound))
+    .slice(0, 6);
+
+  const moduleVolume = [
+    { module: 'Requests', count: requestsInRange },
+    { module: 'Work Orders', count: workOrdersInRange },
+    { module: 'Lost Items', count: lostInRange },
+    { module: 'Found Items', count: foundInRange },
+    { module: 'Claims', count: claimsInRange },
+  ];
 
   return {
     role: 'SUPER_ADMIN',
@@ -550,6 +651,11 @@ async function getAdminDashboard(
           insights: latestInsight.insights,
         }
       : null,
+    analytics: {
+      usersByRole,
+      activityByBuilding,
+      moduleVolume,
+    },
   };
 }
 
@@ -561,7 +667,17 @@ async function getTechnicianDashboard(
   const technicianId = new Types.ObjectId(actorId);
   const now = range.to;
 
-  const [assigned, inProgress, overdue, completed, schedule] = await Promise.all([
+  const [
+    assigned,
+    inProgress,
+    overdue,
+    completed,
+    schedule,
+    priorityRows,
+    categoryRows,
+    resolutionRows,
+    feedbackRows,
+  ] = await Promise.all([
     WorkOrder.countDocuments({
       assignedTechnicianId: technicianId,
       status: 'ASSIGNED',
@@ -590,7 +706,89 @@ async function getTechnicianDashboard(
       .sort({ scheduledStart: 1, expectedCompletion: 1 })
       .limit(10)
       .lean(),
+    WorkOrder.aggregate<CountRow>([
+      {
+        $match: {
+          assignedTechnicianId: technicianId,
+          ...(range.from ? { createdAt: { $gte: range.from, $lte: range.to } } : {}),
+        },
+      },
+      { $group: { _id: '$priority', count: { $sum: 1 } } },
+    ]),
+    WorkOrder.aggregate<CountRow>([
+      {
+        $match: {
+          assignedTechnicianId: technicianId,
+          ...(range.from ? { createdAt: { $gte: range.from, $lte: range.to } } : {}),
+        },
+      },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]),
+    WorkOrder.aggregate<{ _id: null; hours: number | null }>([
+      {
+        $match: {
+          assignedTechnicianId: technicianId,
+          actualStart: { $ne: null },
+          completedAt: range.from
+            ? { $gte: range.from, $lte: range.to }
+            : { $ne: null },
+        },
+      },
+      {
+        $project: {
+          hours: {
+            $divide: [{ $subtract: ['$completedAt', '$actualStart'] }, 3_600_000],
+          },
+        },
+      },
+      { $group: { _id: null, hours: { $avg: '$hours' } } },
+    ]),
+    ServiceFeedback.aggregate<{ _id: null; averageRating: number; count: number }>([
+      {
+        $match: {
+          technicianId,
+          ...createdAtMatch(range),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: '$rating' },
+          count: { $sum: 1 },
+        },
+      },
+    ]),
   ]);
+
+  const priorityMap = new Map(priorityRows.map((row) => [row._id, row.count]));
+  const byPriority = PRIORITIES.map((priority) => ({
+    priority,
+    count: priorityMap.get(priority) ?? 0,
+  }));
+
+  const byCategory = categoryRows
+    .filter((row): row is CountRow & { _id: string } => Boolean(row._id))
+    .map((row) => ({ category: row._id, count: row.count }));
+
+  const statusDistribution = [
+    { status: 'Assigned', count: assigned },
+    { status: 'In Progress', count: inProgress },
+    { status: 'Completed', count: completed },
+    { status: 'Overdue', count: overdue },
+  ];
+
+  const averageResolutionHours =
+    resolutionRows[0]?.hours === null || resolutionRows[0]?.hours === undefined
+      ? null
+      : round(resolutionRows[0].hours);
+
+  const averageRating =
+    feedbackRows[0]?.averageRating === null || feedbackRows[0]?.averageRating === undefined
+      ? null
+      : round(feedbackRows[0].averageRating);
+
+  const feedbackCount = feedbackRows[0]?.count ?? 0;
 
   return {
     role: 'TECHNICIAN',
@@ -629,6 +827,14 @@ async function getTechnicianDashboard(
           : null,
       };
     }),
+    analytics: {
+      byPriority,
+      byCategory,
+      statusDistribution,
+      averageResolutionHours,
+      averageRating,
+      feedbackCount,
+    },
   };
 }
 
@@ -646,6 +852,9 @@ async function getOfficerDashboard(
     underVerificationClaims,
     claimsAwaitingHandover,
     completedHandovers,
+    itemStatusRows,
+    categoryReportRows,
+    claimStatusRows,
   ] = await Promise.all([
     LostFoundItem.countDocuments({ reportType: 'LOST' }),
     LostFoundItem.countDocuments({ reportType: 'FOUND' }),
@@ -656,7 +865,49 @@ async function getOfficerDashboard(
     ClaimRequest.countDocuments({ status: 'UNDER_VERIFICATION' }),
     ClaimRequest.countDocuments({ status: 'APPROVED' }),
     ClaimRequest.countDocuments({ status: 'COMPLETED' }),
+    LostFoundItem.aggregate<CountRow>([
+      { $match: createdAtMatch(range) },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+    LostFoundItem.aggregate<{ _id: { category: string; reportType: string }; count: number }>([
+      { $match: createdAtMatch(range) },
+      { $group: { _id: { category: '$category', reportType: '$reportType' }, count: { $sum: 1 } } },
+    ]),
+    ClaimRequest.aggregate<CountRow>([
+      { $match: createdAtMatch(range) },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
   ]);
+
+  const itemStatusMap = new Map(itemStatusRows.map((row) => [row._id, row.count]));
+  const itemsByStatus = ITEM_STATUSES.map((status) => ({
+    status,
+    count: itemStatusMap.get(status) ?? 0,
+  }));
+
+  const categoryMap = new Map<string, { lost: number; found: number }>();
+  categoryReportRows.forEach((row) => {
+    const cat = row._id.category;
+    if (!cat) return;
+    const current = categoryMap.get(cat) ?? { lost: 0, found: 0 };
+    if (row._id.reportType === 'LOST') current.lost = row.count;
+    if (row._id.reportType === 'FOUND') current.found = row.count;
+    categoryMap.set(cat, current);
+  });
+  const itemsByCategory = Array.from(categoryMap.entries())
+    .map(([category, counts]) => ({
+      category,
+      lost: counts.lost,
+      found: counts.found,
+    }))
+    .sort((a, b) => b.lost + b.found - (a.lost + a.found))
+    .slice(0, 6);
+
+  const claimStatusMap = new Map(claimStatusRows.map((row) => [row._id, row.count]));
+  const claimsByStatus = CLAIM_STATUSES.map((status) => ({
+    status,
+    count: claimStatusMap.get(status) ?? 0,
+  }));
 
   return {
     role: 'LOST_FOUND_OFFICER',
@@ -673,6 +924,11 @@ async function getOfficerDashboard(
       underVerificationClaims,
       claimsAwaitingHandover,
       completedHandovers,
+    },
+    analytics: {
+      itemsByStatus,
+      itemsByCategory,
+      claimsByStatus,
     },
   };
 }

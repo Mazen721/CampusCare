@@ -1,17 +1,26 @@
-import { CalendarClock, CheckCircle2, Clock3, TriangleAlert, Wrench } from 'lucide-react';
+import {
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  Star,
+  Timer,
+  TriangleAlert,
+  Wrench,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
+import { TechnicianCharts } from '@/features/dashboard/TechnicianCharts';
 import { formatDate } from '@/lib/utils';
 import type { TechnicianDashboard as TechnicianDashboardData } from '@/types/dashboard';
 
 export function TechnicianDashboard({ data }: { data: TechnicianDashboardData }) {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <DashboardStatCard label="Assigned" value={data.counts.assigned} icon={Wrench} />
         <DashboardStatCard label="In progress" value={data.counts.inProgress} icon={Clock3} />
         <DashboardStatCard
@@ -25,9 +34,34 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
           value={data.counts.completed}
           icon={CheckCircle2}
           tone="success"
-          hint="In the selected period"
+          hint="In this period"
+        />
+        <DashboardStatCard
+          label="Avg. resolution"
+          value={
+            data.analytics?.averageResolutionHours !== null &&
+            data.analytics?.averageResolutionHours !== undefined
+              ? `${data.analytics.averageResolutionHours} h`
+              : '—'
+          }
+          icon={Timer}
+          hint="Start to completion"
+        />
+        <DashboardStatCard
+          label="My rating"
+          value={
+            data.analytics?.averageRating !== null &&
+            data.analytics?.averageRating !== undefined
+              ? data.analytics.averageRating.toFixed(1)
+              : '—'
+          }
+          icon={Star}
+          tone="warning"
+          hint={`${data.analytics?.feedbackCount ?? 0} review${data.analytics?.feedbackCount === 1 ? '' : 's'}`}
         />
       </div>
+
+      {data.analytics ? <TechnicianCharts analytics={data.analytics} /> : null}
 
       <Card className="shadow-none">
         <CardHeader className="pb-3">

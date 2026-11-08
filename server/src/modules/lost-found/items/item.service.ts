@@ -1,5 +1,5 @@
 import { Types, type FilterQuery } from 'mongoose';
-import type { Role } from '../../../config/constants';
+import type { ItemStatus, Role } from '../../../config/constants';
 import type { ImageAsset } from '../../../shared/schemas/image.schema';
 import { assertItemTransition } from '../../../shared/state-machines/item.sm';
 import { logActivity } from '../../../shared/services/activityLog.service';
@@ -65,6 +65,18 @@ const REPORTER_POPULATION = {
   path: 'reporterId',
   select: 'name email department role',
 };
+
+export const BROWSE_ACTIVE_STATUSES: ItemStatus[] = [
+  'OPEN',
+  'MATCH_CONFIRMED',
+  'CLAIM_UNDER_REVIEW',
+];
+
+export const ARCHIVED_ITEM_STATUSES: ItemStatus[] = [
+  'APPROVED_FOR_HANDOVER',
+  'RETURNED',
+  'CLOSED',
+];
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -196,7 +208,25 @@ export async function listItems(
     filter.reporterId = new Types.ObjectId(actor.id);
   }
 
-  if (query.status) filter.status = query.status;
+  if (query.scope === 'archived') {
+    if (actor.role !== 'LOST_FOUND_OFFICER' && actor.role !== 'SUPER_ADMIN') {
+      throw ApiError.forbidden('Only Lost & Found Officers can view archived items');
+    }
+    if (query.status) {
+      filter.status = query.status;
+    } else {
+      filter.status = { $in: ARCHIVED_ITEM_STATUSES };
+    }
+  } else if (query.scope === 'active') {
+    if (query.status && BROWSE_ACTIVE_STATUSES.includes(query.status)) {
+      filter.status = query.status;
+    } else {
+      filter.status = { $in: BROWSE_ACTIVE_STATUSES };
+    }
+  } else if (query.status) {
+    filter.status = query.status;
+  }
+
   if (query.reportType) filter.reportType = query.reportType;
   if (query.category) filter.category = query.category;
   if (query.locationId) filter.locationId = query.locationId;

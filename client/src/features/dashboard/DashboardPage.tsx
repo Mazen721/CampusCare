@@ -46,13 +46,14 @@ export function DashboardPage() {
   const [period, setPeriod] = useState<DashboardPeriod>('7d');
 
   const dashboardQuery = useQuery({
-    queryKey: ['dashboard', period],
+    queryKey: ['dashboard', user?.id, user?.role, period],
     queryFn: () => dashboardApi.get(period),
     enabled: Boolean(user),
   });
 
   if (!user) return null;
 
+  const isRoleMatched = Boolean(dashboardQuery.data && dashboardQuery.data.role === user.role);
   const firstName = user.name.trim().split(/\s+/)[0] ?? user.name;
   const today = formatDate(new Date(), {
     weekday: 'long',
@@ -83,7 +84,7 @@ export function DashboardPage() {
         }
       />
 
-      {dashboardQuery.isLoading ? (
+      {dashboardQuery.isLoading || (dashboardQuery.data && !isRoleMatched) ? (
         <LoadingState label="Loading your dashboard…" />
       ) : errorMessage ? (
         <ErrorState
@@ -91,7 +92,7 @@ export function DashboardPage() {
           message={errorMessage}
           onRetry={() => void dashboardQuery.refetch()}
         />
-      ) : dashboardQuery.data ? (
+      ) : dashboardQuery.data && isRoleMatched ? (
         <RoleDashboard data={dashboardQuery.data} />
       ) : null}
     </div>

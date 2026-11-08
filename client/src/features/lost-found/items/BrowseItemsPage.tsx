@@ -36,6 +36,7 @@ export function BrowseItemsPage() {
         color: filters.color || undefined,
         brand: filters.brand || undefined,
         status: filters.status === 'ALL' ? undefined : filters.status,
+        scope: 'active',
         from: filters.from || undefined,
         to: filters.to || undefined,
         page,

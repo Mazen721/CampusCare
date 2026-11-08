@@ -14,6 +14,7 @@ import {
   storeToken,
   UNAUTHORIZED_EVENT,
 } from '@/lib/api';
+import { queryClient } from '@/lib/queryClient';
 import type {
   AuthUser,
   ChangePasswordInput,
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleUnauthorized = () => {
       clearStoredToken();
+      queryClient.clear();
       setUser(null);
     };
 
@@ -77,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
+    queryClient.clear();
     const response = await authApi.login(credentials);
     storeToken(response.token);
     setUser(response.user);
@@ -84,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const demoLogin = useCallback(async (role: Role) => {
+    queryClient.clear();
     const response = await authApi.demoLogin(role);
     storeToken(response.token);
     setUser(response.user);
@@ -92,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearStoredToken();
+    queryClient.clear();
     setUser(null);
   }, []);
 

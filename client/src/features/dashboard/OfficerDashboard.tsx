@@ -10,10 +10,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
+import { OfficerCharts } from '@/features/dashboard/OfficerCharts';
 import type { OfficerDashboard as OfficerDashboardData } from '@/types/dashboard';
 
 export function OfficerDashboard({ data }: { data: OfficerDashboardData }) {
-  const { counts } = data;
+  const { counts, analytics } = data;
 
   return (
     <div className="space-y-6">
@@ -45,6 +46,8 @@ export function OfficerDashboard({ data }: { data: OfficerDashboardData }) {
           hint={`${counts.pendingClaims} pending · ${counts.underVerificationClaims} verifying`}
         />
       </div>
+
+      {analytics ? <OfficerCharts analytics={analytics} /> : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="shadow-none">

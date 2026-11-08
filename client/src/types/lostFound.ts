@@ -30,6 +30,18 @@ export const ITEM_STATUSES = [
 ] as const;
 export type ItemStatus = (typeof ITEM_STATUSES)[number];
 
+export const ACTIVE_BROWSE_STATUSES = [
+  'OPEN',
+  'MATCH_CONFIRMED',
+  'CLAIM_UNDER_REVIEW',
+] as const;
+
+export const ARCHIVED_ITEM_STATUSES = [
+  'APPROVED_FOR_HANDOVER',
+  'RETURNED',
+  'CLOSED',
+] as const;
+
 export interface LostFoundLocation {
   id: string;
   buildingName: string;
@@ -104,6 +116,7 @@ export interface ListLostFoundItemsParams {
   color?: string;
   brand?: string;
   status?: ItemStatus;
+  scope?: 'active' | 'archived' | 'all';
   mine?: boolean;
   page?: number;
   limit?: number;
