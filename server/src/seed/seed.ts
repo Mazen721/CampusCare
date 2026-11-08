@@ -22,6 +22,7 @@ import { Counter } from '../shared/models/Counter.model';
 import { COUNTER_PREFIXES } from '../shared/services/counter.service';
 import { Notification } from '../shared/models/Notification.model';
 import { ActivityLog } from '../shared/models/ActivityLog.model';
+import { seedDemoData, type DemoDataCounts } from './demoData';
 
 export const SEED_PASSWORD = 'CampusCare#2026';
 
@@ -41,10 +42,17 @@ interface SeedReport {
   technicians: number;
   locations: number;
   buildings: number;
+  demo?: DemoDataCounts;
 }
 
 interface SeedOptions {
   silent?: boolean;
+  /**
+   * Adds the full Day 6 demo dataset. Defaults to true outside tests so the
+   * earlier phase suites, which assume an otherwise empty workflow, keep a
+   * minimal foundation.
+   */
+  fullDemoData?: boolean;
 }
 
 interface IndexableModel {
@@ -185,9 +193,10 @@ function buildLocations(): Array<{
 }
 
 /**
- * Wipes the configured database and recreates the Day 1 demo foundation:
- * one account per role, five technicians, and four buildings with rooms.
- * Full demo data is added in Day 6 (T067).
+ * Wipes the configured database and recreates the demo foundation: one account
+ * per role, five technicians, four buildings with rooms, and (unless running
+ * under NODE_ENV=test without an explicit override) the full Day 6 workflow,
+ * preventive, Lost & Found, notification, log and insight dataset.
  */
 export async function seedDatabase(options: SeedOptions = {}): Promise<SeedReport> {
   if (process.env.NODE_ENV === 'production') {
@@ -227,11 +236,18 @@ export async function seedDatabase(options: SeedOptions = {}): Promise<SeedRepor
     const locations = buildLocations();
     await Location.insertMany(locations);
 
+    const includeDemoData = options.fullDemoData ?? process.env.NODE_ENV !== 'test';
+    const demo = includeDemoData ? await seedDemoData(passwordHash) : undefined;
+    const accountCount = await User.countDocuments({});
+    const technicianCount = await User.countDocuments({ role: 'TECHNICIAN' });
+    const buildingNames = await Location.distinct('buildingName');
+
     const report: SeedReport = {
-      accounts: seedUsers.length,
-      technicians: seedUsers.filter((user) => user.role === 'TECHNICIAN').length,
+      accounts: accountCount,
+      technicians: technicianCount,
       locations: locations.length,
-      buildings: BUILDINGS.length,
+      buildings: buildingNames.length,
+      demo,
     };
 
     if (!options.silent) {
@@ -241,6 +257,17 @@ export async function seedDatabase(options: SeedOptions = {}): Promise<SeedRepor
       console.log(`Technicians: ${report.technicians}`);
       console.log(`Buildings:   ${report.buildings}`);
       console.log(`Locations:   ${report.locations}`);
+      if (report.demo) {
+        console.log(`Requests:    ${report.demo.requests}`);
+        console.log(`Work orders: ${report.demo.workOrders}`);
+        console.log(`Plans:       ${report.demo.preventivePlans}`);
+        console.log(
+          `Lost/found:  ${report.demo.lostItems} lost, ${report.demo.foundItems} found`,
+        );
+        console.log(`Claims:      ${report.demo.claims}`);
+        console.log(`Matches:     ${report.demo.matches}`);
+        console.log(`Logs:        ${report.demo.activityLogs}`);
+      }
       console.log(`\nDemo password: ${SEED_PASSWORD}\n`);
       console.log('Demo accounts:');
       for (const role of ROLES) {

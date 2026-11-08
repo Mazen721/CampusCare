@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { ActivityLogsPage } from '@/features/activity-logs/ActivityLogsPage';
 import { AppShell } from '@/components/shared/AppShell';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { ProfilePage } from '@/features/auth/ProfilePage';
@@ -11,6 +12,7 @@ import { RequestDetailPage } from '@/features/maintenance/requests/RequestDetail
 import { RequestQueuePage } from '@/features/maintenance/requests/RequestQueuePage';
 import { RequestsListPage } from '@/features/maintenance/requests/RequestsListPage';
 import { TechniciansPage } from '@/features/maintenance/technicians/TechniciansPage';
+import { PreventivePlansPage } from '@/features/maintenance/preventive/PreventivePlansPage';
 import { WorkOrderDetailPage } from '@/features/maintenance/work-orders/WorkOrderDetailPage';
 import { WorkOrdersPage } from '@/features/maintenance/work-orders/WorkOrdersPage';
 import { AllReportsPage } from '@/features/lost-found/items/AllReportsPage';
@@ -18,6 +20,11 @@ import { BrowseItemsPage } from '@/features/lost-found/items/BrowseItemsPage';
 import { ItemDetailPage } from '@/features/lost-found/items/ItemDetailPage';
 import { MyReportsPage } from '@/features/lost-found/items/MyReportsPage';
 import { ReportItemPage } from '@/features/lost-found/items/ReportItemPage';
+import { ClaimDetailPage } from '@/features/lost-found/claims/ClaimDetailPage';
+import { ClaimsPage } from '@/features/lost-found/claims/ClaimsPage';
+import { HandoversPage } from '@/features/lost-found/claims/HandoversPage';
+import { SubmitClaimPage } from '@/features/lost-found/claims/SubmitClaimPage';
+import { MatchSuggestionsPage } from '@/features/lost-found/matches/MatchSuggestionsPage';
 import { UsersPage } from '@/features/users/UsersPage';
 import { ForbiddenPage } from '@/routes/ForbiddenPage';
 import { NotFoundPage } from '@/routes/NotFoundPage';
@@ -38,6 +45,7 @@ export function AppRouter() {
           <Route element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']} />}>
             <Route path="users" element={<UsersPage />} />
             <Route path="locations" element={<LocationsPage />} />
+            <Route path="activity-logs" element={<ActivityLogsPage />} />
           </Route>
 
           <Route
@@ -47,6 +55,7 @@ export function AppRouter() {
           >
             <Route path="technicians" element={<TechniciansPage />} />
             <Route path="maintenance/feedback" element={<FeedbackPage />} />
+            <Route path="maintenance/preventive" element={<PreventivePlansPage />} />
           </Route>
 
           <Route
@@ -75,6 +84,21 @@ export function AppRouter() {
 
           <Route element={<ProtectedRoute allowedRoles={['STUDENT_EMPLOYEE']} />}>
             <Route path="lost-found/my-reports" element={<MyReportsPage />} />
+            <Route path="lost-found/claims/new" element={<SubmitClaimPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT_EMPLOYEE', 'LOST_FOUND_OFFICER']} />
+            }
+          >
+            <Route path="lost-found/claims" element={<ClaimsPage />} />
+            <Route path="lost-found/claims/:id" element={<ClaimDetailPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={['LOST_FOUND_OFFICER']} />}>
+            <Route path="lost-found/matches" element={<MatchSuggestionsPage />} />
+            <Route path="lost-found/handovers" element={<HandoversPage />} />
           </Route>
 
           <Route

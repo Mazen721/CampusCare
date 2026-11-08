@@ -105,16 +105,16 @@ details. **Independent test**: spec US4 and US6 scenarios.
 
 **Goal**: Lost → match → claim → handover. **Independent test**: quickstart scenario 2.
 
-- [ ] T050 [US3] Implement pure `scorePair(lost, found, config)` per MASTER_SPEC 6.3 (hard filters, sub-scores, normalization over comparable fields, thresholds) in `server/src/modules/lost-found/matches/matching.service.ts`
-- [ ] T051 [P] [US3] Unit tests: strong match, possible match, below threshold, missing color/brand not penalized, incompatible category skipped, found-before-lost skipped, dismissed match not resurrected in `server/tests/unit/matching.test.ts`
-- [ ] T052 [US3] `runMatchingFor(itemId)` (OPEN candidates only; upsert refresh only while SUGGESTED; never revert CONFIRMED/DISMISSED), called on item create and `POST /lost-found/items/:id/recalculate` (OFF) in `server/src/modules/lost-found/matches/`
-- [ ] T053 [US3] Matches endpoints `GET /lost-found/matches`, `PATCH /:id` CONFIRM (both items MATCH_CONFIRMED, notify LOST reporter with claim link pre-filled `linkedLostItemId`, log) / DISMISS + Match Suggestions page (OFF) in `server/src/modules/lost-found/matches/`, `client/src/features/lost-found/matches/`
-- [ ] T054 [US3] Implement claim state machine (data-model.md "Claim" table) in `server/src/shared/state-machines/claim.sm.ts`
-- [ ] T055 [P] [US3] Unit tests: allowed and forbidden item and claim transitions in `server/tests/unit/item-claim.sm.test.ts`
-- [ ] T056 [US3] Claims backend: `POST /lost-found/claims` (USER, multipart; FOUND item in OPEN/MATCH_CONFIRMED/CLAIM_UNDER_REVIEW; one active claim per claimant per item; `linkedLostItemId` must be claimant's own LOST; item → CLAIM_UNDER_REVIEW; notify officers), `GET` list/detail (OFF all; claimant own, `verificationNotes` hidden) in `server/src/modules/lost-found/claims/`
-- [ ] T057 [US3] Review + handover: `PATCH /:id/review` START_VERIFICATION | APPROVE (transaction: item APPROVED_FOR_HANDOVER, auto-reject other pending claims) | REJECT (`rejectionReason` required; item → OPEN if no active claims); `POST /:id/handover` (claim APPROVED; transaction: claim COMPLETED + `handover{receivedByName,handedOverBy,notes,handedOverAt}`, found + linked lost RETURNED, log, notify) in `server/src/modules/lost-found/claims/`
-- [ ] T058 [US3] Pages: Submit Claim, My Claims (USER), Claims queue + verification screen (private details beside claimant answers, internal notes), Handover form (OFF) in `client/src/features/lost-found/claims/`
-- [ ] T059 **Verify Day 5**: tests pass; typecheck clean; manual: full lost → match → confirm → claim → verify → approve → handover; competing claim auto-rejected; only OFF can approve/handover
+- [X] T050 [US3] Implement pure `scorePair(lost, found, config)` per MASTER_SPEC 6.3 (hard filters, sub-scores, normalization over comparable fields, thresholds) in `server/src/modules/lost-found/matches/matching.service.ts`
+- [X] T051 [P] [US3] Unit tests: strong match, possible match, below threshold, missing color/brand not penalized, incompatible category skipped, found-before-lost skipped, dismissed match not resurrected in `server/tests/unit/matching.test.ts`
+- [X] T052 [US3] `runMatchingFor(itemId)` (OPEN candidates only; upsert refresh only while SUGGESTED; never revert CONFIRMED/DISMISSED), called on item create and `POST /lost-found/items/:id/recalculate` (OFF) in `server/src/modules/lost-found/matches/`
+- [X] T053 [US3] Matches endpoints `GET /lost-found/matches`, `PATCH /:id` CONFIRM (both items MATCH_CONFIRMED, notify LOST reporter with claim link pre-filled `linkedLostItemId`, log) / DISMISS + Match Suggestions page (OFF) in `server/src/modules/lost-found/matches/`, `client/src/features/lost-found/matches/`
+- [X] T054 [US3] Implement claim state machine (data-model.md "Claim" table) in `server/src/shared/state-machines/claim.sm.ts`
+- [X] T055 [P] [US3] Unit tests: allowed and forbidden item and claim transitions in `server/tests/unit/item-claim.sm.test.ts`
+- [X] T056 [US3] Claims backend: `POST /lost-found/claims` (USER, multipart; FOUND item in OPEN/MATCH_CONFIRMED/CLAIM_UNDER_REVIEW; one active claim per claimant per item; `linkedLostItemId` must be claimant's own LOST; item → CLAIM_UNDER_REVIEW; notify officers), `GET` list/detail (OFF all; claimant own, `verificationNotes` hidden) in `server/src/modules/lost-found/claims/`
+- [X] T057 [US3] Review + handover: `PATCH /:id/review` START_VERIFICATION | APPROVE (transaction: item APPROVED_FOR_HANDOVER, auto-reject other pending claims) | REJECT (`rejectionReason` required; item → OPEN if no active claims); `POST /:id/handover` (claim APPROVED; transaction: claim COMPLETED + `handover{receivedByName,handedOverBy,notes,handedOverAt}`, found + linked lost RETURNED, log, notify) in `server/src/modules/lost-found/claims/`
+- [X] T058 [US3] Pages: Submit Claim, My Claims (USER), Claims queue + verification screen (private details beside claimant answers, internal notes), Handover form (OFF) in `client/src/features/lost-found/claims/`
+- [X] T059 **Verify Day 5**: tests pass; typecheck clean; manual: full lost → match → confirm → claim → verify → approve → handover; competing claim auto-rejected; only OFF can approve/handover
 
 ---
 
@@ -122,15 +122,15 @@ details. **Independent test**: spec US4 and US6 scenarios.
 
 **Goal**: Role dashboards from live data; optional items if time allows; demo data complete.
 
-- [ ] T060 [US7] `GET /dashboard?period=7d|30d|90d|all` with role from JWT: ADM totals (+ latest cached insights read-only), MGR section 5.8 metrics, TECH counts + schedule, OFF counts, USER own items in `server/src/modules/dashboard/`
-- [ ] T061 [US7] Dashboard page per role (MGR max 2–3 Recharts charts, period selector) in `client/src/features/dashboard/`
-- [ ] T062 [P] [US9] Activity Logs page (ADM; filters entity type, actor, date; pagination) with `GET /activity-logs` in `server/src/modules/activity-logs/`, `client/src/features/activity-logs/`
-- [ ] T063 [US11] **OPTIONAL** `POST /ai/maintenance-insights` (MGR; aggregates incl. anonymized Technician A/B/C, previous-period change; send stats JSON + dates only; Zod output; cache per period unless `regenerate`; fallback with stats + last cache) + InsightsPanel (system-calculated vs AI-generated labels, period, `generatedAt`) in `server/src/modules/ai/`, `client/src/features/ai/InsightsPanel.tsx`
-- [ ] T064 [US12] **OPTIONAL** Pure recurrence `nextDate()` / `advancePastNow()` (DAILY 1 day, WEEKLY 7, MONTHLY +1 calendar month, CUSTOM_DAYS `recurrenceIntervalDays`) in `server/src/modules/preventive/recurrence.ts`
-- [ ] T065 [P] [US12] **OPTIONAL** Unit tests for recurrence (each type, month-end, skipping missed occurrences) in `server/tests/unit/recurrence.test.ts`
-- [ ] T066 [US12] **OPTIONAL** Preventive slice: CRUD + status (MGR; ADM read), `generate-due` (WO PREVENTIVE, ASSIGNED if plan tech else PENDING_ASSIGNMENT, E11000 = already generated, returns `{ created }`, log) + Preventive Plans page in `server/src/modules/preventive/`, `client/src/features/maintenance/preventive/`
-- [ ] T067 Complete seed per MASTER_SPEC section 13 (20+ requests in every status/priority, WOs in every status incl. overdue + reopened, feedback, 2–3 plans one due, 8+ lost/8+ found with STRONG and POSSIBLE pairs, stored matches, claims in all states, one handover, notifications, logs) in `server/src/seed/seed.ts`
-- [ ] T068 **Verify Day 6**: tests pass; typecheck clean; manual: each role's dashboard shows seeded numbers and changes after an action; insights + fallback (if built); generate-due twice creates no duplicates (if built)
+- [X] T060 [US7] `GET /dashboard?period=7d|30d|90d|all` with role from JWT: ADM totals (+ latest cached insights read-only), MGR section 5.8 metrics, TECH counts + schedule, OFF counts, USER own items in `server/src/modules/dashboard/`
+- [X] T061 [US7] Dashboard page per role (MGR max 2–3 Recharts charts, period selector) in `client/src/features/dashboard/`
+- [X] T062 [P] [US9] Activity Logs page (ADM; filters entity type, actor, date; pagination) with `GET /activity-logs` in `server/src/modules/activity-logs/`, `client/src/features/activity-logs/`
+- [X] T063 [US11] **OPTIONAL** `POST /ai/maintenance-insights` (MGR; aggregates incl. anonymized Technician A/B/C, previous-period change; send stats JSON + dates only; Zod output; cache per period unless `regenerate`; fallback with stats + last cache) + InsightsPanel (system-calculated vs AI-generated labels, period, `generatedAt`) in `server/src/modules/ai/`, `client/src/features/ai/InsightsPanel.tsx`
+- [X] T064 [US12] **OPTIONAL** Pure recurrence `nextDate()` / `advancePastNow()` (DAILY 1 day, WEEKLY 7, MONTHLY +1 calendar month, CUSTOM_DAYS `recurrenceIntervalDays`) in `server/src/modules/preventive/recurrence.ts`
+- [X] T065 [P] [US12] **OPTIONAL** Unit tests for recurrence (each type, month-end, skipping missed occurrences) in `server/tests/unit/recurrence.test.ts`
+- [X] T066 [US12] **OPTIONAL** Preventive slice: CRUD + status (MGR; ADM read), `generate-due` (WO PREVENTIVE, ASSIGNED if plan tech else PENDING_ASSIGNMENT, E11000 = already generated, returns `{ created }`, log) + Preventive Plans page in `server/src/modules/preventive/`, `client/src/features/maintenance/preventive/`
+- [X] T067 Complete seed per MASTER_SPEC section 13 (20+ requests in every status/priority, WOs in every status incl. overdue + reopened, feedback, 2–3 plans one due, 8+ lost/8+ found with STRONG and POSSIBLE pairs, stored matches, claims in all states, one handover, notifications, logs) in `server/src/seed/seed.ts`
+- [X] T068 **Verify Day 6**: tests pass; typecheck clean; manual: each role's dashboard shows seeded numbers and changes after an action; insights + fallback (if built); generate-due twice creates no duplicates (if built)
 
 ---
 

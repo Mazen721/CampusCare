@@ -7,6 +7,7 @@ import {
   createItem,
   getItem,
   listItems,
+  recalculateMatches,
   updateItem,
 } from './item.controller';
 import {
@@ -35,6 +36,13 @@ lostFoundItemRouter.get(
 );
 
 lostFoundItemRouter.get('/:id', validate(itemIdSchema, 'params'), getItem);
+
+lostFoundItemRouter.post(
+  '/:id/recalculate',
+  authorizeRoles('LOST_FOUND_OFFICER'),
+  validate(itemIdSchema, 'params'),
+  recalculateMatches,
+);
 
 lostFoundItemRouter.patch(
   '/:id',

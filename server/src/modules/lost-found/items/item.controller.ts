@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { uploadImages } from '../../../shared/services/upload.service';
 import { ApiError } from '../../../shared/utils/ApiError';
 import { asyncHandler } from '../../../shared/utils/asyncHandler';
+import { runMatchingFor } from '../matches/matching.runner';
 import {
   createItem as createItemService,
   getItem as getItemService,
@@ -69,3 +70,11 @@ export const updateItem = asyncHandler(async (req: Request, res: Response) => {
   );
   res.status(200).json({ item });
 });
+
+export const recalculateMatches = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params as { id: string };
+    const result = await runMatchingFor(id);
+    res.status(200).json(result);
+  },
+);

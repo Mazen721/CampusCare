@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   CalendarDays,
+  ClipboardCheck,
   EyeOff,
   MapPin,
   Palette,
@@ -10,11 +11,13 @@ import {
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { useAuth } from '@/features/auth/AuthContext';
 import { CloseItemButton } from '@/features/lost-found/items/CloseItemButton';
 import { ItemGallery } from '@/features/lost-found/items/ItemGallery';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
@@ -24,6 +27,7 @@ import { formatDate } from '@/lib/utils';
 
 export function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
 
   const itemQuery = useQuery({
     queryKey: ['lost-found-item', id],
@@ -76,6 +80,13 @@ export function ItemDetailPage() {
     );
   }
 
+  const canClaim =
+    user?.role === 'STUDENT_EMPLOYEE' &&
+    item.reportType === 'FOUND' &&
+    (item.status === 'OPEN' ||
+      item.status === 'MATCH_CONFIRMED' ||
+      item.status === 'CLAIM_UNDER_REVIEW');
+
   return (
     <div className="space-y-6">
       <Link
@@ -94,6 +105,14 @@ export function ItemDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             <ReportTypeBadge reportType={item.reportType} />
             <StatusBadge status={item.status} />
+            {canClaim ? (
+              <Button asChild>
+                <Link to={`/lost-found/claims/new?itemId=${item.id}`}>
+                  <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+                  Submit claim
+                </Link>
+              </Button>
+            ) : null}
             <CloseItemButton item={item} />
           </div>
         }

@@ -7,6 +7,7 @@ import { nextNumber } from '../../../shared/services/counter.service';
 import { ApiError } from '../../../shared/utils/ApiError';
 import { paginate, parsePagination } from '../../../shared/utils/paginate';
 import { Location } from '../../locations/location.model';
+import { runMatchingFor } from '../matches/matching.runner';
 import {
   LostFoundItem,
   type ILostFoundItem,
@@ -173,6 +174,8 @@ export async function createItem(
       images: images.length,
     },
   });
+
+  await runMatchingFor(item._id.toString());
 
   return serializeItem(await loadItem(item._id.toString(), true), true);
 }

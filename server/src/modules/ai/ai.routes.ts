@@ -2,8 +2,14 @@ import { Router } from 'express';
 import { authenticate } from '../../shared/middleware/authenticate';
 import { authorizeRoles } from '../../shared/middleware/authorizeRoles';
 import { validate } from '../../shared/middleware/validate';
-import { summarizeWorkOrder } from './ai.controller';
-import { workOrderSummaryBodySchema } from './ai.validation';
+import {
+  generateMaintenanceInsights,
+  summarizeWorkOrder,
+} from './ai.controller';
+import {
+  maintenanceInsightsBodySchema,
+  workOrderSummaryBodySchema,
+} from './ai.validation';
 
 export const aiRouter = Router();
 
@@ -14,4 +20,11 @@ aiRouter.post(
   authorizeRoles('TECHNICIAN', 'MAINTENANCE_MANAGER'),
   validate(workOrderSummaryBodySchema),
   summarizeWorkOrder,
+);
+
+aiRouter.post(
+  '/maintenance-insights',
+  authorizeRoles('MAINTENANCE_MANAGER'),
+  validate(maintenanceInsightsBodySchema),
+  generateMaintenanceInsights,
 );

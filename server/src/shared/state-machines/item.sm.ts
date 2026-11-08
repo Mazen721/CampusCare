@@ -48,6 +48,10 @@ export const ITEM_TRANSITIONS: readonly ItemTransitionRule[] = [
     to: 'RETURNED',
     actors: ['LOST_FOUND_OFFICER', 'SYSTEM'],
   },
+  // Handover side effect: the claimant's linked LOST item returns to its owner
+  // even though its own claim flow never moved it to APPROVED_FOR_HANDOVER.
+  { from: 'OPEN', to: 'RETURNED', actors: ['SYSTEM'] },
+  { from: 'MATCH_CONFIRMED', to: 'RETURNED', actors: ['SYSTEM'] },
   { from: 'OPEN', to: 'CLOSED', actors: ['LOST_FOUND_OFFICER', 'REPORTER'] },
   {
     from: 'MATCH_CONFIRMED',

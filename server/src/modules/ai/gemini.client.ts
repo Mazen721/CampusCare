@@ -7,6 +7,11 @@ export type AiClientResult =
   | { available: true; text: string }
   | { available: false; message: string };
 
+export interface GeminiRequestOptions {
+  maxOutputTokens?: number;
+  temperature?: number;
+}
+
 class AiTimeoutError extends Error {
   constructor() {
     super('AI request timed out');
@@ -76,6 +81,7 @@ function failureMessage(error: unknown): string {
 export async function generateGeminiText(
   prompt: string,
   systemInstruction: string,
+  options: GeminiRequestOptions = {},
 ): Promise<AiClientResult> {
   if (!env.GEMINI_API_KEY) {
     return {
@@ -92,8 +98,8 @@ export async function generateGeminiText(
         contents: prompt,
         config: {
           systemInstruction,
-          temperature: 0.2,
-          maxOutputTokens: 200,
+          temperature: options.temperature ?? 0.2,
+          maxOutputTokens: options.maxOutputTokens ?? 200,
         },
       }),
       AI_TIMEOUT_MS,
