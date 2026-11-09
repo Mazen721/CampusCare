@@ -1,6 +1,5 @@
 import { Bell, BellRing, CheckCheck, ClipboardList, Loader2, PackageSearch, Wrench } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -15,7 +14,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notificationsApi } from '@/features/notifications/notificationsApi';
+import { fmtDistanceToNow } from '@/lib/dateLocale';
 import { cn } from '@/lib/utils';
+import { resolveParams } from '@/i18n/localize';
 import type { AppNotification } from '@/types/notifications';
 
 const NOTIFICATIONS_QUERY_KEY = ['notifications', 'bell'] as const;
@@ -42,6 +43,13 @@ function NotificationRow({ notification, onOpen }: NotificationRowProps) {
   const { t } = useTranslation();
   const Icon = iconForType(notification.type);
   const destination = notification.linkUrl ?? '/dashboard';
+  const resolvedParams = resolveParams(notification.params);
+  const localizedTitle = notification.titleKey
+    ? t(`notif.${notification.titleKey}`, { ...resolvedParams, defaultValue: notification.title })
+    : notification.title;
+  const localizedMessage = notification.messageKey
+    ? t(`notif.${notification.messageKey}`, { ...resolvedParams, defaultValue: notification.message })
+    : notification.message;
 
   return (
     <DropdownMenuItem asChild>
@@ -68,7 +76,7 @@ function NotificationRow({ notification, onOpen }: NotificationRowProps) {
                 notification.isRead ? 'text-muted-foreground' : 'font-semibold text-foreground',
               )}
             >
-              {notification.title}
+              {localizedTitle}
             </span>
             {!notification.isRead ? (
               <span
@@ -78,10 +86,10 @@ function NotificationRow({ notification, onOpen }: NotificationRowProps) {
             ) : null}
           </span>
           <span className="mt-1 line-clamp-2 block text-xs leading-relaxed text-muted-foreground">
-            {notification.message}
+            {localizedMessage}
           </span>
           <span className="mt-1 block text-[11px] text-muted-foreground/80">
-            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+            {fmtDistanceToNow(notification.createdAt, { addSuffix: true })}
           </span>
         </span>
       </Link>

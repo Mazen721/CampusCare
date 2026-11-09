@@ -30,17 +30,17 @@ export const authenticate = asyncHandler(async (req, _res, next) => {
     }
     payload = verified;
   } catch {
-    throw ApiError.unauthorized('Your session is invalid or has expired');
+    throw ApiError.unauthorized('Your session is invalid or has expired', 'sessionExpired');
   }
 
   if (!payload.sub || typeof payload.sub !== 'string') {
-    throw ApiError.unauthorized('Your session is invalid or has expired');
+    throw ApiError.unauthorized('Your session is invalid or has expired', 'sessionExpired');
   }
 
   const user = await User.findById(payload.sub);
 
   if (!user || !user.isActive) {
-    throw ApiError.unauthorized('This account is inactive or no longer exists');
+    throw ApiError.unauthorized('This account is inactive or no longer exists', 'accountInactive');
   }
 
   req.user = user;

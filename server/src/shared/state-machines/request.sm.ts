@@ -80,6 +80,7 @@ export function assertTransition(
   if (!isTransitionAllowed(from, to, actor)) {
     throw ApiError.conflict(
       `Request status cannot change from ${from} to ${to} for this actor`,
+      'invalidRequestTransition',
       { from, to, actor },
     );
   }

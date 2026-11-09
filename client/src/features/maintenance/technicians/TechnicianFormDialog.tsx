@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import {
   MAINTENANCE_CATEGORIES,
   TECHNICIAN_AVAILABILITIES,
@@ -180,7 +180,7 @@ export function TechnicianFormDialog({
     },
     onError: (error) => {
       setServerError(
-        error instanceof ApiError ? error.message : 'Unable to save technician',
+        getErrorMessage(error),
       );
     },
   });

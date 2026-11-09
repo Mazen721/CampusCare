@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn, formatNumber } from '@/lib/utils';
 
 type StatTone = 'default' | 'success' | 'warning' | 'danger';
 
@@ -29,6 +29,7 @@ export function DashboardStatCard({
   className,
 }: DashboardStatCardProps) {
   const styles = TONE_STYLES[tone];
+  const displayValue = typeof value === 'number' ? formatNumber(value) : value;
 
   return (
     <Card className={cn('shadow-none', className)}>
@@ -38,7 +39,7 @@ export function DashboardStatCard({
             {label}
           </p>
           <p className={cn('mt-2 font-display text-3xl leading-none', styles.value)}>
-            {value}
+            {displayValue}
           </p>
           {hint ? <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
         </div>

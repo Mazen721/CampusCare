@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { TechnicianCharts } from '@/features/dashboard/TechnicianCharts';
 import { enumLabel } from '@/lib/labels';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatNumber } from '@/lib/utils';
 import type { TechnicianDashboard as TechnicianDashboardData } from '@/types/dashboard';
 
 export function TechnicianDashboard({ data }: { data: TechnicianDashboardData }) {
@@ -45,7 +45,12 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
           value={
             data.analytics?.averageResolutionHours !== null &&
             data.analytics?.averageResolutionHours !== undefined
-              ? t('dashboard.hoursShort', { hours: data.analytics.averageResolutionHours })
+              ? t('dashboard.hoursShort', {
+                  hours: formatNumber(data.analytics.averageResolutionHours, {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                  }),
+                })
               : '—'
           }
           icon={Timer}
@@ -56,12 +61,15 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
           value={
             data.analytics?.averageRating !== null &&
             data.analytics?.averageRating !== undefined
-              ? data.analytics.averageRating.toFixed(1)
+              ? formatNumber(data.analytics.averageRating, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                })
               : '—'
           }
           icon={Star}
           tone="warning"
-          hint={`${data.analytics?.feedbackCount ?? 0} ${t('feedback.totalReviews')}`}
+          hint={`${formatNumber(data.analytics?.feedbackCount ?? 0)} ${t('feedback.totalReviews')}`}
         />
       </div>
 

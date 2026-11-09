@@ -140,7 +140,7 @@ async function getPlanDocument(id: string): Promise<PopulatedPreventivePlan> {
     .lean<PopulatedPreventivePlan | null>();
 
   if (!plan) {
-    throw ApiError.notFound('Preventive plan not found');
+    throw ApiError.notFound('Preventive plan not found', 'preventivePlanNotFound');
   }
 
   return plan;
@@ -153,7 +153,7 @@ async function assertActiveLocation(locationId: string): Promise<void> {
   }).select('_id');
 
   if (!location) {
-    throw ApiError.badRequest('Select an active campus location');
+    throw ApiError.badRequest('Select an active campus location', 'activeLocationRequired');
   }
 }
 
@@ -167,7 +167,7 @@ async function assertActiveTechnician(technicianId?: string): Promise<void> {
   }).select('_id');
 
   if (!technician) {
-    throw ApiError.badRequest('Select an active technician');
+    throw ApiError.badRequest('Select an active technician', 'activeTechnicianRequired');
   }
 }
 
@@ -228,6 +228,8 @@ export async function createPreventivePlan(
     entityType: 'PreventivePlan',
     entityId: plan._id,
     description: `Created preventive plan ${plan.title} (${plan.recurrenceType})`,
+    descriptionKey: 'preventivePlanCreated',
+    params: { title: plan.title, recurrence: plan.recurrenceType },
     metadata: {
       category: plan.category,
       recurrenceType: plan.recurrenceType,
@@ -248,7 +250,7 @@ export async function updatePreventivePlan(
   const plan = await PreventivePlan.findById(id);
 
   if (!plan) {
-    throw ApiError.notFound('Preventive plan not found');
+    throw ApiError.notFound('Preventive plan not found', 'preventivePlanNotFound');
   }
 
   const effectiveType = input.recurrenceType ?? plan.recurrenceType;
@@ -257,6 +259,7 @@ export async function updatePreventivePlan(
   if (effectiveType === 'CUSTOM_DAYS' && (!effectiveInterval || effectiveInterval < 1)) {
     throw ApiError.badRequest(
       'recurrenceIntervalDays is required when recurrenceType is CUSTOM_DAYS',
+      'customDaysIntervalRequired',
     );
   }
 
@@ -307,6 +310,8 @@ export async function updatePreventivePlan(
     entityType: 'PreventivePlan',
     entityId: plan._id,
     description: `Updated preventive plan ${plan.title}`,
+    descriptionKey: 'preventivePlanUpdated',
+    params: { title: plan.title },
     metadata: {
       recurrenceType: plan.recurrenceType,
       recurrenceIntervalDays: plan.recurrenceIntervalDays,
@@ -326,7 +331,7 @@ export async function updatePreventivePlanStatus(
   const plan = await PreventivePlan.findById(id);
 
   if (!plan) {
-    throw ApiError.notFound('Preventive plan not found');
+    throw ApiError.notFound('Preventive plan not found', 'preventivePlanNotFound');
   }
 
   plan.isActive = input.isActive;
@@ -338,6 +343,8 @@ export async function updatePreventivePlanStatus(
     entityType: 'PreventivePlan',
     entityId: plan._id,
     description: `${input.isActive ? 'Activated' : 'Deactivated'} preventive plan ${plan.title}`,
+    descriptionKey: input.isActive ? 'preventivePlanActivated' : 'preventivePlanDeactivated',
+    params: { title: plan.title },
   });
 
   return serializePlan(await getPlanDocument(plan._id.toString()));
@@ -405,6 +412,8 @@ export async function generateDueWorkOrders(
         entityType: 'WorkOrder',
         entityId: workOrder._id,
         description: `Generated preventive work order ${workOrder.workOrderNumber} from plan ${plan.title}`,
+        descriptionKey: 'preventiveWorkOrderGenerated',
+        params: { code: workOrder.workOrderNumber, title: plan.title },
         metadata: {
           preventivePlanId: plan._id.toString(),
           scheduledStart,
@@ -424,6 +433,8 @@ export async function generateDueWorkOrders(
         entityType: 'PreventivePlan',
         entityId: plan._id,
         description: `Skipped already-generated preventive occurrence for ${plan.title}`,
+        descriptionKey: 'preventiveWorkOrderSkipped',
+        params: { title: plan.title },
         metadata: { scheduledStart },
       });
     }

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { PreventivePlanFormDialog } from '@/features/maintenance/preventive/PreventivePlanFormDialog';
 import { preventiveApi } from '@/features/maintenance/preventive/preventiveApi';
 import { useAuth } from '@/features/auth/AuthContext';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { PreventivePlanRecord } from '@/types/preventive';
@@ -58,11 +58,7 @@ export function PreventivePlansPage() {
       setGenerateOpen(false);
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError
-          ? error.message
-          : t('errors.network'),
-      );
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -77,11 +73,7 @@ export function PreventivePlansPage() {
       setStatusPlan(null);
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError
-          ? error.message
-          : t('errors.network'),
-      );
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -216,12 +208,7 @@ export function PreventivePlansPage() {
     });
   }
 
-  const errorMessage =
-    plansQuery.error instanceof ApiError
-      ? plansQuery.error.message
-      : plansQuery.error
-        ? t('errors.network')
-        : null;
+  const errorMessage = plansQuery.error ? getErrorMessage(plansQuery.error, t('errors.network')) : null;
 
   return (
     <div className="space-y-6">

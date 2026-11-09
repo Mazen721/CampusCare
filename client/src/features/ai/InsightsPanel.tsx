@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import type { InsightStats, MaintenanceInsightsResponse } from '@/types/insights';
 
@@ -83,19 +83,12 @@ export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
       }
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError ? error.message : t('errors.generic'),
-      );
+      toast.error(getErrorMessage(error));
     },
   });
 
   const data = insightsQuery.data;
-  const errorMessage =
-    insightsQuery.error instanceof ApiError
-      ? insightsQuery.error.message
-      : insightsQuery.error
-        ? t('errors.generic')
-        : null;
+  const errorMessage = insightsQuery.error ? getErrorMessage(insightsQuery.error) : null;
 
   return (
     <Card>

@@ -9,6 +9,9 @@ export interface SerializedNotification {
   type: string;
   title: string;
   message: string;
+  titleKey?: string;
+  messageKey?: string;
+  params?: Record<string, unknown>;
   relatedEntityType?: string;
   relatedEntityId?: string;
   linkUrl?: string;
@@ -21,6 +24,9 @@ function serializeNotification(notification: {
   type: string;
   title: string;
   message: string;
+  titleKey?: string;
+  messageKey?: string;
+  params?: Record<string, unknown>;
   relatedEntityType?: string;
   relatedEntityId?: Types.ObjectId;
   linkUrl?: string;
@@ -32,6 +38,9 @@ function serializeNotification(notification: {
     type: notification.type,
     title: notification.title,
     message: notification.message,
+    titleKey: notification.titleKey,
+    messageKey: notification.messageKey,
+    params: notification.params,
     relatedEntityType: notification.relatedEntityType,
     relatedEntityId: notification.relatedEntityId?.toString(),
     linkUrl: notification.linkUrl,
@@ -83,7 +92,7 @@ export async function markNotificationRead(
   );
 
   if (!notification) {
-    throw ApiError.notFound('Notification not found');
+    throw ApiError.notFound('Notification not found', 'notificationNotFound');
   }
 
   return serializeNotification(notification);

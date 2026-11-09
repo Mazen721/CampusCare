@@ -129,7 +129,7 @@ async function loadItem(id: string, includePrivate: boolean): Promise<PopulatedI
   const item = await query.lean<PopulatedItem | null>();
 
   if (!item) {
-    throw ApiError.notFound('Lost and found item not found');
+    throw ApiError.notFound('Lost and found item not found', 'itemNotFound');
   }
 
   return item;
@@ -144,7 +144,7 @@ async function requireActiveLocation(locationId: string): Promise<void> {
     .lean();
 
   if (!location) {
-    throw ApiError.badRequest('Select an active campus location');
+    throw ApiError.badRequest('Select an active campus location', 'activeLocationRequired');
   }
 }
 
@@ -179,6 +179,8 @@ export async function createItem(
     entityType: 'LostFoundItem',
     entityId: item._id,
     description: `Reported ${input.reportType.toLowerCase()} item ${reportNumber} — ${input.itemTitle}`,
+    descriptionKey: 'itemReported',
+    params: { reportType: input.reportType, code: reportNumber, title: input.itemTitle },
     metadata: {
       reportType: input.reportType,
       category: input.category,
@@ -210,7 +212,10 @@ export async function listItems(
 
   if (query.scope === 'archived') {
     if (actor.role !== 'LOST_FOUND_OFFICER' && actor.role !== 'SUPER_ADMIN') {
-      throw ApiError.forbidden('Only Lost & Found Officers can view archived items');
+      throw ApiError.forbidden(
+        'Only Lost & Found Officers can view archived items',
+        'officerArchivedOnly',
+      );
     }
     if (query.status) {
       filter.status = query.status;
@@ -315,14 +320,14 @@ export async function updateItem(
   );
 
   if (!item) {
-    throw ApiError.notFound('Lost and found item not found');
+    throw ApiError.notFound('Lost and found item not found', 'itemNotFound');
   }
 
   const isReporter = item.reporterId.toString() === actor.id;
   const isOfficer = actor.role === 'LOST_FOUND_OFFICER';
 
   if (!isReporter && !isOfficer) {
-    throw ApiError.forbidden('You cannot edit this lost and found item');
+    throw ApiError.forbidden('You cannot edit this lost and found item', 'itemEditForbidden');
   }
 
   const fieldChanges = Object.entries(input).filter(
@@ -332,12 +337,14 @@ export async function updateItem(
 
   if (hasFieldChanges) {
     if (isReporter && !isOfficer && item.status !== 'OPEN') {
-      throw ApiError.forbidden('Only open reports can be edited');
+      throw ApiError.forbidden('Only open reports can be edited', 'openReportsEditOnly');
     }
 
     if (isOfficer && (item.status === 'RETURNED' || item.status === 'CLOSED')) {
       throw ApiError.conflict(
         `Items with status ${item.status} cannot be edited`,
+        'statusCannotBeEdited',
+        { status: item.status },
       );
     }
   }
@@ -347,6 +354,7 @@ export async function updateItem(
       if (item.reportType !== 'LOST') {
         throw ApiError.forbidden(
           'Only the reporter of a LOST report can close it',
+          'lostReportCloseOnly',
         );
       }
       assertItemTransition(item.status, 'CLOSED', 'REPORTER');
@@ -384,6 +392,8 @@ export async function updateItem(
     description: closed
       ? `Closed lost and found item ${item.reportNumber}`
       : `Updated lost and found item ${item.reportNumber}`,
+    descriptionKey: closed ? 'itemClosed' : 'itemUpdated',
+    params: { code: item.reportNumber, title: item.itemTitle },
     metadata: {
       status: item.status,
       fields: fieldChanges.map(([key]) => key),

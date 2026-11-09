@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LocationFormDialog } from '@/features/locations/LocationFormDialog';
 import { locationsApi } from '@/features/locations/locationsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import type { LocationRecord } from '@/types/locations';
@@ -51,7 +51,7 @@ export function LocationsPage() {
       setDeactivating(null);
     },
     onError: (error) => {
-      toast.error(error instanceof ApiError ? error.message : t('errors.generic'));
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -146,12 +146,7 @@ export function LocationsPage() {
     },
   ];
 
-  const errorMessage =
-    locationsQuery.error instanceof ApiError
-      ? locationsQuery.error.message
-      : locationsQuery.error
-        ? t('errors.generic')
-        : null;
+  const errorMessage = locationsQuery.error ? getErrorMessage(locationsQuery.error) : null;
 
   return (
     <div className="space-y-6">

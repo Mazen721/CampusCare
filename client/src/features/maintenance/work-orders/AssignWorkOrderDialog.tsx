@@ -16,7 +16,7 @@ import { FormField } from '@/components/shared/FormField';
 import { Input } from '@/components/ui/input';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import type { WorkOrderRecord } from '@/types/workOrders';
 import type { TechnicianRecord } from '@/types/technicians';
@@ -106,7 +106,7 @@ export function AssignWorkOrderDialog({
       onOpenChange(false);
     },
     onError: (err) => {
-      setErrorMsg(err instanceof ApiError ? err.message : (err as Error).message);
+      setErrorMsg(getErrorMessage(err));
     },
   });
 

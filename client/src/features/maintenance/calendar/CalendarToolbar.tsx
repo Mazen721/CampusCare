@@ -4,7 +4,8 @@ import {
   ChevronRight,
   ListFilter,
 } from 'lucide-react';
-import { endOfWeek, format, startOfWeek } from 'date-fns';
+import { endOfWeek, startOfWeek } from 'date-fns';
+import { dateFnsLocale, fmt } from '@/lib/dateLocale';
 import { Button } from '@/components/ui/button';
 import { humanizeEnum } from '@/lib/labels';
 import { WORK_ORDER_STATUSES, type WorkOrderStatus } from '@/types/meta';
@@ -41,12 +42,13 @@ export function CalendarToolbar({
   onStatusChange,
   onTechnicianChange,
 }: CalendarToolbarProps) {
-  const weekStart = startOfWeek(anchor, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(anchor, { weekStartsOn: 1 });
+  const locale = dateFnsLocale();
+  const weekStart = startOfWeek(anchor, { weekStartsOn: 6, locale });
+  const weekEnd = endOfWeek(anchor, { weekStartsOn: 6, locale });
   const rangeLabel =
     view === 'month'
-      ? format(anchor, 'MMMM yyyy')
-      : `${format(weekStart, 'd MMM')} – ${format(weekEnd, 'd MMM yyyy')}`;
+      ? fmt(anchor, 'MMMM yyyy')
+      : `${fmt(weekStart, 'd MMM')} – ${fmt(weekEnd, 'd MMM yyyy')}`;
 
   return (
     <div className="space-y-3 rounded-lg border bg-card p-3 shadow-panel">

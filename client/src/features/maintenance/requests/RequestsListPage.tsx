@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/AuthContext';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import { formatDate } from '@/lib/utils';
@@ -131,12 +131,7 @@ export function RequestsListPage() {
     },
   ];
 
-  const errorMessage =
-    requestsQuery.error instanceof ApiError
-      ? requestsQuery.error.message
-      : requestsQuery.error
-        ? t('errors.network')
-        : null;
+  const errorMessage = requestsQuery.error ? getErrorMessage(requestsQuery.error, t('errors.network')) : null;
 
   return (
     <div className="space-y-6">

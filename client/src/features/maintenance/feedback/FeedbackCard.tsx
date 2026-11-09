@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/features/auth/AuthContext';
 import { feedbackApi } from '@/features/maintenance/feedback/feedbackApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import type { MaintenanceRequestRecord } from '@/types/maintenance';
 
@@ -50,9 +50,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
       toast.success(t('feedback.feedbackSubmittedSuccess'));
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError ? error.message : t('errors.network'),
-      );
+      toast.error(getErrorMessage(error, t('errors.network')));
     },
   });
 

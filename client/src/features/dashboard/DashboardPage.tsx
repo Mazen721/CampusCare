@@ -13,7 +13,7 @@ import { StudentDashboard } from '@/features/dashboard/StudentDashboard';
 import { DashboardPeriodSelect } from '@/features/dashboard/DashboardPeriodSelect';
 import { dashboardApi } from '@/features/dashboard/dashboardApi';
 import { useAuth } from '@/features/auth/AuthContext';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { DashboardPeriod, DashboardResponse } from '@/types/dashboard';
@@ -55,12 +55,7 @@ export function DashboardPage() {
     month: 'long',
     day: 'numeric',
   });
-  const errorMessage =
-    dashboardQuery.error instanceof ApiError
-      ? dashboardQuery.error.message
-      : dashboardQuery.error
-        ? t('errors.generic')
-        : null;
+  const errorMessage = dashboardQuery.error ? getErrorMessage(dashboardQuery.error) : null;
 
   const hour = new Date().getHours();
   const greeting =

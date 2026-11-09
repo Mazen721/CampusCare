@@ -25,7 +25,7 @@ import { AssignWorkOrderDialog } from '@/features/maintenance/work-orders/Assign
 import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/CancelWorkOrderDialog';
 import { CompleteWorkOrderDialog } from '@/features/maintenance/work-orders/CompleteWorkOrderDialog';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import { WORK_ORDER_STATUSES, type WorkOrderStatus } from '@/types/meta';
@@ -71,7 +71,7 @@ export function WorkOrdersPage() {
       toast.success(t('workOrders.workOrderStartedSuccess'));
     },
     onError: (err: unknown) => {
-      toast.error(err instanceof ApiError ? err.message : t('errors.network'));
+      toast.error(getErrorMessage(err, t('errors.network')));
     },
   });
 

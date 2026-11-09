@@ -145,7 +145,7 @@ async function loadMatchById(
   const doc = await query.lean<PopulatedMatch | null>();
 
   if (!doc) {
-    throw ApiError.notFound('Match suggestion not found');
+    throw ApiError.notFound('Match suggestion not found', 'matchNotFound');
   }
 
   return serializeMatch(doc);
@@ -193,11 +193,11 @@ async function dismissMatch(
   const match = await ItemMatch.findById(id);
 
   if (!match) {
-    throw ApiError.notFound('Match suggestion not found');
+    throw ApiError.notFound('Match suggestion not found', 'matchNotFound');
   }
 
   if (match.status !== 'SUGGESTED') {
-    throw ApiError.conflict('Only suggested matches can be reviewed');
+    throw ApiError.conflict('Only suggested matches can be reviewed', 'suggestedMatchesOnlyReview');
   }
 
   match.status = 'DISMISSED';
@@ -211,6 +211,7 @@ async function dismissMatch(
     entityType: 'ItemMatch',
     entityId: match._id,
     description: 'Dismissed a lost and found match suggestion',
+    descriptionKey: 'matchDismissed',
     metadata: { lostItemId: match.lostItemId.toString(), foundItemId: match.foundItemId.toString() },
   });
 
@@ -225,11 +226,11 @@ async function confirmMatch(
     const match = await ItemMatch.findById(id).session(session);
 
     if (!match) {
-      throw ApiError.notFound('Match suggestion not found');
+      throw ApiError.notFound('Match suggestion not found', 'matchNotFound');
     }
 
     if (match.status !== 'SUGGESTED') {
-      throw ApiError.conflict('Only suggested matches can be reviewed');
+      throw ApiError.conflict('Only suggested matches can be reviewed', 'suggestedMatchesOnlyReview');
     }
 
     const [lost, found] = await Promise.all([
@@ -238,7 +239,7 @@ async function confirmMatch(
     ]);
 
     if (!lost || !found) {
-      throw ApiError.notFound('One of the matched items no longer exists');
+      throw ApiError.notFound('One of the matched items no longer exists', 'matchedItemMissing');
     }
 
     assertItemTransition(lost.status, 'MATCH_CONFIRMED', 'LOST_FOUND_OFFICER');
@@ -260,6 +261,9 @@ async function confirmMatch(
         type: 'MATCH_CONFIRMED',
         title: 'Possible match confirmed',
         message: `A found item matching your lost report ${lost.reportNumber} was confirmed. Submit a claim to verify ownership.`,
+        titleKey: 'matchConfirmed',
+        messageKey: 'matchConfirmedMsg',
+        params: { code: lost.reportNumber },
         relatedEntityType: 'ItemMatch',
         relatedEntityId: match._id,
         linkUrl: `/lost-found/claims/new?itemId=${found._id.toString()}&linkedLostItemId=${lost._id.toString()}`,
@@ -274,6 +278,8 @@ async function confirmMatch(
         entityType: 'ItemMatch',
         entityId: match._id,
         description: `Confirmed match between ${lost.reportNumber} and ${found.reportNumber}`,
+        descriptionKey: 'matchConfirmed',
+        params: { lostCode: lost.reportNumber, foundCode: found.reportNumber },
         metadata: {
           lostItemId: lost._id.toString(),
           foundItemId: found._id.toString(),

@@ -39,5 +39,5 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
   }
 
   await changePasswordService(req.user._id.toString(), req.body as ChangePasswordInput);
-  res.status(200).json({ message: 'Password updated successfully' });
+  res.status(200).json({ message: 'Password updated successfully', messageKey: 'passwordUpdated' });
 });

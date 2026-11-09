@@ -28,7 +28,7 @@ import { HandoverDialog } from '@/features/lost-found/claims/HandoverDialog';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ItemGallery } from '@/features/lost-found/items/ItemGallery';
-import { ApiError } from '@/lib/api';
+import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { ClaimReviewAction } from '@/types/claims';
@@ -82,9 +82,7 @@ export function ClaimDetailPage() {
         <ErrorState
           title={notFound ? t('errors.notFoundTitle') : t('errors.generic')}
           message={
-            claimQuery.error instanceof ApiError
-              ? claimQuery.error.message
-              : t('errors.network')
+            getErrorMessage(claimQuery.error, t('errors.network'))
           }
           onRetry={notFound ? undefined : () => void claimQuery.refetch()}
         />

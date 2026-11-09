@@ -26,6 +26,8 @@ export interface ActivityLogRecord {
   entityType: string;
   entityId: string;
   description: string;
+  descriptionKey?: string;
+  params?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   createdAt: string;
 }

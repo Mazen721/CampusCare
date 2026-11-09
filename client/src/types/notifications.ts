@@ -5,6 +5,9 @@ export interface AppNotification {
   type: string;
   title: string;
   message: string;
+  titleKey?: string;
+  messageKey?: string;
+  params?: Record<string, unknown>;
   relatedEntityType?: string;
   relatedEntityId?: string;
   linkUrl?: string;

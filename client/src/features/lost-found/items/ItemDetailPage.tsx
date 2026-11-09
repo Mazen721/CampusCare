@@ -23,7 +23,7 @@ import { CloseItemButton } from '@/features/lost-found/items/CloseItemButton';
 import { ItemGallery } from '@/features/lost-found/items/ItemGallery';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
-import { ApiError } from '@/lib/api';
+import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 
@@ -73,9 +73,7 @@ export function ItemDetailPage() {
         <ErrorState
           title={notFound ? t('errors.notFoundTitle') : t('errors.generic')}
           message={
-            itemQuery.error instanceof ApiError
-              ? itemQuery.error.message
-              : t('errors.network')
+            getErrorMessage(itemQuery.error, t('errors.network'))
           }
           onRetry={notFound ? undefined : () => void itemQuery.refetch()}
         />

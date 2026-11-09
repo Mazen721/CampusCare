@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import type { ClaimRecord, ClaimReviewAction } from '@/types/claims';
 
 interface ClaimReviewDialogProps {
@@ -63,9 +63,7 @@ export function ClaimReviewDialog({
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError ? error.message : t('errors.generic'),
-      );
+      toast.error(getErrorMessage(error));
     },
   });
 

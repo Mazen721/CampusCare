@@ -1,4 +1,5 @@
-import { endOfDay, format, startOfDay } from 'date-fns';
+import { endOfDay, startOfDay } from 'date-fns';
+import { fmt } from '@/lib/dateLocale';
 import type { CalendarWorkOrder } from '@/types/calendar';
 
 export function workOrdersForDay(
@@ -22,5 +23,5 @@ export function formatWorkOrderTime(workOrder: CalendarWorkOrder): string {
 
   const start = new Date(workOrder.scheduledStart);
   const end = new Date(workOrder.expectedCompletion);
-  return `${format(start, 'HH:mm')}–${format(end, 'HH:mm')}`;
+  return `${fmt(start, 'HH:mm')}–${fmt(end, 'HH:mm')}`;
 }

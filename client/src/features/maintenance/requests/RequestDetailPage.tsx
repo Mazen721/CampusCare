@@ -23,7 +23,7 @@ import {
 import { RequestTimeline } from '@/features/maintenance/requests/RequestTimeline';
 import { ReviewRequestDialog } from '@/features/maintenance/requests/ReviewRequestDialog';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
-import { ApiError } from '@/lib/api';
+import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import type { RequestStatus } from '@/types/meta';
 
@@ -72,7 +72,7 @@ export function RequestDetailPage() {
       toast.success(t('requests.requestClosedSuccess'));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : t('errors.network'));
+      toast.error(getErrorMessage(err));
     },
   });
 
@@ -113,11 +113,7 @@ export function RequestDetailPage() {
         {backLink}
         <ErrorState
           title={isNotFound ? t('errors.network') : t('errors.network')}
-          message={
-            requestQuery.error instanceof ApiError
-              ? requestQuery.error.message
-              : t('errors.network')
-          }
+          message={getErrorMessage(requestQuery.error)}
           onRetry={isNotFound ? undefined : () => void requestQuery.refetch()}
         />
       </div>

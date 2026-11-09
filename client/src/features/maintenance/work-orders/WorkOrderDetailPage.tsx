@@ -33,7 +33,7 @@ import { AssignWorkOrderDialog } from '@/features/maintenance/work-orders/Assign
 import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/CancelWorkOrderDialog';
 import { CompleteWorkOrderDialog } from '@/features/maintenance/work-orders/CompleteWorkOrderDialog';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
-import { ApiError } from '@/lib/api';
+import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate, getInitials } from '@/lib/utils';
 
@@ -70,7 +70,7 @@ export function WorkOrderDetailPage() {
       toast.success(t('workOrders.workOrderStartedSuccess'));
     },
     onError: (err: unknown) => {
-      toast.error(err instanceof ApiError ? err.message : t('errors.network'));
+      toast.error(getErrorMessage(err, t('errors.network')));
     },
   });
 
@@ -122,9 +122,7 @@ export function WorkOrderDetailPage() {
         <ErrorState
           title={isNotFound ? t('errors.network') : t('errors.network')}
           message={
-            workOrderQuery.error instanceof ApiError
-              ? workOrderQuery.error.message
-              : t('errors.network')
+            getErrorMessage(workOrderQuery.error, t('errors.network'))
           }
           onRetry={isNotFound ? undefined : () => void workOrderQuery.refetch()}
         />

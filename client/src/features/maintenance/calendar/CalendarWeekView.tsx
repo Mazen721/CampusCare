@@ -2,12 +2,12 @@ import { useTranslation } from 'react-i18next';
 import {
   eachDayOfInterval,
   endOfWeek,
-  format,
   isToday,
   startOfWeek,
 } from 'date-fns';
 import { CalendarWorkOrderChip } from '@/features/maintenance/calendar/CalendarWorkOrderChip';
 import { workOrdersForDay } from '@/features/maintenance/calendar/calendar.utils';
+import { dateFnsLocale, fmt } from '@/lib/dateLocale';
 import { cn } from '@/lib/utils';
 import type { CalendarWorkOrder } from '@/types/calendar';
 
@@ -23,8 +23,9 @@ export function CalendarWeekView({
   showTechnician,
 }: CalendarWeekViewProps) {
   const { t } = useTranslation();
-  const weekStart = startOfWeek(anchor, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(anchor, { weekStartsOn: 1 });
+  const locale = dateFnsLocale();
+  const weekStart = startOfWeek(anchor, { weekStartsOn: 6, locale });
+  const weekEnd = endOfWeek(anchor, { weekStartsOn: 6, locale });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
   return (
@@ -45,7 +46,7 @@ export function CalendarWeekView({
                 )}
               >
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  {format(day, 'EEE')}
+                  {fmt(day, 'EEE')}
                 </p>
                 <p
                   className={cn(
@@ -53,7 +54,7 @@ export function CalendarWeekView({
                     isToday(day) ? 'text-primary' : 'text-foreground',
                   )}
                 >
-                  {format(day, 'd MMM')}
+                  {fmt(day, 'd MMM')}
                 </p>
               </div>
 

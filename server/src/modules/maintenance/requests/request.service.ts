@@ -233,7 +233,7 @@ async function getSerializedRequest(id: string): Promise<SerializedRequest> {
   const request = await findRequestWithRefs(id);
 
   if (!request) {
-    throw ApiError.notFound('Maintenance request not found');
+    throw ApiError.notFound('Maintenance request not found', 'requestNotFound');
   }
 
   return serializeRequest(request);
@@ -250,7 +250,7 @@ export async function createRequest(
   }).select('buildingName floor room');
 
   if (!location) {
-    throw ApiError.badRequest('Select an active campus location');
+    throw ApiError.badRequest('Select an active campus location', 'activeLocationRequired');
   }
 
   const requestNumber = await nextNumber('MR');
@@ -281,6 +281,15 @@ export async function createRequest(
       type: 'REQUEST_SUBMITTED',
       title: 'New maintenance request',
       message: `${request.requestNumber} · ${request.title} · ${location.buildingName}, ${location.floor}, Room ${location.room}`,
+      titleKey: 'newRequestSubmitted',
+      messageKey: 'newRequestSubmittedMsg',
+      params: {
+        code: request.requestNumber,
+        title: request.title,
+        building: { en: location.buildingName },
+        floor: { en: location.floor },
+        room: { en: location.room },
+      },
       relatedEntityType: 'MaintenanceRequest',
       relatedEntityId: request._id,
       linkUrl: '/maintenance/request-queue',
@@ -293,6 +302,8 @@ export async function createRequest(
     entityType: 'MaintenanceRequest',
     entityId: request._id,
     description: `Submitted maintenance request ${request.requestNumber} — ${request.title}`,
+    descriptionKey: 'requestSubmitted',
+    params: { code: request.requestNumber, title: request.title },
     metadata: {
       category: request.category,
       priority: request.priority,
@@ -390,7 +401,7 @@ export async function getRequest(
   const request = await findRequestWithRefs(id);
 
   if (!request) {
-    throw ApiError.notFound('Maintenance request not found');
+    throw ApiError.notFound('Maintenance request not found', 'requestNotFound');
   }
 
   const requesterId = request.requesterId?._id.toString();
@@ -403,7 +414,10 @@ export async function getRequest(
     actor.role === 'TECHNICIAN' && assignedTechnicianId === actor.id;
 
   if (!isOwner && !isManager && !isAssignedTechnician) {
-    throw ApiError.forbidden('You do not have access to this maintenance request');
+    throw ApiError.forbidden(
+      'You do not have access to this maintenance request',
+      'requestForbidden',
+    );
   }
 
   return serializeRequest(request);
@@ -421,7 +435,7 @@ export async function reviewRequest(
   const current = await MaintenanceRequest.findById(id);
 
   if (!current) {
-    throw ApiError.notFound('Maintenance request not found');
+    throw ApiError.notFound('Maintenance request not found', 'requestNotFound');
   }
 
   if (input.action === 'APPROVE') {
@@ -429,7 +443,7 @@ export async function reviewRequest(
       const request = await MaintenanceRequest.findById(id).session(session);
 
       if (!request) {
-        throw ApiError.notFound('Maintenance request not found');
+        throw ApiError.notFound('Maintenance request not found', 'requestNotFound');
       }
 
       assertTransition(request.status, 'APPROVED', 'MAINTENANCE_MANAGER');
@@ -444,6 +458,7 @@ export async function reviewRequest(
       if (existingWorkOrder) {
         throw ApiError.conflict(
           'This request already has a linked work order. Refusing to create a second one.',
+          'requestAlreadyHasWorkOrder',
         );
       }
 
@@ -489,7 +504,10 @@ export async function reviewRequest(
       );
 
       if (!updated) {
-        throw ApiError.conflict('This request was reviewed by someone else. Refresh and try again.');
+        throw ApiError.conflict(
+          'This request was reviewed by someone else. Refresh and try again.',
+          'requestConcurrentReview',
+        );
       }
 
       await notify(
@@ -498,6 +516,9 @@ export async function reviewRequest(
           type: 'REQUEST_APPROVED',
           title: 'Maintenance request approved',
           message: `${request.requestNumber} was approved. Work order ${workOrder.workOrderNumber} has been created.`,
+          titleKey: 'requestApproved',
+          messageKey: 'requestApprovedMsg',
+          params: { code: request.requestNumber, workOrderCode: workOrder.workOrderNumber },
           relatedEntityType: 'MaintenanceRequest',
           relatedEntityId: request._id,
           linkUrl: `/maintenance/requests/${request._id.toString()}`,
@@ -512,6 +533,8 @@ export async function reviewRequest(
           entityType: 'MaintenanceRequest',
           entityId: request._id,
           description: `Approved maintenance request ${request.requestNumber} and created work order ${workOrder.workOrderNumber}`,
+          descriptionKey: 'requestApproved',
+          params: { code: request.requestNumber, workOrderCode: workOrder.workOrderNumber },
           metadata: {
             workOrderId: workOrder._id.toString(),
             workOrderNumber: workOrder.workOrderNumber,
@@ -558,7 +581,10 @@ export async function reviewRequest(
   );
 
   if (!updated) {
-    throw ApiError.conflict('This request was reviewed by someone else. Refresh and try again.');
+    throw ApiError.conflict(
+      'This request was reviewed by someone else. Refresh and try again.',
+      'requestConcurrentReview',
+    );
   }
 
   const isReject = targetStatus === 'REJECTED';
@@ -570,6 +596,11 @@ export async function reviewRequest(
       message: isReject
         ? `${current.requestNumber} was rejected. Reason: ${input.notes ?? 'No notes provided'}`
         : `${current.requestNumber} is now under review.`,
+      titleKey: isReject ? 'requestRejected' : 'requestUnderReview',
+      messageKey: isReject
+        ? (input.notes ? 'requestRejectedWithReason' : 'requestRejectedMsg')
+        : 'requestUnderReviewMsg',
+      params: { code: current.requestNumber, reason: input.notes ?? '' },
       relatedEntityType: 'MaintenanceRequest',
       relatedEntityId: current._id,
       linkUrl: `/maintenance/requests/${current._id.toString()}`,
@@ -584,6 +615,8 @@ export async function reviewRequest(
     description: isReject
       ? `Rejected maintenance request ${current.requestNumber}`
       : `Moved maintenance request ${current.requestNumber} under review`,
+    descriptionKey: isReject ? 'requestRejected' : 'requestUnderReview',
+    params: { code: current.requestNumber },
     metadata: { notes: input.notes },
   });
 
@@ -597,7 +630,7 @@ export async function confirmRequest(
   const request = await MaintenanceRequest.findById(id);
 
   if (!request) {
-    throw ApiError.notFound('Maintenance request not found');
+    throw ApiError.notFound('Maintenance request not found', 'requestNotFound');
   }
 
   const requesterId = request.requesterId.toString();
@@ -605,14 +638,20 @@ export async function confirmRequest(
   const isManager = actor.role === 'MAINTENANCE_MANAGER' || actor.role === 'SUPER_ADMIN';
 
   if (!isOwner && !isManager) {
-    throw ApiError.forbidden('Only the requester or a manager can confirm this request');
+    throw ApiError.forbidden(
+      'Only the requester or a manager can confirm this request',
+      'requestConfirmForbidden',
+    );
   }
 
   if (request.status === 'COMPLETED') {
     assertTransition('COMPLETED', 'CLOSED', isOwner ? 'OWNER' : 'MAINTENANCE_MANAGER');
   } else if (request.status === 'REOPENED') {
     if (!isManager) {
-      throw ApiError.forbidden('Only a manager can close a reopened request');
+      throw ApiError.forbidden(
+        'Only a manager can close a reopened request',
+        'reopenedRequestCloseForbidden',
+      );
     }
     assertTransition('REOPENED', 'CLOSED', 'MAINTENANCE_MANAGER');
   } else {
@@ -630,6 +669,8 @@ export async function confirmRequest(
     description: isOwner
       ? `Requester confirmed resolution of request ${request.requestNumber}`
       : `Manager closed request ${request.requestNumber}`,
+    descriptionKey: isOwner ? 'requestConfirmed' : 'requestClosed',
+    params: { code: request.requestNumber },
   });
 
   return getSerializedRequest(id);
@@ -644,7 +685,7 @@ export async function reopenRequest(
     const request = await MaintenanceRequest.findById(id).session(session);
 
     if (!request) {
-      throw ApiError.notFound('Maintenance request not found');
+      throw ApiError.notFound('Maintenance request not found', 'requestNotFound');
     }
 
     const requesterId = request.requesterId.toString();
@@ -652,18 +693,24 @@ export async function reopenRequest(
     const isManager = actor.role === 'MAINTENANCE_MANAGER' || actor.role === 'SUPER_ADMIN';
 
     if (!isOwner && !isManager) {
-      throw ApiError.forbidden('Only the requester or a manager can reopen this request');
+      throw ApiError.forbidden(
+        'Only the requester or a manager can reopen this request',
+        'requestReopenForbidden',
+      );
     }
 
     assertTransition(request.status, 'REOPENED', isOwner ? 'OWNER' : 'MAINTENANCE_MANAGER');
 
     if (!request.currentWorkOrderId) {
-      throw ApiError.badRequest('No work order is linked to this maintenance request');
+      throw ApiError.badRequest(
+        'No work order is linked to this maintenance request',
+        'noLinkedWorkOrder',
+      );
     }
 
     const wo = await WorkOrder.findById(request.currentWorkOrderId).session(session);
     if (!wo) {
-      throw ApiError.notFound('Linked work order not found');
+      throw ApiError.notFound('Linked work order not found', 'workOrderNotFound');
     }
 
     assertWorkOrderTransition(wo.status, 'ASSIGNED', 'SYSTEM');
@@ -693,6 +740,13 @@ export async function reopenRequest(
           type: 'REQUEST_REOPENED',
           title: 'Work order reopened',
           message: `Request ${request.requestNumber} was reopened: ${input.reason}. Work order ${wo.workOrderNumber} is back in your assigned queue.`,
+          titleKey: 'workOrderReopened',
+          messageKey: 'workOrderReopenedMsg',
+          params: {
+            code: request.requestNumber,
+            workOrderCode: wo.workOrderNumber,
+            reason: input.reason,
+          },
           relatedEntityType: 'WorkOrder',
           relatedEntityId: wo._id,
           linkUrl: `/work-orders/${wo._id.toString()}`,
@@ -708,6 +762,8 @@ export async function reopenRequest(
         entityType: 'MaintenanceRequest',
         entityId: request._id,
         description: `Reopened request ${request.requestNumber}: ${input.reason}`,
+        descriptionKey: 'requestReopened',
+        params: { code: request.requestNumber, reason: input.reason },
         metadata: {
           reason: input.reason,
           reopenCount: request.reopenCount,

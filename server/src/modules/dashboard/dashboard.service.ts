@@ -203,7 +203,10 @@ export interface StudentDashboard {
     recent: Array<{
       id: string;
       title: string;
+      titleKey?: string;
       message: string;
+      messageKey?: string;
+      params?: Record<string, unknown>;
       linkUrl?: string;
       isRead: boolean;
       createdAt: Date;
@@ -1048,7 +1051,10 @@ async function getStudentDashboard(
       recent: recentNotifications.map((notification) => ({
         id: notification._id.toString(),
         title: notification.title,
+        titleKey: notification.titleKey,
         message: notification.message,
+        messageKey: notification.messageKey,
+        params: notification.params,
         linkUrl: notification.linkUrl,
         isRead: notification.isRead,
         createdAt: notification.createdAt,

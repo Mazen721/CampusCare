@@ -122,7 +122,7 @@ export async function runMatchingFor(
     .lean<LeanItem | null>();
 
   if (!source) {
-    throw ApiError.notFound('Lost and found item not found');
+    throw ApiError.notFound('Lost and found item not found', 'itemNotFound');
   }
 
   if (source.status !== 'OPEN') {

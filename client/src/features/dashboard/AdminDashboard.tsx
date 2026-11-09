@@ -16,7 +16,7 @@ import { AdminCharts } from '@/features/dashboard/AdminCharts';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatNumber } from '@/lib/utils';
 import type { AdminDashboard as AdminDashboardData } from '@/types/dashboard';
 
 export function AdminDashboard({ data }: { data: AdminDashboardData }) {
@@ -30,25 +30,25 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
           label={t('users.title')}
           value={totals.users}
           icon={Users}
-          hint={`${totals.activeUsers} ${t('common.active')} · ${totals.technicians} ${t('technicians.title')}`}
+          hint={`${formatNumber(totals.activeUsers)} ${t('common.active')} · ${formatNumber(totals.technicians)} ${t('technicians.title')}`}
         />
         <DashboardStatCard
           label={t('locations.title')}
           value={totals.locations}
           icon={MapPin}
-          hint={`${totals.buildings} ${t('locations.building')}`}
+          hint={`${formatNumber(totals.buildings)} ${t('locations.building')}`}
         />
         <DashboardStatCard
           label={t('dashboard.maintenance')}
           value={totals.maintenanceRequests}
           icon={ClipboardList}
-          hint={`${totals.workOrders} ${t('workOrders.title')}`}
+          hint={`${formatNumber(totals.workOrders)} ${t('workOrders.title')}`}
         />
         <DashboardStatCard
           label={t('dashboard.lostFound')}
           value={totals.lostItems + totals.foundItems}
           icon={PackageSearch}
-          hint={`${totals.lostItems} ${t('dashboard.lost')} · ${totals.foundItems} ${t('dashboard.found')}`}
+          hint={`${formatNumber(totals.lostItems)} ${t('dashboard.lost')} · ${formatNumber(totals.foundItems)} ${t('dashboard.found')}`}
         />
       </div>
 

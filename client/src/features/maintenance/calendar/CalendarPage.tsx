@@ -23,7 +23,8 @@ import { CalendarMonthView } from '@/features/maintenance/calendar/CalendarMonth
 import { CalendarToolbar, type CalendarView } from '@/features/maintenance/calendar/CalendarToolbar';
 import { CalendarWeekView } from '@/features/maintenance/calendar/CalendarWeekView';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import type { WorkOrderStatus } from '@/types/meta';
 
 export function CalendarPage() {
@@ -38,14 +39,15 @@ export function CalendarPage() {
   const canFilterTechnicians =
     user?.role === 'MAINTENANCE_MANAGER' || user?.role === 'SUPER_ADMIN';
 
+  const locale = dateFnsLocale();
   const rangeFrom =
     view === 'month'
-      ? startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 })
-      : startOfWeek(anchor, { weekStartsOn: 1 });
+      ? startOfWeek(startOfMonth(anchor), { weekStartsOn: 6, locale })
+      : startOfWeek(anchor, { weekStartsOn: 6, locale });
   const rangeTo =
     view === 'month'
-      ? endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 })
-      : endOfWeek(anchor, { weekStartsOn: 1 });
+      ? endOfWeek(endOfMonth(anchor), { weekStartsOn: 6, locale })
+      : endOfWeek(anchor, { weekStartsOn: 6, locale });
 
   const calendarQuery = useQuery({
     queryKey: [
@@ -74,12 +76,7 @@ export function CalendarPage() {
   });
 
   const workOrders = calendarQuery.data?.data ?? [];
-  const errorMessage =
-    calendarQuery.error instanceof ApiError
-      ? calendarQuery.error.message
-      : calendarQuery.error
-        ? t('errors.network')
-        : null;
+  const errorMessage = calendarQuery.error ? getErrorMessage(calendarQuery.error, t('errors.network')) : null;
 
   const move = (direction: 'previous' | 'next') => {
     setAnchor((current) => {

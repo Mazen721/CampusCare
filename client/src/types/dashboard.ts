@@ -182,7 +182,10 @@ export interface StudentDashboard extends DashboardBase {
     recent: Array<{
       id: string;
       title: string;
+      titleKey?: string;
       message: string;
+      messageKey?: string;
+      params?: Record<string, unknown>;
       linkUrl?: string;
       isRead: boolean;
       createdAt: string;

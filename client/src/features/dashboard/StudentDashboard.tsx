@@ -12,8 +12,9 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
+import { resolveParams } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatNumber } from '@/lib/utils';
 import type { RequestStatus } from '@/types/meta';
 import type { StudentDashboard as StudentDashboardData } from '@/types/dashboard';
 
@@ -57,7 +58,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
           label={t('dashboard.myReports')}
           value={data.reports.total}
           icon={PackageSearch}
-          hint={`${data.reports.lost} ${t('dashboard.lost')} · ${data.reports.found} ${t('dashboard.found')}`}
+          hint={`${formatNumber(data.reports.lost)} ${t('dashboard.lost')} · ${formatNumber(data.reports.found)} ${t('dashboard.found')}`}
         />
       </div>
 
@@ -151,10 +152,20 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                       />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-foreground">
-                          {notification.title}
+                          {notification.titleKey
+                            ? t(`notif.${notification.titleKey}`, {
+                                ...resolveParams(notification.params),
+                                defaultValue: notification.title,
+                              })
+                            : notification.title}
                         </p>
                         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                          {notification.message}
+                          {notification.messageKey
+                            ? t(`notif.${notification.messageKey}`, {
+                                ...resolveParams(notification.params),
+                                defaultValue: notification.message,
+                              })
+                            : notification.message}
                         </p>
                         <p className="mt-1 text-[11px] text-muted-foreground">
                           {formatDate(notification.createdAt, {

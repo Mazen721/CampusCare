@@ -1,4 +1,5 @@
-import i18n from '@/i18n';
+import i18n, { getLang } from '@/i18n';
+import { resolveParams } from '@/i18n/localize';
 import type {
   AuthResponse,
   ChangePasswordInput,
@@ -13,14 +14,25 @@ export const UNAUTHORIZED_EVENT = 'campuscare:unauthorized';
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
+  readonly messageKey?: string;
+  readonly params?: Record<string, string | number>;
   readonly details?: unknown;
 
-  constructor(message: string, status = 0, code = 'REQUEST_FAILED', details?: unknown) {
+  constructor(
+    message: string,
+    status = 0,
+    code = 'REQUEST_FAILED',
+    details?: unknown,
+    messageKey?: string,
+    params?: Record<string, string | number>,
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
     this.details = details;
+    this.messageKey = messageKey;
+    this.params = params;
   }
 }
 
@@ -28,8 +40,27 @@ interface ApiErrorBody {
   error?: {
     code?: string;
     message?: string;
+    messageKey?: string;
+    params?: Record<string, string | number>;
     details?: unknown;
   };
+}
+
+export function getErrorMessage(err: unknown, defaultMessage?: string): string {
+  if (err instanceof ApiError && err.messageKey) {
+    const key = `serverErrors.${err.messageKey}`;
+    const localized = i18n.t(key, {
+      ...resolveParams(err.params),
+      defaultValue: err.message,
+    });
+    if (localized && localized !== key) {
+      return localized;
+    }
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return defaultMessage ?? i18n.t('errors.generic');
 }
 
 export function getStoredToken(): string | null {
@@ -62,6 +93,7 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, dispatchUnauthorized = true, headers } = options;
   const requestHeaders = new Headers(headers);
+  requestHeaders.set('Accept-Language', getLang());
   const token = getStoredToken();
 
   if (token) {
@@ -114,6 +146,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       response.status,
       errorBody?.error?.code ?? 'REQUEST_FAILED',
       errorBody?.error?.details,
+      errorBody?.error?.messageKey,
+      errorBody?.error?.params,
     );
   }
 
@@ -161,8 +195,8 @@ export const authApi = {
   me(): Promise<{ user: AuthResponse['user'] }> {
     return request<{ user: AuthResponse['user'] }>('/auth/me');
   },
-  changePassword(input: ChangePasswordInput): Promise<{ message: string }> {
-    return request<{ message: string }>('/auth/change-password', {
+  changePassword(input: ChangePasswordInput): Promise<{ message: string; messageKey?: string }> {
+    return request<{ message: string; messageKey?: string }>('/auth/change-password', {
       method: 'PATCH',
       body: input,
     });

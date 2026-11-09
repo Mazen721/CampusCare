@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useAuth } from '@/features/auth/AuthContext';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 
 export function createChangePasswordSchema(t: TFunction) {
   return z
@@ -64,11 +64,7 @@ export function ChangePasswordForm() {
       reset();
       toast.success(t('auth.passwordChangedSuccess'));
     } catch (error) {
-      setServerError(
-        error instanceof ApiError
-          ? error.message
-          : t('errors.generic'),
-      );
+      setServerError(getErrorMessage(error));
     }
   };
 

@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { LOCATION_TYPES } from '@/types/meta';
 import type { LocationRecord } from '@/types/locations';
@@ -123,9 +123,7 @@ export function LocationFormDialog({ open, onOpenChange, location }: LocationFor
       toast.success(t('locations.locationSavedSuccess'));
       onOpenChange(false);
     } catch (error) {
-      setServerError(
-        error instanceof ApiError ? error.message : t('errors.generic'),
-      );
+      setServerError(getErrorMessage(error));
     }
   };
 

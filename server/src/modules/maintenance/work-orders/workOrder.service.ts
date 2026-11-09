@@ -194,7 +194,7 @@ export async function getWorkOrder(
     .lean();
 
   if (!wo) {
-    throw ApiError.notFound('Work order not found');
+    throw ApiError.notFound('Work order not found', 'workOrderNotFound');
   }
 
   // Ownership rule: Technician can only view work order assigned to them
@@ -204,7 +204,7 @@ export async function getWorkOrder(
       : undefined;
 
     if (assignedId !== actor.id) {
-      throw ApiError.forbidden('You do not have access to this work order');
+      throw ApiError.forbidden('You do not have access to this work order', 'workOrderForbidden');
     }
   }
 
@@ -220,22 +220,25 @@ export async function assignWorkOrder(
     const wo = await WorkOrder.findById(id).session(session);
 
     if (!wo) {
-      throw ApiError.notFound('Work order not found');
+      throw ApiError.notFound('Work order not found', 'workOrderNotFound');
     }
 
     assertWorkOrderTransition(wo.status, 'ASSIGNED', 'MAINTENANCE_MANAGER');
 
     const technician = await User.findById(input.technicianId).session(session);
     if (!technician || technician.role !== 'TECHNICIAN' || !technician.isActive) {
-      throw ApiError.badRequest('Assigned user must be an active technician');
+      throw ApiError.badRequest('Assigned user must be an active technician', 'technicianRequired');
     }
 
     if (technician.availability === 'OFF_DUTY') {
-      throw ApiError.badRequest('Technician is off duty and cannot be assigned');
+      throw ApiError.badRequest('Technician is off duty and cannot be assigned', 'technicianOffDuty');
     }
 
     if (new Date(input.expectedCompletion) <= new Date(input.scheduledStart)) {
-      throw ApiError.badRequest('Expected completion date must be after scheduled start date');
+      throw ApiError.badRequest(
+        'Expected completion date must be after scheduled start date',
+        'expectedAfterScheduled',
+      );
     }
 
     const previousTechnicianId = wo.assignedTechnicianId?.toString();
@@ -258,6 +261,9 @@ export async function assignWorkOrder(
           type: 'WORK_ORDER_REASSIGNED',
           title: 'Work order reassigned',
           message: `Work order ${wo.workOrderNumber} was reassigned to another technician.`,
+          titleKey: 'workOrderReassigned',
+          messageKey: 'workOrderReassignedMsg',
+          params: { code: wo.workOrderNumber },
           relatedEntityType: 'WorkOrder',
           relatedEntityId: wo._id,
           linkUrl: `/work-orders/${wo._id.toString()}`,
@@ -272,6 +278,9 @@ export async function assignWorkOrder(
           type: 'WORK_ORDER_ASSIGNED',
           title: 'Work order assigned',
           message: `You have been assigned work order ${wo.workOrderNumber}.`,
+          titleKey: 'workOrderAssigned',
+          messageKey: 'workOrderAssignedMsg',
+          params: { code: wo.workOrderNumber },
           relatedEntityType: 'WorkOrder',
           relatedEntityId: wo._id,
           linkUrl: `/work-orders/${wo._id.toString()}`,
@@ -286,6 +295,8 @@ export async function assignWorkOrder(
           entityType: 'WorkOrder',
           entityId: wo._id,
           description: `Reassigned work order ${wo.workOrderNumber} to ${technician.name}`,
+          descriptionKey: 'workOrderReassigned',
+          params: { code: wo.workOrderNumber, name: technician.name },
           metadata: {
             previousTechnicianId,
             newTechnicianId: technician._id.toString(),
@@ -304,6 +315,9 @@ export async function assignWorkOrder(
           message: isReschedule
             ? `Schedule updated for work order ${wo.workOrderNumber}.`
             : `You have been assigned work order ${wo.workOrderNumber}.`,
+          titleKey: isReschedule ? 'workOrderRescheduled' : 'workOrderAssigned',
+          messageKey: isReschedule ? 'workOrderRescheduledMsg' : 'workOrderAssignedMsg',
+          params: { code: wo.workOrderNumber },
           relatedEntityType: 'WorkOrder',
           relatedEntityId: wo._id,
           linkUrl: `/work-orders/${wo._id.toString()}`,
@@ -318,6 +332,8 @@ export async function assignWorkOrder(
           entityType: 'WorkOrder',
           entityId: wo._id,
           description: `${isReschedule ? 'Rescheduled' : 'Assigned'} work order ${wo.workOrderNumber} to ${technician.name}`,
+          descriptionKey: isReschedule ? 'workOrderRescheduled' : 'workOrderAssigned',
+          params: { code: wo.workOrderNumber, name: technician.name },
           metadata: {
             technicianId: technician._id.toString(),
             scheduledStart: input.scheduledStart,
@@ -347,11 +363,14 @@ export async function startWorkOrder(
     const wo = await WorkOrder.findById(id).session(session);
 
     if (!wo) {
-      throw ApiError.notFound('Work order not found');
+      throw ApiError.notFound('Work order not found', 'workOrderNotFound');
     }
 
     if (wo.assignedTechnicianId?.toString() !== actor.id) {
-      throw ApiError.forbidden('Only the assigned technician can start this work order');
+      throw ApiError.forbidden(
+        'Only the assigned technician can start this work order',
+        'assignedTechnicianOnly',
+      );
     }
 
     assertWorkOrderTransition(wo.status, 'IN_PROGRESS', 'TECHNICIAN');
@@ -380,6 +399,8 @@ export async function startWorkOrder(
         entityType: 'WorkOrder',
         entityId: wo._id,
         description: `Technician started work order ${wo.workOrderNumber}`,
+        descriptionKey: 'workOrderStarted',
+        params: { code: wo.workOrderNumber },
         metadata: { actualStart: wo.actualStart },
       },
       session,
@@ -404,11 +425,14 @@ export async function addTechnicianNote(
   const wo = await WorkOrder.findById(id);
 
   if (!wo) {
-    throw ApiError.notFound('Work order not found');
+    throw ApiError.notFound('Work order not found', 'workOrderNotFound');
   }
 
   if (actor.role === 'TECHNICIAN' && wo.assignedTechnicianId?.toString() !== actor.id) {
-    throw ApiError.forbidden('Only the assigned technician can add notes to this work order');
+    throw ApiError.forbidden(
+      'Only the assigned technician can add notes to this work order',
+      'assignedTechnicianOnly',
+    );
   }
 
   wo.technicianNotes.push({
@@ -426,6 +450,8 @@ export async function addTechnicianNote(
     entityType: 'WorkOrder',
     entityId: wo._id,
     description: `Added note to work order ${wo.workOrderNumber}`,
+    descriptionKey: 'workOrderNoteAdded',
+    params: { code: wo.workOrderNumber },
   });
 
   const populated = await WorkOrder.findById(wo._id)
@@ -446,11 +472,14 @@ export async function completeWorkOrder(
     const wo = await WorkOrder.findById(id).session(session);
 
     if (!wo) {
-      throw ApiError.notFound('Work order not found');
+      throw ApiError.notFound('Work order not found', 'workOrderNotFound');
     }
 
     if (wo.assignedTechnicianId?.toString() !== actor.id) {
-      throw ApiError.forbidden('Only the assigned technician can complete this work order');
+      throw ApiError.forbidden(
+        'Only the assigned technician can complete this work order',
+        'assignedTechnicianOnly',
+      );
     }
 
     assertWorkOrderTransition(wo.status, 'COMPLETED', 'TECHNICIAN');
@@ -476,6 +505,9 @@ export async function completeWorkOrder(
             type: 'REQUEST_COMPLETED',
             title: 'Maintenance request completed',
             message: `Work order ${wo.workOrderNumber} was completed. Please review and confirm resolution.`,
+            titleKey: 'requestCompleted',
+            messageKey: 'requestCompletedMsg',
+            params: { workOrderCode: wo.workOrderNumber },
             relatedEntityType: 'MaintenanceRequest',
             relatedEntityId: request._id,
             linkUrl: `/maintenance/requests/${request._id.toString()}`,
@@ -492,6 +524,8 @@ export async function completeWorkOrder(
         entityType: 'WorkOrder',
         entityId: wo._id,
         description: `Technician completed work order ${wo.workOrderNumber}`,
+        descriptionKey: 'workOrderCompleted',
+        params: { code: wo.workOrderNumber },
         metadata: {
           completedAt: wo.completedAt,
           resolutionDetails: wo.resolutionDetails,
@@ -520,7 +554,7 @@ export async function cancelWorkOrder(
     const wo = await WorkOrder.findById(id).session(session);
 
     if (!wo) {
-      throw ApiError.notFound('Work order not found');
+      throw ApiError.notFound('Work order not found', 'workOrderNotFound');
     }
 
     assertWorkOrderTransition(wo.status, 'CANCELLED', 'MAINTENANCE_MANAGER');
@@ -552,6 +586,9 @@ export async function cancelWorkOrder(
             type: 'WORK_ORDER_CANCELLED',
             title: 'Work order cancelled',
             message: `Work order ${wo.workOrderNumber} was cancelled. Request ${request.requestNumber} is back under review.`,
+            titleKey: 'workOrderCancelled',
+            messageKey: 'workOrderCancelledMsg',
+            params: { workOrderCode: wo.workOrderNumber, code: request.requestNumber },
             relatedEntityType: 'MaintenanceRequest',
             relatedEntityId: request._id,
             linkUrl: `/maintenance/requests/${request._id.toString()}`,
@@ -568,6 +605,8 @@ export async function cancelWorkOrder(
         entityType: 'WorkOrder',
         entityId: wo._id,
         description: `Manager cancelled work order ${wo.workOrderNumber}: ${input.reason}`,
+        descriptionKey: 'workOrderCancelled',
+        params: { code: wo.workOrderNumber, reason: input.reason },
         metadata: { cancelReason: input.reason },
       },
       session,

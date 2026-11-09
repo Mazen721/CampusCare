@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import { AlertCircle, Loader2, MapPin, PackageOpen, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -18,7 +17,8 @@ import {
   createReportItemSchema,
   type ReportItemValues,
 } from '@/features/lost-found/items/reportItemSchema';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
+import { fmt } from '@/lib/dateLocale';
 import { enumLabel } from '@/lib/labels';
 import {
   LOST_FOUND_CATEGORIES,
@@ -64,7 +64,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       brand: '',
       locationId: '',
       locationDetails: '',
-      occurrenceDate: format(new Date(), 'yyyy-MM-dd'),
+      occurrenceDate: fmt(new Date(), 'yyyy-MM-dd'),
     },
   });
 
@@ -85,11 +85,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       toast.success(t('lostFound.reportSavedSuccess'));
       navigate(`/lost-found/items/${result.item.id}`);
     } catch (error) {
-      setServerError(
-        error instanceof ApiError
-          ? error.message
-          : t('errors.generic'),
-      );
+      setServerError(getErrorMessage(error));
     }
   };
 

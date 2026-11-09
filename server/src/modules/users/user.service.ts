@@ -21,7 +21,10 @@ async function assertEmailAvailable(email: string, excludeId?: string): Promise<
   }).select('_id');
 
   if (existing) {
-    throw ApiError.conflict('An account with this email address already exists');
+    throw ApiError.conflict(
+      'An account with this email address already exists',
+      'emailAlreadyExists',
+    );
   }
 }
 
@@ -78,7 +81,7 @@ export async function getUser(id: string): Promise<SafeUser> {
   const user = await User.findById(id);
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound('User not found', 'userNotFound');
   }
 
   return toSafeUser(user);
@@ -90,12 +93,23 @@ async function logUserChange(
   user: UserDocument,
   metadata: Record<string, unknown>,
 ): Promise<void> {
+  const descriptionKey =
+    action === 'USER_CREATED'
+      ? 'userCreated'
+      : action === 'USER_UPDATED'
+        ? 'userUpdated'
+        : action === 'USER_ACTIVATED'
+          ? 'userActivated'
+          : 'userDeactivated';
+
   await logActivity({
     actorId,
     action,
     entityType: 'User',
     entityId: user._id,
     description: `${action === 'USER_CREATED' ? 'Created' : 'Updated'} ${user.role.toLowerCase()} account ${user.name} (${user.email})`,
+    descriptionKey,
+    params: { name: user.name, email: user.email, role: user.role },
     metadata,
   });
 }
@@ -134,7 +148,7 @@ export async function updateUser(
   const user = await User.findById(id);
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound('User not found', 'userNotFound');
   }
 
   if (input.email && input.email !== user.email) {
@@ -181,7 +195,7 @@ export async function updateUserStatus(
   const user = await User.findById(id);
 
   if (!user) {
-    throw ApiError.notFound('User not found');
+    throw ApiError.notFound('User not found', 'userNotFound');
   }
 
   if (user.isActive !== isActive) {

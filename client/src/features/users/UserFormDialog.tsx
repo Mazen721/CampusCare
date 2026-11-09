@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { usersApi } from '@/features/users/usersApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { ROLES, type Role } from '@/types/auth';
 import {
@@ -174,9 +174,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       toast.success(t('users.userSavedSuccess'));
       onOpenChange(false);
     } catch (error) {
-      setServerError(
-        error instanceof ApiError ? error.message : t('errors.generic'),
-      );
+      setServerError(getErrorMessage(error));
     }
   };
 

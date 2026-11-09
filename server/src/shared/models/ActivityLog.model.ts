@@ -6,6 +6,8 @@ export interface IActivityLog {
   entityType: string;
   entityId: Types.ObjectId;
   description: string;
+  descriptionKey?: string;
+  params?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   createdAt: Date;
 }
@@ -17,6 +19,8 @@ const activityLogSchema = new Schema<IActivityLog>(
     entityType: { type: String, required: true, trim: true },
     entityId: { type: Schema.Types.ObjectId, required: true },
     description: { type: String, required: true, trim: true },
+    descriptionKey: { type: String, trim: true },
+    params: { type: Schema.Types.Mixed },
     metadata: { type: Schema.Types.Mixed },
   },
   {

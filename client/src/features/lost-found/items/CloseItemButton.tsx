@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/AuthContext';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import type { LostFoundItem } from '@/types/lostFound';
 
 interface CloseItemButtonProps {
@@ -36,9 +36,7 @@ export function CloseItemButton({ item }: CloseItemButtonProps) {
       setOpen(false);
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError ? error.message : t('errors.generic'),
-      );
+      toast.error(getErrorMessage(error));
     },
   });
 

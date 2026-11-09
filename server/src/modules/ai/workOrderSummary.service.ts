@@ -37,7 +37,7 @@ export async function summarizeWorkOrder(
   const workOrder = await WorkOrder.findById(workOrderId);
 
   if (!workOrder) {
-    throw ApiError.notFound('Work order not found');
+    throw ApiError.notFound('Work order not found', 'workOrderNotFound');
   }
 
   if (
@@ -46,6 +46,7 @@ export async function summarizeWorkOrder(
   ) {
     throw ApiError.forbidden(
       'Only the technician assigned to this work order can summarize it',
+      'assignedTechnicianSummaryOnly',
     );
   }
 

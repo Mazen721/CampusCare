@@ -15,7 +15,7 @@ import {
 import { FormField } from '@/components/shared/FormField';
 import { Textarea } from '@/components/ui/textarea';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import type { WorkOrderRecord } from '@/types/workOrders';
 
 interface AddNoteDialogProps {
@@ -48,7 +48,7 @@ export function AddNoteDialog({
       onOpenChange(false);
     },
     onError: (err) => {
-      setErrorMsg(err instanceof ApiError ? err.message : (err as Error).message);
+      setErrorMsg(getErrorMessage(err));
     },
   });
 

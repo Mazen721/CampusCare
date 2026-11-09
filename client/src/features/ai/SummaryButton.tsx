@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { aiApi } from '@/features/ai/aiApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 interface SummaryButtonProps {
@@ -43,10 +43,7 @@ export function SummaryButton({
       );
     },
     onError: (error) => {
-      const message =
-        error instanceof ApiError
-          ? error.message
-          : t('errors.generic');
+      const message = getErrorMessage(error);
       setFallbackMessage(message);
       toast.error(message);
     },

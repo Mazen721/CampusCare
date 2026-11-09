@@ -67,7 +67,10 @@ export async function generateMaintenanceInsights(
     }),
 ): Promise<MaintenanceInsightsResponse> {
   if (actor.role !== 'MAINTENANCE_MANAGER') {
-    throw ApiError.forbidden('Only maintenance managers can generate insights');
+    throw ApiError.forbidden(
+      'Only maintenance managers can generate insights',
+      'managerInsightsOnly',
+    );
   }
 
   const { period, regenerate = false } = input;

@@ -32,6 +32,8 @@ export interface SerializedActivityLog {
   entityType: string;
   entityId: string;
   description: string;
+  descriptionKey?: string;
+  params?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   createdAt: Date;
 }
@@ -54,6 +56,8 @@ function serializeActivityLog(entry: PopulatedActivityLog): SerializedActivityLo
     entityType: entry.entityType,
     entityId: entry.entityId.toString(),
     description: entry.description,
+    descriptionKey: entry.descriptionKey,
+    params: entry.params,
     metadata: entry.metadata,
     createdAt: entry.createdAt,
   };

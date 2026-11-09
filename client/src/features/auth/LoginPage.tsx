@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useAuth } from '@/features/auth/AuthContext';
-import { ApiError, isDemoModeEnabled } from '@/lib/api';
+import { getErrorMessage, isDemoModeEnabled } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import type { Role } from '@/types/auth';
 
@@ -82,11 +82,7 @@ export function LoginPage() {
       toast.success(t('auth.signedOut'));
       navigate(destination === '/login' ? '/dashboard' : destination, { replace: true });
     } catch (error) {
-      setServerError(
-        error instanceof ApiError
-          ? error.message
-          : t('errors.generic'),
-      );
+      setServerError(getErrorMessage(error));
     }
   };
 
@@ -98,11 +94,7 @@ export function LoginPage() {
       toast.success(enumLabel('role', role));
       navigate('/dashboard', { replace: true });
     } catch (error) {
-      setServerError(
-        error instanceof ApiError
-          ? error.message
-          : t('errors.generic'),
-      );
+      setServerError(getErrorMessage(error));
     } finally {
       setActiveDemoRole(null);
     }

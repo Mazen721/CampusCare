@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { useMeta } from '@/lib/useMeta';
 import {
   MAINTENANCE_CATEGORIES,
@@ -100,11 +100,7 @@ export function NewRequestPage() {
       toast.success(`Request ${result.request.requestNumber} submitted`);
       navigate(`/maintenance/requests/${result.request.id}`);
     } catch (error) {
-      setServerError(
-        error instanceof ApiError
-          ? error.message
-          : 'Unable to submit this request right now. Please try again.',
-      );
+      setServerError(getErrorMessage(error, 'Unable to submit this request right now. Please try again.'));
     }
   };
 

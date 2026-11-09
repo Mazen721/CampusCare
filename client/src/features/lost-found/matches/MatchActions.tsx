@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { matchesApi } from '@/features/lost-found/matches/matchesApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import type { ItemMatch } from '@/types/matches';
 
@@ -34,9 +34,7 @@ export function MatchActions({ match }: MatchActionsProps) {
       setPendingAction(null);
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError ? error.message : t('errors.generic'),
-      );
+      toast.error(getErrorMessage(error));
     },
   });
 

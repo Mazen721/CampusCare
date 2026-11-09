@@ -12,6 +12,7 @@ import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { ManagerCharts } from '@/features/dashboard/ManagerCharts';
 import { InsightsPanel } from '@/features/ai/InsightsPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatNumber } from '@/lib/utils';
 import type { ManagerDashboard as ManagerDashboardData } from '@/types/dashboard';
 
 export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
@@ -21,11 +22,17 @@ export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
   const topBuildings = metrics.requestsByBuilding.slice(0, 5);
 
   const formatHours = (value: number | null): string => {
-    return value === null ? '—' : t('dashboard.hoursShort', { hours: value.toFixed(1) });
+    return value === null
+      ? '—'
+      : t('dashboard.hoursShort', {
+          hours: formatNumber(value, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+        });
   };
 
   const formatRating = (value: number | null): string => {
-    return value === null ? '—' : value.toFixed(1);
+    return value === null
+      ? '—'
+      : formatNumber(value, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   };
 
   return (
@@ -61,7 +68,7 @@ export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
           value={formatRating(metrics.feedback.averageRating)}
           icon={Star}
           tone="warning"
-          hint={`${metrics.feedback.total} ${t('feedback.totalReviews')}`}
+          hint={`${formatNumber(metrics.feedback.total)} ${t('feedback.totalReviews')}`}
         />
       </div>
 

@@ -17,6 +17,7 @@ const imageUpload = multer({
           415,
           'UPLOAD_INVALID',
           'Only JPEG, PNG and WebP images are allowed. Please choose a different file.',
+          'uploadInvalid',
         ),
       );
       return;

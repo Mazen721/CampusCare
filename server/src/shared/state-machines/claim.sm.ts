@@ -64,6 +64,7 @@ export function assertClaimTransition(
   if (!isClaimTransitionAllowed(from, to, actor)) {
     throw ApiError.conflict(
       `Claim status cannot change from ${from} to ${to} for this actor`,
+      'invalidClaimTransition',
       { from, to, actor },
     );
   }

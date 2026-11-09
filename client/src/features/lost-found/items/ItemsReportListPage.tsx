@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
 import { ReportsTable } from '@/features/lost-found/items/ReportsTable';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import {
   ACTIVE_BROWSE_STATUSES,
@@ -63,12 +63,7 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
       }),
   });
 
-  const errorMessage =
-    itemsQuery.error instanceof ApiError
-      ? itemsQuery.error.message
-      : itemsQuery.error
-        ? t('errors.generic')
-        : null;
+  const errorMessage = itemsQuery.error ? getErrorMessage(itemsQuery.error) : null;
 
   const title = isMine
     ? t('lostFound.myReportsTitle')

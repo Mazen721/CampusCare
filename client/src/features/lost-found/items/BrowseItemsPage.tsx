@@ -16,7 +16,7 @@ import {
   type ItemFilterState,
 } from '@/features/lost-found/items/ItemFilters';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 
 const PAGE_SIZE = 12;
@@ -69,12 +69,7 @@ export function BrowseItemsPage() {
     filters.from !== '' ||
     filters.to !== '';
 
-  const errorMessage =
-    itemsQuery.error instanceof ApiError
-      ? itemsQuery.error.message
-      : itemsQuery.error
-        ? t('errors.generic')
-        : null;
+  const errorMessage = itemsQuery.error ? getErrorMessage(itemsQuery.error) : null;
 
   return (
     <div className="space-y-6">

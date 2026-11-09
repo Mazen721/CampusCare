@@ -82,6 +82,7 @@ export function assertWorkOrderTransition(
   if (!isWorkOrderTransitionAllowed(from, to, actor)) {
     throw ApiError.conflict(
       `Work order status cannot change from ${from} to ${to} for this actor`,
+      'invalidWorkOrderTransition',
       { from, to, actor },
     );
   }

@@ -59,7 +59,10 @@ async function assertEmailAvailable(email: string, excludeId?: string): Promise<
   }).select('_id');
 
   if (existing) {
-    throw ApiError.conflict('An account with this email address already exists');
+    throw ApiError.conflict(
+      'An account with this email address already exists',
+      'emailAlreadyExists',
+    );
   }
 }
 
@@ -227,7 +230,7 @@ export async function getTechnician(id: string): Promise<TechnicianDetail> {
   const tech = await User.findById(id);
 
   if (!tech || tech.role !== 'TECHNICIAN') {
-    throw ApiError.notFound('Technician not found');
+    throw ApiError.notFound('Technician not found', 'technicianNotFound');
   }
 
   const techId = tech._id;
@@ -350,6 +353,8 @@ export async function createTechnician(
     entityType: 'User',
     entityId: tech._id,
     description: `Created technician account ${tech.name} (${tech.email})`,
+    descriptionKey: 'technicianCreated',
+    params: { name: tech.name, email: tech.email },
     metadata: {
       specializations: tech.specializations,
       skills: tech.skills,
@@ -368,12 +373,15 @@ export async function updateTechnician(
   const tech = await User.findById(id);
 
   if (!tech) {
-    throw ApiError.notFound('Technician not found');
+    throw ApiError.notFound('Technician not found', 'technicianNotFound');
   }
 
   // Acceptance scenario 1: "When they try to create or edit any other role, Then it is refused."
   if (tech.role !== 'TECHNICIAN') {
-    throw ApiError.forbidden('Only technician accounts can be managed via this endpoint');
+    throw ApiError.forbidden(
+      'Only technician accounts can be managed via this endpoint',
+      'technicianRoleOnly',
+    );
   }
 
   if (input.email && input.email.toLowerCase().trim() !== tech.email) {
@@ -401,6 +409,8 @@ export async function updateTechnician(
     entityType: 'User',
     entityId: tech._id,
     description: `Updated technician account ${tech.name} (${tech.email})`,
+    descriptionKey: 'technicianUpdated',
+    params: { name: tech.name, email: tech.email },
     metadata: {
       specializations: tech.specializations,
       skills: tech.skills,

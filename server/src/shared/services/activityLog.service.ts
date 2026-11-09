@@ -7,6 +7,8 @@ export interface ActivityLogEntry {
   entityType: string;
   entityId: Types.ObjectId | string;
   description: string;
+  descriptionKey?: string;
+  params?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
 }
 
@@ -26,6 +28,8 @@ export async function logActivity(
         entityType: entry.entityType,
         entityId: entry.entityId,
         description: entry.description,
+        descriptionKey: entry.descriptionKey,
+        params: entry.params,
         metadata: entry.metadata,
       },
     ],

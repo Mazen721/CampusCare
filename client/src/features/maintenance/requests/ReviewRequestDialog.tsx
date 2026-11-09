@@ -25,7 +25,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { MaintenanceRequestRecord, ReviewAction } from '@/types/maintenance';
 
@@ -144,11 +144,7 @@ export function ReviewRequestDialog({
       onOpenChange(false);
     },
     onError: (error) => {
-      setServerError(
-        error instanceof ApiError
-          ? error.message
-          : 'Unable to review this request. Please try again.',
-      );
+      setServerError(getErrorMessage(error, 'Unable to review this request. Please try again.'));
     },
   });
 

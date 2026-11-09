@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { useAuth } from '@/features/auth/AuthContext';
 import { UserFormDialog } from '@/features/users/UserFormDialog';
 import { usersApi } from '@/features/users/usersApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import { formatDate, getInitials } from '@/lib/utils';
@@ -58,7 +58,7 @@ export function UsersPage() {
       setStatusTarget(null);
     },
     onError: (error) => {
-      toast.error(error instanceof ApiError ? error.message : t('errors.generic'));
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -185,12 +185,7 @@ export function UsersPage() {
     },
   ];
 
-  const errorMessage =
-    usersQuery.error instanceof ApiError
-      ? usersQuery.error.message
-      : usersQuery.error
-        ? t('errors.generic')
-        : null;
+  const errorMessage = usersQuery.error ? getErrorMessage(usersQuery.error) : null;
 
   const isReactivating = statusTarget ? !statusTarget.isActive : false;
 

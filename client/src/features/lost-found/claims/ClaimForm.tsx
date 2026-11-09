@@ -15,7 +15,7 @@ import {
   type ClaimFormValues,
 } from '@/features/lost-found/claims/claimFormSchema';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { LostFoundItem } from '@/types/lostFound';
@@ -73,9 +73,7 @@ export function ClaimForm({
       navigate(`/lost-found/claims/${claim.id}`);
     },
     onError: (error) => {
-      toast.error(
-        error instanceof ApiError ? error.message : t('errors.generic'),
-      );
+      toast.error(getErrorMessage(error));
     },
   });
 

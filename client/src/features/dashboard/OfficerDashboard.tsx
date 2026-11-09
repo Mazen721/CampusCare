@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { OfficerCharts } from '@/features/dashboard/OfficerCharts';
+import { formatNumber } from '@/lib/utils';
 import type { OfficerDashboard as OfficerDashboardData } from '@/types/dashboard';
 
 export function OfficerDashboard({ data }: { data: OfficerDashboardData }) {
@@ -25,13 +26,13 @@ export function OfficerDashboard({ data }: { data: OfficerDashboardData }) {
           label={t('dashboard.openLostItems')}
           value={counts.openLostItems}
           icon={PackageSearch}
-          hint={`${counts.totalLostItems} ${t('dashboard.lost')}`}
+          hint={`${formatNumber(counts.totalLostItems)} ${t('dashboard.lost')}`}
         />
         <DashboardStatCard
           label={t('dashboard.openFoundItems')}
           value={counts.openFoundItems}
           icon={BadgeCheck}
-          hint={`${counts.totalFoundItems} ${t('dashboard.found')}`}
+          hint={`${formatNumber(counts.totalFoundItems)} ${t('dashboard.found')}`}
         />
         <DashboardStatCard
           label={t('dashboard.activeMatches')}
@@ -45,7 +46,7 @@ export function OfficerDashboard({ data }: { data: OfficerDashboardData }) {
           value={counts.pendingClaims + counts.underVerificationClaims}
           icon={ShieldCheck}
           tone={counts.pendingClaims + counts.underVerificationClaims > 0 ? 'warning' : 'default'}
-          hint={`${counts.pendingClaims} · ${counts.underVerificationClaims}`}
+          hint={`${formatNumber(counts.pendingClaims)} · ${formatNumber(counts.underVerificationClaims)}`}
         />
       </div>
 

@@ -197,7 +197,7 @@ async function loadClaimDocument(
   const claim = await query;
 
   if (!claim) {
-    throw ApiError.notFound('Claim request not found');
+    throw ApiError.notFound('Claim request not found', 'claimNotFound');
   }
 
   return claim;
@@ -216,16 +216,18 @@ async function loadClaimableFoundItem(
   const item = await query;
 
   if (!item) {
-    throw ApiError.notFound('Found item not found');
+    throw ApiError.notFound('Found item not found', 'itemNotFound');
   }
 
   if (item.reportType !== 'FOUND') {
-    throw ApiError.badRequest('Claims can only be submitted for found items');
+    throw ApiError.badRequest('Claims can only be submitted for found items', 'foundItemsOnlyClaimable');
   }
 
   if (!isClaimableItemStatus(item.status)) {
     throw ApiError.conflict(
       `Claims cannot be submitted while the item is ${item.status}`,
+      'itemStatusNotClaimable',
+      { status: item.status },
     );
   }
 
@@ -270,6 +272,9 @@ async function autoRejectCompetingClaims(
         type: 'CLAIM_REJECTED',
         title: 'Claim not approved',
         message: `Your claim ${competing.claimNumber} was rejected because another claim for the item was approved.`,
+        titleKey: 'claimNotApproved',
+        messageKey: 'claimNotApprovedMsg',
+        params: { code: competing.claimNumber },
         relatedEntityType: 'ClaimRequest',
         relatedEntityId: competing._id,
         linkUrl: `/lost-found/claims/${competing._id.toString()}`,
@@ -377,7 +382,7 @@ function serializeClaim(
 
 function assertClaimModuleRole(actor: ClaimActor): void {
   if (actor.role !== 'LOST_FOUND_OFFICER' && actor.role !== 'STUDENT_EMPLOYEE') {
-    throw ApiError.forbidden('You do not have access to claim requests');
+    throw ApiError.forbidden('You do not have access to claim requests', 'claimsAccessForbidden');
   }
 }
 
@@ -403,11 +408,11 @@ async function loadClaimById(
   const doc = await query.lean<PopulatedClaim | null>();
 
   if (!doc) {
-    throw ApiError.notFound('Claim request not found');
+    throw ApiError.notFound('Claim request not found', 'claimNotFound');
   }
 
   if (!includeOfficerFields && personIdOf(doc.claimantId) !== actor.id) {
-    throw ApiError.forbidden('You do not have access to this claim');
+    throw ApiError.forbidden('You do not have access to this claim', 'claimAccessForbidden');
   }
 
   return serializeClaim(doc, includeOfficerFields);
@@ -419,7 +424,10 @@ export async function createClaim(
   images: ImageAsset[],
 ): Promise<SerializedClaim> {
   if (actor.role !== 'STUDENT_EMPLOYEE') {
-    throw ApiError.forbidden('Only students and employees can submit claims');
+    throw ApiError.forbidden(
+      'Only students and employees can submit claims',
+      'claimsStudentsEmployeesOnly',
+    );
   }
 
   const found = await loadClaimableFoundItem(input.itemId);
@@ -431,7 +439,7 @@ export async function createClaim(
   });
 
   if (existingClaim) {
-    throw ApiError.conflict('You already have an active claim for this item');
+    throw ApiError.conflict('You already have an active claim for this item', 'claimAlreadyActive');
   }
 
   let linkedLostItemId: Types.ObjectId | undefined;
@@ -444,11 +452,14 @@ export async function createClaim(
       linkedLost.reporterId.toString() === actor.id;
 
     if (!linkedLost || !isOwnLostReport) {
-      throw ApiError.badRequest('Linked lost report must be one of your own lost reports');
+      throw ApiError.badRequest(
+        'Linked lost report must be one of your own lost reports',
+        'linkedLostMustBeOwn',
+      );
     }
 
     if (!isLinkableLostStatus(linkedLost.status)) {
-      throw ApiError.conflict('The linked lost report is no longer open');
+      throw ApiError.conflict('The linked lost report is no longer open', 'linkedLostNotOpen');
     }
 
     linkedLostItemId = linkedLost._id;
@@ -498,6 +509,9 @@ export async function createClaim(
         type: 'CLAIM_SUBMITTED',
         title: 'New claim submitted',
         message: `Claim ${claimNumber} was submitted for found item ${item.reportNumber}.`,
+        titleKey: 'claimSubmitted',
+        messageKey: 'claimSubmittedMsg',
+        params: { code: claimNumber, itemCode: item.reportNumber },
         relatedEntityType: 'ClaimRequest',
         relatedEntityId: claim._id,
         linkUrl: `/lost-found/claims/${claim._id.toString()}`,
@@ -512,6 +526,8 @@ export async function createClaim(
         entityType: 'ClaimRequest',
         entityId: claim._id,
         description: `Submitted claim ${claimNumber} for ${item.reportNumber}`,
+        descriptionKey: 'claimSubmitted',
+        params: { code: claimNumber, itemCode: item.reportNumber },
         metadata: {
           itemId: item._id.toString(),
           linkedLostItemId: linkedLostItemId?.toString(),
@@ -605,6 +621,8 @@ async function startVerification(
     entityType: 'ClaimRequest',
     entityId: claim._id,
     description: `Started verification for claim ${claim.claimNumber}`,
+    descriptionKey: 'claimVerificationStarted',
+    params: { code: claim.claimNumber },
   });
 
   return loadClaimById(id, actor);
@@ -623,7 +641,7 @@ async function approveClaim(
     const item = await LostFoundItem.findById(claim.itemId).session(session);
 
     if (!item) {
-      throw ApiError.notFound('Found item not found');
+      throw ApiError.notFound('Found item not found', 'itemNotFound');
     }
 
     assertItemTransition(
@@ -653,6 +671,9 @@ async function approveClaim(
         type: 'CLAIM_APPROVED',
         title: 'Claim approved',
         message: `Your claim ${claim.claimNumber} was approved. Contact the Lost & Found Office to arrange the handover.`,
+        titleKey: 'claimApproved',
+        messageKey: 'claimApprovedMsg',
+        params: { code: claim.claimNumber },
         relatedEntityType: 'ClaimRequest',
         relatedEntityId: claim._id,
         linkUrl: `/lost-found/claims/${claim._id.toString()}`,
@@ -667,6 +688,8 @@ async function approveClaim(
         entityType: 'ClaimRequest',
         entityId: claim._id,
         description: `Approved claim ${claim.claimNumber} for ${item.reportNumber}`,
+        descriptionKey: 'claimApproved',
+        params: { code: claim.claimNumber, itemCode: item.reportNumber },
         metadata: {
           itemId: item._id.toString(),
           autoRejectedClaims,
@@ -687,7 +710,7 @@ async function rejectClaim(
   const reason = input.rejectionReason?.trim() || input.notes?.trim();
 
   if (!reason) {
-    throw ApiError.badRequest('A rejection reason is required');
+    throw ApiError.badRequest('A rejection reason is required', 'rejectionReasonRequired');
   }
 
   return withTransaction(async (session) => {
@@ -713,6 +736,9 @@ async function rejectClaim(
         type: 'CLAIM_REJECTED',
         title: 'Claim rejected',
         message: `Your claim ${claim.claimNumber} was rejected: ${reason}`,
+        titleKey: 'claimRejected',
+        messageKey: 'claimRejectedMsg',
+        params: { code: claim.claimNumber, reason },
         relatedEntityType: 'ClaimRequest',
         relatedEntityId: claim._id,
         linkUrl: `/lost-found/claims/${claim._id.toString()}`,
@@ -727,6 +753,8 @@ async function rejectClaim(
         entityType: 'ClaimRequest',
         entityId: claim._id,
         description: `Rejected claim ${claim.claimNumber}: ${reason}`,
+        descriptionKey: 'claimRejected',
+        params: { code: claim.claimNumber, reason },
         metadata: { itemId: claim.itemId.toString(), rejectionReason: reason },
       },
       session,
@@ -749,7 +777,7 @@ export async function reviewClaim(
     case 'REJECT':
       return rejectClaim(actor, id, input);
     default:
-      throw ApiError.badRequest('Unsupported claim review action');
+      throw ApiError.badRequest('Unsupported claim review action', 'unsupportedClaimAction');
   }
 }
 
@@ -762,7 +790,7 @@ export async function recordHandover(
     const claim = await loadClaimDocument(id, session);
 
     if (claim.status !== 'APPROVED') {
-      throw ApiError.conflict('Only approved claims can be handed over');
+      throw ApiError.conflict('Only approved claims can be handed over', 'approvedClaimsOnlyHandover');
     }
 
     assertClaimTransition(claim.status, 'COMPLETED', 'LOST_FOUND_OFFICER');
@@ -795,6 +823,9 @@ export async function recordHandover(
         type: 'HANDOVER_COMPLETED',
         title: 'Item handover recorded',
         message: `Claim ${claim.claimNumber} was completed. The item was handed to ${input.receivedByName}.`,
+        titleKey: 'handoverCompleted',
+        messageKey: 'handoverCompletedMsg',
+        params: { code: claim.claimNumber, name: input.receivedByName },
         relatedEntityType: 'ClaimRequest',
         relatedEntityId: claim._id,
         linkUrl: `/lost-found/claims/${claim._id.toString()}`,
@@ -809,6 +840,8 @@ export async function recordHandover(
         entityType: 'ClaimRequest',
         entityId: claim._id,
         description: `Recorded handover for claim ${claim.claimNumber} to ${input.receivedByName}`,
+        descriptionKey: 'handoverCompleted',
+        params: { code: claim.claimNumber, name: input.receivedByName },
         metadata: {
           itemId: claim.itemId.toString(),
           linkedLostItemId: claim.linkedLostItemId?.toString(),

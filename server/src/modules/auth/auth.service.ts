@@ -53,17 +53,18 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
   const user = await User.findOne({ email: input.email }).select('+passwordHash');
 
   if (!user) {
-    throw ApiError.unauthorized('Invalid email or password');
+    throw ApiError.unauthorized('Invalid email or password', 'invalidCredentials');
   }
 
   const passwordMatches = await bcrypt.compare(input.password, user.passwordHash);
   if (!passwordMatches) {
-    throw ApiError.unauthorized('Invalid email or password');
+    throw ApiError.unauthorized('Invalid email or password', 'invalidCredentials');
   }
 
   if (!user.isActive) {
     throw ApiError.unauthorized(
       'This account has been deactivated. Contact a university administrator.',
+      'accountDeactivated',
     );
   }
 
@@ -79,6 +80,7 @@ export async function demoLogin(role: Role): Promise<AuthResponse> {
       503,
       'DEMO_ACCOUNT_MISSING',
       'The demo account for this role is not available. Run the seed script first.',
+      'demoAccountMissing',
     );
   }
 
@@ -89,7 +91,7 @@ export async function getCurrentUser(userId: string): Promise<SafeUser> {
   const user = await User.findById(userId);
 
   if (!user || !user.isActive) {
-    throw ApiError.unauthorized('This account is inactive or no longer exists');
+    throw ApiError.unauthorized('This account is inactive or no longer exists', 'accountInactive');
   }
 
   return toSafeUser(user);
@@ -102,17 +104,20 @@ export async function changePassword(
   const user = await User.findById(userId).select('+passwordHash');
 
   if (!user || !user.isActive) {
-    throw ApiError.unauthorized('This account is inactive or no longer exists');
+    throw ApiError.unauthorized('This account is inactive or no longer exists', 'accountInactive');
   }
 
   const currentMatches = await bcrypt.compare(input.currentPassword, user.passwordHash);
   if (!currentMatches) {
-    throw ApiError.badRequest('Your current password is incorrect');
+    throw ApiError.badRequest('Your current password is incorrect', 'incorrectCurrentPassword');
   }
 
   const samePassword = await bcrypt.compare(input.newPassword, user.passwordHash);
   if (samePassword) {
-    throw ApiError.badRequest('Your new password must be different from your current password');
+    throw ApiError.badRequest(
+      'Your new password must be different from your current password',
+      'passwordMustBeDifferent',
+    );
   }
 
   user.passwordHash = await bcrypt.hash(input.newPassword, PASSWORD_ROUNDS);

@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { activityLogsApi } from '@/features/activity-logs/activityLogsApi';
 import { usersApi } from '@/features/users/usersApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
+import { resolveParams } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { ActivityLogRecord } from '@/types/activityLogs';
@@ -111,20 +112,24 @@ export function ActivityLogsPage() {
     {
       id: 'description',
       header: t('activityLogs.description'),
-      cell: (entry) => (
-        <p className="max-w-[320px] text-xs leading-relaxed text-muted-foreground">
-          {entry.description}
-        </p>
-      ),
+      cell: (entry) => {
+        const description = entry.descriptionKey
+          ? t(`activity.${entry.descriptionKey}`, {
+              ...resolveParams(entry.params),
+              defaultValue: entry.description,
+            })
+          : entry.description;
+
+        return (
+          <p className="max-w-[320px] text-xs leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        );
+      },
     },
   ];
 
-  const errorMessage =
-    logsQuery.error instanceof ApiError
-      ? logsQuery.error.message
-      : logsQuery.error
-        ? t('errors.generic')
-        : null;
+  const errorMessage = logsQuery.error ? getErrorMessage(logsQuery.error) : null;
 
   return (
     <div className="space-y-6">

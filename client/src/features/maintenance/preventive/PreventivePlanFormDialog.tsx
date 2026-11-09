@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { preventiveApi } from '@/features/maintenance/preventive/preventiveApi';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
-import { ApiError } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { humanizeEnum } from '@/lib/labels';
 import {
   MAINTENANCE_CATEGORIES,
@@ -196,7 +196,7 @@ export function PreventivePlanFormDialog({
       onOpenChange(false);
     } catch (error) {
       setServerError(
-        error instanceof ApiError ? error.message : 'Unable to save this preventive plan.',
+        getErrorMessage(error),
       );
     }
   };

@@ -84,17 +84,23 @@ export async function createFeedback(
   const request = await MaintenanceRequest.findById(input.maintenanceRequestId);
 
   if (!request) {
-    throw ApiError.notFound('Maintenance request not found');
+    throw ApiError.notFound('Maintenance request not found', 'requestNotFound');
   }
 
   // Ownership: requester only
   if (request.requesterId.toString() !== actorId) {
-    throw ApiError.forbidden('Only the person who submitted the request can leave feedback');
+    throw ApiError.forbidden(
+      'Only the person who submitted the request can leave feedback',
+      'requesterFeedbackOnly',
+    );
   }
 
   // Status requirement: CLOSED only
   if (request.status !== 'CLOSED') {
-    throw ApiError.badRequest('Feedback can only be submitted after a request is closed');
+    throw ApiError.badRequest(
+      'Feedback can only be submitted after a request is closed',
+      'closedRequestFeedbackOnly',
+    );
   }
 
   // Once per request
@@ -103,7 +109,10 @@ export async function createFeedback(
   }).select('_id');
 
   if (existing) {
-    throw ApiError.conflict('Feedback has already been submitted for this request');
+    throw ApiError.conflict(
+      'Feedback has already been submitted for this request',
+      'feedbackAlreadySubmitted',
+    );
   }
 
   // Attribute technician from the linked work order
@@ -131,7 +140,10 @@ export async function createFeedback(
   }
 
   if (!technicianId || !workOrderId) {
-    throw ApiError.badRequest('No assigned technician found for this request');
+    throw ApiError.badRequest(
+      'No assigned technician found for this request',
+      'noAssignedTechnician',
+    );
   }
 
   const feedback = await ServiceFeedback.create({
@@ -149,6 +161,8 @@ export async function createFeedback(
     entityType: 'ServiceFeedback',
     entityId: feedback._id,
     description: `Submitted ${input.rating}-star feedback for request ${request.requestNumber}`,
+    descriptionKey: 'feedbackSubmitted',
+    params: { rating: input.rating, code: request.requestNumber },
     metadata: {
       rating: input.rating,
       technicianId: technicianId.toString(),

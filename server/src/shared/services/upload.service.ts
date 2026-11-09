@@ -60,6 +60,7 @@ async function uploadToLocalDisk(
       503,
       'UPLOAD_UNAVAILABLE',
       'Image uploads are not configured on this server yet. Please try again later.',
+      'uploadUnavailable',
     );
   }
 

@@ -89,6 +89,7 @@ export function assertItemTransition(
   if (!isItemTransitionAllowed(from, to, actor)) {
     throw ApiError.conflict(
       `Item status cannot change from ${from} to ${to} for this actor`,
+      'invalidItemTransition',
       { from, to, actor },
     );
   }

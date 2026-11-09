@@ -5,6 +5,9 @@ export interface INotification {
   type: string;
   title: string;
   message: string;
+  titleKey?: string;
+  messageKey?: string;
+  params?: Record<string, unknown>;
   relatedEntityType?: string;
   relatedEntityId?: Types.ObjectId;
   linkUrl?: string;
@@ -18,6 +21,9 @@ const notificationSchema = new Schema<INotification>(
     type: { type: String, required: true, trim: true },
     title: { type: String, required: true, trim: true },
     message: { type: String, required: true, trim: true },
+    titleKey: { type: String, trim: true },
+    messageKey: { type: String, trim: true },
+    params: { type: Schema.Types.Mixed },
     relatedEntityType: { type: String, trim: true },
     relatedEntityId: { type: Schema.Types.ObjectId },
     linkUrl: { type: String, trim: true },

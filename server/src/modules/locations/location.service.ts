@@ -66,6 +66,7 @@ async function assertUniqueCombination(
   if (duplicate) {
     throw ApiError.conflict(
       'A location with this building, floor and room already exists',
+      'duplicateLocation',
     );
   }
 }
@@ -116,7 +117,7 @@ export async function getLocation(id: string): Promise<SerializedLocation> {
   const location = await Location.findById(id);
 
   if (!location) {
-    throw ApiError.notFound('Location not found');
+    throw ApiError.notFound('Location not found', 'locationNotFound');
   }
 
   return serializeLocation(location);
@@ -139,6 +140,12 @@ export async function createLocation(
     entityType: 'Location',
     entityId: location._id,
     description: `Created location ${location.buildingName}, ${location.floor}, Room ${location.room}`,
+    descriptionKey: 'locationCreated',
+    params: {
+      building: { en: location.buildingName },
+      floor: { en: location.floor },
+      room: { en: location.room },
+    },
     metadata: { buildingName: location.buildingName, floor: location.floor, room: location.room },
   });
 
@@ -153,7 +160,7 @@ export async function updateLocation(
   const location = await Location.findById(id);
 
   if (!location) {
-    throw ApiError.notFound('Location not found');
+    throw ApiError.notFound('Location not found', 'locationNotFound');
   }
 
   const buildingName = input.buildingName ?? location.buildingName;
@@ -173,6 +180,12 @@ export async function updateLocation(
     entityType: 'Location',
     entityId: location._id,
     description: `Updated location ${location.buildingName}, ${location.floor}, Room ${location.room}`,
+    descriptionKey: 'locationUpdated',
+    params: {
+      building: { en: location.buildingName },
+      floor: { en: location.floor },
+      room: { en: location.room },
+    },
     metadata: { fields: Object.keys(input) },
   });
 
@@ -186,7 +199,7 @@ export async function deactivateLocation(
   const location = await Location.findById(id);
 
   if (!location) {
-    throw ApiError.notFound('Location not found');
+    throw ApiError.notFound('Location not found', 'locationNotFound');
   }
 
   if (location.isActive) {
@@ -199,6 +212,12 @@ export async function deactivateLocation(
       entityType: 'Location',
       entityId: location._id,
       description: `Deactivated location ${location.buildingName}, ${location.floor}, Room ${location.room}`,
+      descriptionKey: 'locationDeactivated',
+      params: {
+        building: { en: location.buildingName },
+        floor: { en: location.floor },
+        room: { en: location.room },
+      },
       metadata: { buildingName: location.buildingName, floor: location.floor, room: location.room },
     });
   }
