@@ -59,7 +59,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', '"IBM Plex Sans Arabic"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['"Instrument Serif"', 'Georgia', 'serif'],
       },
       borderRadius: {

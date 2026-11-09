@@ -82,7 +82,7 @@ export function Lightbox({
               onClick={() => setIndex(safeIndex - 1)}
               disabled={!hasPrevious}
             >
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
               Previous
             </Button>
             <div className="flex items-center gap-1.5" aria-hidden="true">
@@ -105,7 +105,7 @@ export function Lightbox({
               disabled={!hasNext}
             >
               Next
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </Button>
           </div>
         ) : null}

@@ -44,7 +44,7 @@ export function ClaimsTable({
             to={`/lost-found/claims/${claim.id}`}
             className="font-mono text-xs font-semibold text-primary hover:underline"
           >
-            {claim.claimNumber}
+            <span dir="ltr">{claim.claimNumber}</span>
           </Link>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             Submitted {formatDate(claim.createdAt)}
@@ -62,7 +62,7 @@ export function ClaimsTable({
               {claim.item.itemTitle}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              {claim.item.reportNumber} · {claim.item.category}
+              <span dir="ltr">{claim.item.reportNumber}</span> · {claim.item.category}
             </p>
           </div>
         ) : (
@@ -77,9 +77,11 @@ export function ClaimsTable({
             cell: (claim: ClaimRecord) => (
               <div className="min-w-0 text-xs">
                 <p className="font-medium text-foreground">
-                  {claim.claimant?.name ?? 'Unknown'}
+                  <bdi>{claim.claimant?.name ?? 'Unknown'}</bdi>
                 </p>
-                <p className="text-muted-foreground">{claim.claimant?.email}</p>
+                <p className="text-muted-foreground">
+                  {claim.claimant?.email ? <span dir="ltr">{claim.claimant.email}</span> : null}
+                </p>
               </div>
             ),
           },
@@ -93,8 +95,8 @@ export function ClaimsTable({
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (claim) => (
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/lost-found/claims/${claim.id}`}>

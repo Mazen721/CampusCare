@@ -51,7 +51,7 @@ export function CalendarMonthView({ anchor, workOrders }: CalendarMonthViewProps
               <div
                 key={day.toISOString()}
                 className={cn(
-                  'min-h-[124px] border-b border-r p-1.5 last:border-r-0',
+                  'min-h-[124px] border-b border-e p-1.5 last:border-e-0',
                   !inMonth && 'bg-muted/25',
                 )}
               >

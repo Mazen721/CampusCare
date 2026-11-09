@@ -47,7 +47,7 @@ export function ItemDetailPage() {
           to="/lost-found"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
           Back to browse
         </Link>
         <LoadingState label="Loading item details…" />
@@ -64,7 +64,7 @@ export function ItemDetailPage() {
           to="/lost-found"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
           Back to browse
         </Link>
         <ErrorState
@@ -93,7 +93,7 @@ export function ItemDetailPage() {
         to="/lost-found"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
         Back to browse
       </Link>
 
@@ -225,9 +225,13 @@ export function ItemDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
-                <p className="font-semibold text-foreground">{item.reporter.name}</p>
+                <p className="font-semibold text-foreground">
+                  <bdi>{item.reporter.name}</bdi>
+                </p>
                 {item.reporter.email ? (
-                  <p className="text-xs text-muted-foreground">{item.reporter.email}</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span dir="ltr">{item.reporter.email}</span>
+                  </p>
                 ) : null}
                 {item.reporter.department ? (
                   <p className="text-xs text-muted-foreground">{item.reporter.department}</p>

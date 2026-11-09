@@ -228,6 +228,8 @@ export function TechnicianFormDialog({
                 id="tech-email"
                 {...register('email')}
                 type="email"
+                dir="ltr"
+                className="text-start"
                 placeholder="alex.rivera@campus.edu"
                 autoComplete="email"
               />
@@ -254,7 +256,13 @@ export function TechnicianFormDialog({
             </FormField>
 
             <FormField id="tech-phone" label="Contact Phone" error={errors.contactPhone?.message}>
-              <Input id="tech-phone" {...register('contactPhone')} placeholder="+1 555-0142" />
+              <Input
+                id="tech-phone"
+                {...register('contactPhone')}
+                dir="ltr"
+                className="text-start"
+                placeholder="+1 555-0142"
+              />
             </FormField>
           </div>
 
@@ -283,14 +291,14 @@ export function TechnicianFormDialog({
                     type="button"
                     key={category}
                     onClick={() => toggleSpecialization(category)}
-                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-xs font-medium transition-colors text-left ${
+                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-xs font-medium transition-colors text-start ${
                       checked
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'border-input hover:bg-muted text-muted-foreground'
                     }`}
                   >
                     <span className="truncate">{category}</span>
-                    {checked && <span className="text-primary font-bold ml-1">✓</span>}
+                    {checked && <span className="text-primary font-bold ms-1">✓</span>}
                   </button>
                 );
               })}
@@ -320,7 +328,7 @@ export function TechnicianFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {isEditing ? 'Save Changes' : 'Create Technician'}
             </Button>
           </DialogFooter>

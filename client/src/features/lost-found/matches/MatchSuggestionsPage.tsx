@@ -47,7 +47,7 @@ export function MatchSuggestionsPage() {
               to={`/lost-found/items/${match.lostItem.id}`}
               className="font-mono text-xs font-semibold text-primary hover:underline"
             >
-              {match.lostItem.reportNumber}
+              <span dir="ltr">{match.lostItem.reportNumber}</span>
             </Link>
             <p className="mt-0.5 max-w-[220px] truncate text-sm font-medium text-foreground">
               {match.lostItem.itemTitle}
@@ -70,7 +70,7 @@ export function MatchSuggestionsPage() {
               to={`/lost-found/items/${match.foundItem.id}`}
               className="font-mono text-xs font-semibold text-primary hover:underline"
             >
-              {match.foundItem.reportNumber}
+              <span dir="ltr">{match.foundItem.reportNumber}</span>
             </Link>
             <p className="mt-0.5 max-w-[220px] truncate text-sm font-medium text-foreground">
               {match.foundItem.itemTitle}
@@ -95,8 +95,8 @@ export function MatchSuggestionsPage() {
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (match) => <MatchActions match={match} />,
     },
   ];

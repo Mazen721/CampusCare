@@ -71,8 +71,12 @@ export function UsersPage() {
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate font-medium text-foreground">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            <p className="truncate font-medium text-foreground">
+              <bdi>{user.name}</bdi>
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              <span dir="ltr">{user.email}</span>
+            </p>
           </div>
         </div>
       ),
@@ -131,8 +135,8 @@ export function UsersPage() {
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (user) => {
         const isSelf = user.id === currentUser?.id;
         return (

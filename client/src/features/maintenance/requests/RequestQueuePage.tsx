@@ -56,7 +56,9 @@ export function RequestQueuePage() {
           >
             {request.title}
           </Link>
-          <p className="mt-0.5 text-xs text-muted-foreground">{request.requestNumber}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            <span dir="ltr">{request.requestNumber}</span>
+          </p>
         </div>
       ),
     },
@@ -65,9 +67,11 @@ export function RequestQueuePage() {
       header: 'Requester',
       cell: (request) => (
         <div className="min-w-0">
-          <p className="truncate text-sm text-foreground">{request.requester?.name ?? '—'}</p>
+          <p className="truncate text-sm text-foreground">
+            {request.requester?.name ? <bdi>{request.requester.name}</bdi> : '—'}
+          </p>
           <p className="truncate text-xs text-muted-foreground">
-            {request.requester?.department || request.requester?.email || ''}
+            {request.requester?.department || (request.requester?.email ? <span dir="ltr">{request.requester.email}</span> : '')}
           </p>
         </div>
       ),
@@ -106,8 +110,8 @@ export function RequestQueuePage() {
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (request) => (
         <div className="flex items-center justify-end gap-1">
           <Button variant="ghost" size="sm" asChild>

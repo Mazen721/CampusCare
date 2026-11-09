@@ -1,7 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import '@/i18n';
+import { applyDocumentLang, getLang } from '@/i18n';
 import App from '@/App';
 import '@/index.css';
+
+applyDocumentLang(getLang());
 
 const rootElement = document.getElementById('root');
 

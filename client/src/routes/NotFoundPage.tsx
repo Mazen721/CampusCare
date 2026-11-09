@@ -19,7 +19,7 @@ export function NotFoundPage() {
         <div className="mt-6 flex justify-center">
           <Button asChild>
             <Link to="/dashboard">
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
               Back to dashboard
             </Link>
           </Button>

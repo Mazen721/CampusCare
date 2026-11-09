@@ -60,5 +60,5 @@ All decisions follow MASTER_SPEC.md v4.0. No NEEDS CLARIFICATION items remain.
   public.
 
 ## R11. Hosting
-- **Decision**: Client on Vercel with `vercel.json` SPA rewrite; server on Render (warm before
+- **Decision**: Client on Vercel with `vercel.json` SPA rewrite; server on Railway (warm before
   demo); CORS allowlist from comma-separated `CLIENT_URL`.

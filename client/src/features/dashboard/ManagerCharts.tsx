@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Bar,
   BarChart,
@@ -38,6 +39,8 @@ function ChartCard({
 }
 
 export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
+  const { t } = useTranslation();
+
   const statusData = REQUEST_STATUSES.map((status) => ({
     status: humanizeEnum(status),
     count: metrics.requestsByStatus[status],
@@ -67,18 +70,20 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
         title="Requests by status"
         description="Every request created in the selected period, grouped by lifecycle state."
       >
-        <ResponsiveContainer width="100%" height={230}>
-          <BarChart data={statusData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="status" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={48} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-            <Tooltip
-              cursor={{ fill: 'hsl(var(--muted))' }}
-              contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
-            />
-            <Bar dataKey="count" name="Requests" fill={PRIMARY} radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <div dir="ltr">
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={statusData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="status" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={48} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <Tooltip
+                cursor={{ fill: 'hsl(var(--muted))' }}
+                contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
+              />
+              <Bar dataKey="count" name={t('dashboard.requests')} fill={PRIMARY} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </ChartCard>
 
       <ChartCard
@@ -90,27 +95,29 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
             No requests in this period.
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={230}>
-            <BarChart
-              layout="vertical"
-              data={categoryData}
-              margin={{ top: 4, right: 16, left: 4, bottom: 4 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-              <YAxis
-                type="category"
-                dataKey="category"
-                width={105}
-                tick={{ fontSize: 10 }}
-              />
-              <Tooltip
-                cursor={{ fill: 'hsl(var(--muted))' }}
-                contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
-              />
-              <Bar dataKey="count" name="Requests" fill={ACCENT} radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div dir="ltr">
+            <ResponsiveContainer width="100%" height={230}>
+              <BarChart
+                layout="vertical"
+                data={categoryData}
+                margin={{ top: 4, right: 16, left: 4, bottom: 4 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                <YAxis
+                  type="category"
+                  dataKey="category"
+                  width={105}
+                  tick={{ fontSize: 10 }}
+                />
+                <Tooltip
+                  cursor={{ fill: 'hsl(var(--muted))' }}
+                  contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
+                />
+                <Bar dataKey="count" name={t('dashboard.requests')} fill={ACCENT} radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </ChartCard>
 
@@ -123,20 +130,22 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
             No technicians are active yet.
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={230}>
-            <BarChart data={workloadData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip
-                cursor={{ fill: 'hsl(var(--muted))' }}
-                contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
-              />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="active" name="Active" stackId="work" fill={PRIMARY} radius={[0, 0, 0, 0]} />
-              <Bar dataKey="completed" name="Completed" stackId="work" fill={ACCENT} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div dir="ltr">
+            <ResponsiveContainer width="100%" height={230}>
+              <BarChart data={workloadData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                <Tooltip
+                  cursor={{ fill: 'hsl(var(--muted))' }}
+                  contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
+                />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Bar dataKey="active" name={t('dashboard.active')} stackId="work" fill={PRIMARY} radius={[0, 0, 0, 0]} />
+                <Bar dataKey="completed" name={t('dashboard.completed')} stackId="work" fill={ACCENT} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </ChartCard>
     </div>

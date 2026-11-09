@@ -31,7 +31,7 @@ export function ItemCard({ item }: ItemCardProps) {
             <span className="text-[11px] font-medium">No photo</span>
           </div>
         )}
-        <div className="absolute left-2.5 top-2.5">
+        <div className="absolute start-2.5 top-2.5">
           <ReportTypeBadge reportType={item.reportType} />
         </div>
       </div>
@@ -39,7 +39,7 @@ export function ItemCard({ item }: ItemCardProps) {
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="space-y-1">
           <p className="font-mono text-[11px] font-semibold text-primary">
-            {item.reportNumber}
+            <span dir="ltr">{item.reportNumber}</span>
           </p>
           <h2 className="line-clamp-2 font-display text-lg leading-snug text-foreground group-hover:text-primary">
             {item.itemTitle}

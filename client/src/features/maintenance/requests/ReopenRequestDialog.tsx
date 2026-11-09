@@ -62,7 +62,7 @@ export function ReopenRequestDialog({
             Reopen Maintenance Request
           </DialogTitle>
           <DialogDescription>
-            {request?.requestNumber} — {request?.title}
+            <span dir="ltr">{request?.requestNumber}</span> — {request?.title}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,7 +115,7 @@ export function ReopenRequestDialog({
               disabled={reopenMutation.isPending || reason.trim().length < 5}
             >
               {reopenMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
               Reopen Request
             </Button>

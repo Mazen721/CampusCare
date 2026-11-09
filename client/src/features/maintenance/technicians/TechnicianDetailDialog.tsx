@@ -81,7 +81,7 @@ export function TechnicianDetailDialog({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-semibold text-foreground truncate">
-                    {technician.name}
+                    <bdi>{technician.name}</bdi>
                   </h3>
                   <Badge
                     variant="outline"
@@ -100,9 +100,13 @@ export function TechnicianDetailDialog({
                       : 'Off Duty'}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">{technician.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span dir="ltr">{technician.email}</span>
+                </p>
                 {technician.contactPhone && (
-                  <p className="text-xs text-muted-foreground">{technician.contactPhone}</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span dir="ltr">{technician.contactPhone}</span>
+                  </p>
                 )}
               </div>
             </div>
@@ -216,13 +220,13 @@ export function TechnicianDetailDialog({
                       key={task.id}
                       className="flex items-center justify-between rounded-lg border bg-card p-3 text-sm"
                     >
-                      <div className="min-w-0 flex-1 pr-3">
+                      <div className="min-w-0 flex-1 pe-3">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs font-semibold text-primary">
-                            {task.workOrderNumber}
+                            <span dir="ltr">{task.workOrderNumber}</span>
                           </span>
-                          <PriorityBadge priority={task.priority as any} />
-                          <StatusBadge status={task.status as any} />
+                          <PriorityBadge priority={task.priority} />
+                          <StatusBadge status={task.status} />
                         </div>
                         <p className="mt-1 font-medium text-foreground truncate">{task.title}</p>
                         {task.location && (
@@ -233,7 +237,7 @@ export function TechnicianDetailDialog({
                         )}
                       </div>
                       {task.expectedCompletion && (
-                        <div className="shrink-0 text-right text-xs text-muted-foreground">
+                        <div className="shrink-0 text-end text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             Due {formatDate(task.expectedCompletion)}

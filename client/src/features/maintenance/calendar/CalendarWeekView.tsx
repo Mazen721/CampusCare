@@ -34,7 +34,7 @@ export function CalendarWeekView({
           return (
             <div
               key={day.toISOString()}
-              className="min-h-[420px] border-r last:border-r-0"
+              className="min-h-[420px] border-e last:border-e-0"
             >
               <div
                 className={cn(

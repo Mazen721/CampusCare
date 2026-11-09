@@ -59,7 +59,7 @@ export function AddNoteDialog({
             Add Technician Note
           </DialogTitle>
           <DialogDescription>
-            {workOrder?.workOrderNumber} — Internal notes are visible to technicians and managers.
+            <span dir="ltr">{workOrder?.workOrderNumber}</span> — Internal notes are visible to technicians and managers.
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +110,7 @@ export function AddNoteDialog({
               disabled={addNoteMutation.isPending || !note.trim()}
             >
               {addNoteMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
               Add Note
             </Button>

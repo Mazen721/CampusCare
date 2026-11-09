@@ -15,6 +15,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { BrandMark } from '@/components/shared/BrandMark';
+import { LanguageToggle } from '@/components/shared/LanguageToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -100,15 +101,18 @@ export function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background lg:grid lg:grid-cols-[1.05fr_1fr]">
+    <main className="relative min-h-screen bg-background lg:grid lg:grid-cols-[1.05fr_1fr]">
+      <div className="absolute top-4 end-4 z-20">
+        <LanguageToggle />
+      </div>
       <section className="relative hidden overflow-hidden bg-sidebar p-10 text-sidebar-foreground lg:flex lg:flex-col xl:p-14">
         <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-60" aria-hidden="true" />
         <div
-          className="pointer-events-none absolute -right-28 top-20 h-80 w-80 rounded-full border border-white/10"
+          className="pointer-events-none absolute -end-28 top-20 h-80 w-80 rounded-full border border-white/10"
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full border border-white/10"
+          className="pointer-events-none absolute -bottom-24 -start-20 h-72 w-72 rounded-full border border-white/10"
           aria-hidden="true"
         />
 
@@ -210,6 +214,8 @@ export function LoginPage() {
               <Input
                 id="email"
                 type="email"
+                dir="ltr"
+                className="text-start"
                 placeholder="you@mansnu.edu.eg"
                 autoComplete="email"
                 aria-invalid={Boolean(errors.email)}
@@ -246,7 +252,7 @@ export function LoginPage() {
               ) : null}
               Sign in
               {!isSubmitting ? (
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
               ) : null}
             </Button>
           </form>

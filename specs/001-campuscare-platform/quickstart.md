@@ -39,7 +39,8 @@ Expected: state machines, matching, recurrence and public projection tests all p
    `privateIdentificationDetails`.
 
 ## Deploy
-Client → Vercel (`vercel.json` SPA rewrite, set `VITE_*`). Server → Render (`npm run build && npm start`,
-health check `GET /health`, set all env vars, `CLIENT_URL` = Vercel origin). Warm the server before demos.
+Client → Vercel (`vercel.json` SPA rewrite, set `VITE_*`). Server → Railway (build
+`npm ci --include=dev && npm run build -w server`, start `npm start -w server`, health check
+`GET /health`, set all env vars, `CLIENT_URL` = Vercel origin). Warm the server before demos.
 
 References: [data-model.md](./data-model.md), [contracts/api.md](./contracts/api.md).

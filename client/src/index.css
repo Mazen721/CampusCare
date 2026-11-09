@@ -77,6 +77,16 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
+  html[lang='ar'] body {
+    font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+    font-feature-settings: normal;
+  }
+
+  html[lang='ar'] .font-display {
+    font-family: 'IBM Plex Sans Arabic', serif;
+    font-weight: 700;
+  }
+
   ::selection {
     @apply bg-primary/20 text-foreground;
   }

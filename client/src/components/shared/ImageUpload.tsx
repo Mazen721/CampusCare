@@ -159,7 +159,7 @@ export function ImageUpload({
                 onClick={() => removeFile(index)}
                 disabled={disabled}
                 aria-label={`Remove ${preview.file.name}`}
-                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-stone-950/75 text-white transition-colors hover:bg-destructive focus-visible:ring-2 focus-visible:ring-white"
+                className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-stone-950/75 text-white transition-colors hover:bg-destructive focus-visible:ring-2 focus-visible:ring-white"
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>

@@ -308,7 +308,7 @@ export function NewRequestPage() {
                   ) : null}
                   Submit request
                   {!isSubmitting ? (
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                   ) : null}
                 </Button>
               </div>

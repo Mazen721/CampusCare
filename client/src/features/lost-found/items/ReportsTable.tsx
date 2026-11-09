@@ -66,7 +66,7 @@ export function ReportsTable({
             to={`/lost-found/items/${item.id}`}
             className="font-mono text-xs font-semibold text-primary hover:underline"
           >
-            {item.reportNumber}
+            <span dir="ltr">{item.reportNumber}</span>
           </Link>
           <p className="mt-0.5 max-w-[260px] truncate text-sm font-medium text-foreground">
             {item.itemTitle}
@@ -115,8 +115,8 @@ export function ReportsTable({
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (item) => (
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/lost-found/items/${item.id}`}>

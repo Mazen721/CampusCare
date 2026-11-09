@@ -1,4 +1,5 @@
 import { Building2, CalendarDays, Mail, Phone, Sparkles, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,7 @@ function DetailRow({
 }: {
   icon: LucideIcon;
   label: string;
-  value: string;
+  value: ReactNode;
 }) {
   return (
     <div className="flex items-start gap-3 py-2.5">
@@ -55,13 +56,15 @@ export function AccountSummaryCard({ user }: AccountSummaryCardProps) {
             <AvatarFallback className="bg-primary/10 text-sm">{getInitials(user.name)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
+            <p className="truncate text-sm font-semibold text-foreground">
+              <bdi>{user.name}</bdi>
+            </p>
             <p className="text-xs text-muted-foreground">{ROLE_LABELS[user.role]}</p>
           </div>
         </div>
 
         <dl className="mt-4 divide-y divide-border/70 border-t border-border/70">
-          <DetailRow icon={Mail} label="Email" value={user.email} />
+          <DetailRow icon={Mail} label="Email" value={<span dir="ltr">{user.email}</span>} />
           <DetailRow
             icon={Building2}
             label="Department"
@@ -70,7 +73,7 @@ export function AccountSummaryCard({ user }: AccountSummaryCardProps) {
           <DetailRow
             icon={Phone}
             label="Contact number"
-            value={user.contactPhone?.trim() || 'Not provided'}
+            value={user.contactPhone?.trim() ? <span dir="ltr">{user.contactPhone.trim()}</span> : 'Not provided'}
           />
           <DetailRow
             icon={CalendarDays}

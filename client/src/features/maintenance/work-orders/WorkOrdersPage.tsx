@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -23,6 +24,7 @@ import { AssignWorkOrderDialog } from '@/features/maintenance/work-orders/Assign
 import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/CancelWorkOrderDialog';
 import { CompleteWorkOrderDialog } from '@/features/maintenance/work-orders/CompleteWorkOrderDialog';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
+import { ApiError } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import { WORK_ORDER_STATUSES, type WorkOrderStatus } from '@/types/meta';
 import type { WorkOrderRecord } from '@/types/workOrders';
@@ -41,6 +43,7 @@ export function WorkOrdersPage() {
   const [assignTarget, setAssignTarget] = useState<WorkOrderRecord | null>(null);
   const [cancelTarget, setCancelTarget] = useState<WorkOrderRecord | null>(null);
   const [completeTarget, setCompleteTarget] = useState<WorkOrderRecord | null>(null);
+  const [startTarget, setStartTarget] = useState<WorkOrderRecord | null>(null);
 
   const isTechnician = user?.role === 'TECHNICIAN';
   const isManager = user?.role === 'MAINTENANCE_MANAGER' || user?.role === 'SUPER_ADMIN';
@@ -60,11 +63,12 @@ export function WorkOrdersPage() {
   const startMutation = useMutation({
     mutationFn: (id: string) => workOrdersApi.start(id),
     onSuccess: async () => {
+      setStartTarget(null);
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
       toast.success('Work order marked as in progress');
     },
-    onError: (err: any) => {
-      toast.error(err.message || 'Unable to start work order');
+    onError: (err: unknown) => {
+      toast.error(err instanceof ApiError ? err.message : 'Unable to start work order');
     },
   });
 
@@ -88,7 +92,7 @@ export function WorkOrdersPage() {
               to={`/work-orders/${wo.id}`}
               className="font-mono text-xs font-semibold text-primary hover:underline"
             >
-              {wo.workOrderNumber}
+              <span dir="ltr">{wo.workOrderNumber}</span>
             </Link>
             <Badge variant="outline" className="text-[10px] py-0 px-1 font-normal">
               {wo.sourceType}
@@ -106,7 +110,7 @@ export function WorkOrdersPage() {
       header: 'Status & Priority',
       cell: (wo) => (
         <div className="flex flex-col gap-1 items-start">
-          <StatusBadge status={wo.status as any} />
+          <StatusBadge status={wo.status} />
           <PriorityBadge priority={wo.priority} />
         </div>
       ),
@@ -138,7 +142,7 @@ export function WorkOrdersPage() {
               <div className="text-xs">
                 {wo.assignedTechnician ? (
                   <span className="font-medium text-foreground">
-                    {wo.assignedTechnician.name}
+                    <bdi>{wo.assignedTechnician.name}</bdi>
                   </span>
                 ) : (
                   <span className="text-amber-600 italic">Unassigned</span>
@@ -179,10 +183,10 @@ export function WorkOrdersPage() {
               size="sm"
               variant="outline"
               className="h-8 px-2 text-xs text-emerald-600 hover:bg-emerald-50"
-              onClick={() => startMutation.mutate(wo.id)}
+              onClick={() => setStartTarget(wo)}
               disabled={startMutation.isPending}
             >
-              <Play className="h-3.5 w-3.5 mr-1" />
+              <Play className="h-3.5 w-3.5 me-1" />
               Start
             </Button>
           )}
@@ -193,7 +197,7 @@ export function WorkOrdersPage() {
               className="h-8 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
               onClick={() => setCompleteTarget(wo)}
             >
-              <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+              <CheckCircle2 className="h-3.5 w-3.5 me-1" />
               Complete
             </Button>
           )}
@@ -206,7 +210,7 @@ export function WorkOrdersPage() {
               className="h-8 px-2 text-xs"
               onClick={() => setAssignTarget(wo)}
             >
-              <UserCheck className="h-3.5 w-3.5 mr-1" />
+              <UserCheck className="h-3.5 w-3.5 me-1" />
               {wo.status === 'ASSIGNED' ? 'Reassign' : 'Assign'}
             </Button>
           )}
@@ -218,7 +222,7 @@ export function WorkOrdersPage() {
               className="h-8 px-2 text-xs text-destructive hover:bg-destructive/10"
               onClick={() => setCancelTarget(wo)}
             >
-              <XCircle className="h-3.5 w-3.5 mr-1" />
+              <XCircle className="h-3.5 w-3.5 me-1" />
               Cancel
             </Button>
           )}
@@ -229,7 +233,7 @@ export function WorkOrdersPage() {
             className="h-8 px-2 text-xs"
             onClick={() => navigate(`/work-orders/${wo.id}`)}
           >
-            <Eye className="h-3.5 w-3.5 mr-1" />
+            <Eye className="h-3.5 w-3.5 me-1" />
             View
           </Button>
         </div>
@@ -257,7 +261,7 @@ export function WorkOrdersPage() {
         <select
           value={statusFilter}
           onChange={(e) => {
-            setStatusFilter(e.target.value as any);
+            setStatusFilter(e.target.value as 'ALL' | WorkOrderStatus);
             setPage(1);
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -270,13 +274,13 @@ export function WorkOrdersPage() {
           ))}
         </select>
 
-        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground ml-3">
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground ms-3">
           <span>Source:</span>
         </div>
         <select
           value={sourceFilter}
           onChange={(e) => {
-            setSourceFilter(e.target.value as any);
+            setSourceFilter(e.target.value as 'ALL' | 'REACTIVE' | 'PREVENTIVE');
             setPage(1);
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -326,6 +330,24 @@ export function WorkOrdersPage() {
         open={Boolean(completeTarget)}
         onOpenChange={(open) => {
           if (!open) setCompleteTarget(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={Boolean(startTarget)}
+        onOpenChange={(open) => {
+          if (!open && !startMutation.isPending) setStartTarget(null);
+        }}
+        title="Start this work order?"
+        description={
+          startTarget
+            ? `Starting ${startTarget.workOrderNumber} notifies the manager and marks the work as in progress.`
+            : 'Starting this work order marks the work as in progress.'
+        }
+        confirmLabel="Start work"
+        isLoading={startMutation.isPending}
+        onConfirm={() => {
+          if (startTarget) startMutation.mutate(startTarget.id);
         }}
       />
     </div>

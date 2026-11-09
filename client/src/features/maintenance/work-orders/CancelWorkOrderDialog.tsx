@@ -62,7 +62,7 @@ export function CancelWorkOrderDialog({
             Cancel Work Order
           </DialogTitle>
           <DialogDescription>
-            Cancelling {workOrder?.workOrderNumber} is a permanent action.
+            Cancelling <span dir="ltr">{workOrder?.workOrderNumber}</span> is a permanent action.
             {workOrder?.sourceType === 'REACTIVE' && (
               <span className="block mt-1 text-foreground font-medium">
                 The linked maintenance request will return to "Under Review" for manager re-approval.
@@ -120,7 +120,7 @@ export function CancelWorkOrderDialog({
               disabled={cancelMutation.isPending || reason.trim().length < 3}
             >
               {cancelMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
               Confirm Cancellation
             </Button>

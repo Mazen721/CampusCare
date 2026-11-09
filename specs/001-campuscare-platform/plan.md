@@ -27,7 +27,7 @@ TanStack Query v5, React Hook Form + Zod, Lucide React, Recharts, date-fns, sonn
 **Testing**: vitest (server unit tests for state machines, matching, recurrence, public projection;
 projection integration test via supertest + mongodb-memory-server replica set).
 
-**Target Platform**: Web. Client on Vercel, server on Render or Railway, database on Atlas.
+**Target Platform**: Web. Client on Vercel, server on Railway, database on Atlas.
 
 **Project Type**: Web application (monorepo `/server` + `/client`).
 

@@ -72,10 +72,17 @@ export function ActivityLogsPage() {
       cell: (entry) =>
         entry.actor ? (
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">{entry.actor.name}</p>
+            <p className="truncate text-sm font-medium text-foreground"><bdi>{entry.actor.name}</bdi></p>
             <p className="truncate text-xs text-muted-foreground">
               {entry.actor.role ? ROLE_SHORT_LABELS[entry.actor.role] : 'Unknown role'}
-              {entry.actor.email ? ` · ${entry.actor.email}` : ''}
+              {entry.actor.email ? (
+                <>
+                  {' · '}
+                  <span dir="ltr">{entry.actor.email}</span>
+                </>
+              ) : (
+                ''
+              )}
             </p>
           </div>
         ) : (

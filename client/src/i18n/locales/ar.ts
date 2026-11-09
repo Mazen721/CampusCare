@@ -1,0 +1,122 @@
+export const ar = {
+  meta: {
+    title: 'CampusCare — إدارة عمليات الحرم الجامعي',
+    description: 'CampusCare — منصة موحدة لإدارة طلبات صيانة الحرم الجامعي والمفقودات والمعثورات.',
+  },
+  common: {
+    switchLanguage: 'تغيير اللغة',
+    english: 'English',
+    arabic: 'العربية',
+    save: 'حفظ',
+    cancel: 'إلغاء',
+    edit: 'تعديل',
+    delete: 'حذف',
+    search: 'بحث',
+    filter: 'تصفية',
+    loading: 'جاري التحميل...',
+    back: 'رجوع',
+    actions: 'الإجراءات',
+    status: 'الحالة',
+    viewAll: 'عرض الكل',
+  },
+  nav: {
+    dashboard: 'لوحة التحكم',
+    maintenance: 'الصيانة',
+    requests: 'طلبات الصيانة',
+    workOrders: 'أوامر العمل',
+    preventive: 'الصيانة الوقائية',
+    calendar: 'التقويم',
+    technicians: 'الفنيون',
+    feedback: 'تقييم الخدمة',
+    lostFound: 'المفقودات والمعثورات',
+    items: 'الأغراض',
+    claims: 'طلبات الاستلام',
+    matches: 'المطابقات المقترحة',
+    locations: 'المواقع',
+    users: 'المستخدمون',
+    activityLogs: 'سجل النشاط',
+    notifications: 'الإشعارات',
+    profile: 'الملف الشخصي',
+  },
+  auth: {
+    signIn: 'تسجيل الدخول',
+    signOut: 'تسجيل الخروج',
+    email: 'البريد الإلكتروني',
+    password: 'كلمة المرور',
+    changePassword: 'تغيير كلمة المرور',
+  },
+  dashboard: {
+    title: 'لوحة التحكم',
+    maintenance: 'الصيانة',
+    lostFound: 'المفقودات والمعثورات',
+    accounts: 'الحسابات',
+    totalRecords: 'إجمالي السجلات',
+    requests: 'الطلبات',
+    active: 'قيد التنفيذ',
+    completed: 'مكتمل',
+    lost: 'مفقود',
+    found: 'معثور عليه',
+    items: 'الأغراض',
+    claims: 'طلبات الاستلام',
+    jobs: 'المهام',
+  },
+  requests: {
+    title: 'طلبات الصيانة',
+  },
+  workOrders: {
+    title: 'أوامر العمل',
+  },
+  technicians: {
+    title: 'الفنيون',
+  },
+  preventive: {
+    title: 'خطة صيانة وقائية',
+  },
+  calendar: {
+    title: 'التقويم',
+  },
+  feedback: {
+    title: 'تقييم الخدمة',
+  },
+  locations: {
+    title: 'المواقع',
+  },
+  lostFound: {
+    title: 'المفقودات والمعثورات',
+  },
+  claims: {
+    title: 'طلبات الاستلام',
+  },
+  matches: {
+    title: 'المطابقات المقترحة',
+  },
+  users: {
+    title: 'المستخدمون',
+  },
+  activityLogs: {
+    title: 'سجل النشاط',
+  },
+  notifications: {
+    title: 'الإشعارات',
+  },
+  ai: {
+    insights: 'رؤى الذكاء الاصطناعي',
+    summary: 'ملخص بالذكاء الاصطناعي',
+  },
+  errors: {
+    network: 'تعذر الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.',
+    requestFailed: 'فشل الطلب ({{status}}).',
+    generic: 'حدث خطأ غير متوقع.',
+  },
+  serverErrors: {
+    internal: 'حدث خطأ داخلي في الخادم.',
+    routeNotFound: 'المسار المطلوب غير موجود.',
+    validationFailed: 'فشل التحقق من صحة البيانات المدخلة.',
+    uploadTooLarge: 'حجم الملف يتجاوز الحد المسموح به.',
+    uploadInvalid: 'نوع الملف غير مدعوم.',
+  },
+  notif: {},
+  activity: {},
+  validation: {},
+  enums: {},
+} as const;

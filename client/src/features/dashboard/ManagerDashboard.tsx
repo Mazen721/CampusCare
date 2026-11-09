@@ -126,7 +126,7 @@ export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
                     style={{ width: `${Math.round((entry.count / maxFeedback) * 100)}%` }}
                   />
                 </div>
-                <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">
+                <span className="w-8 text-end text-xs tabular-nums text-muted-foreground">
                   {entry.count}
                 </span>
               </div>

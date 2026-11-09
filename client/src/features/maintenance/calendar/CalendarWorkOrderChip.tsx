@@ -19,7 +19,7 @@ export function CalendarWorkOrderChip({
     <Link
       to={`/work-orders/${workOrder.id}`}
       className={cn(
-        'block rounded-md border px-2 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+        'block rounded-md border px-2 py-1.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
         workOrder.overdue
           ? 'border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15'
           : 'border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5',
@@ -40,9 +40,12 @@ export function CalendarWorkOrderChip({
             )}
           >
             {formatWorkOrderTime(workOrder)}
-            {showTechnician && workOrder.assignedTechnician
-              ? ` · ${workOrder.assignedTechnician.name}`
-              : ''}
+            {showTechnician && workOrder.assignedTechnician ? (
+              <>
+                {' · '}
+                <bdi>{workOrder.assignedTechnician.name}</bdi>
+              </>
+            ) : null}
           </span>
           {!compact && workOrder.location ? (
             <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">

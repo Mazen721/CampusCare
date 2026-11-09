@@ -139,7 +139,7 @@ export function NotificationBell({ poll = true }: { poll?: boolean }) {
             <Bell className="h-5 w-5" aria-hidden="true" />
           )}
           {unreadCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-stone-950">
+            <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-stone-950">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           ) : null}
@@ -150,7 +150,7 @@ export function NotificationBell({ poll = true }: { poll?: boolean }) {
           <DropdownMenuLabel className="p-0 normal-case tracking-normal">
             Notifications
             {unreadCount > 0 ? (
-              <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+              <span className="ms-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                 {unreadCount} new
               </span>
             ) : null}

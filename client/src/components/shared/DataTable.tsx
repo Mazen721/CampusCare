@@ -105,7 +105,7 @@ export function DataTable<T>({
             {onSearchChange ? (
               <div className="relative w-full sm:max-w-xs">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                   aria-hidden="true"
                 />
                 <label htmlFor="data-table-search" className="sr-only">
@@ -117,7 +117,7 @@ export function DataTable<T>({
                   value={searchValue ?? ''}
                   onChange={(event) => onSearchChange(event.target.value)}
                   placeholder={searchPlaceholder}
-                  className="h-9 w-full rounded-md border border-input bg-card pl-9 pr-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="h-9 w-full rounded-md border border-input bg-card ps-9 pe-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 />
               </div>
             ) : null}
@@ -202,7 +202,7 @@ export function DataTable<T>({
                 disabled={page <= 1}
                 aria-label="Previous page"
               >
-                <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
                 Previous
               </Button>
               <span className="px-1 text-xs text-muted-foreground">
@@ -216,7 +216,7 @@ export function DataTable<T>({
                 aria-label="Next page"
               >
                 Next
-                <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
               </Button>
             </nav>
           </div>

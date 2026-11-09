@@ -77,7 +77,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
             </span>
           </div>
           <CardDescription>
-            Feedback submitted for technician {existingFeedback.technician.name}
+            Feedback submitted for technician <bdi>{existingFeedback.technician.name}</bdi>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -92,7 +92,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
                 }`}
               />
             ))}
-            <span className="ml-2 font-semibold text-sm">
+            <span className="ms-2 font-semibold text-sm">
               {existingFeedback.rating} / 5
             </span>
           </div>
@@ -150,7 +150,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
                 </button>
               );
             })}
-            <span className="ml-2 text-sm font-semibold text-foreground">
+            <span className="ms-2 text-sm font-semibold text-foreground">
               {hoverRating ?? rating} / 5
             </span>
           </div>
@@ -169,7 +169,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
             rows={3}
             className="text-sm bg-background"
           />
-          <span className="text-[11px] text-muted-foreground text-right block mt-1">
+          <span className="text-[11px] text-muted-foreground text-end block mt-1">
             {comment.length} / 500 characters
           </span>
         </div>
@@ -179,7 +179,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
           disabled={submitMutation.isPending}
           className="w-full sm:w-auto"
         >
-          {submitMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {submitMutation.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
           Submit Service Feedback
         </Button>
       </CardContent>

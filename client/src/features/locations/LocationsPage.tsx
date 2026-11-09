@@ -111,8 +111,8 @@ export function LocationsPage() {
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (location) => (
         <div className="flex items-center justify-end gap-1">
           <Button

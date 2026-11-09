@@ -75,14 +75,14 @@ export function RequestReviewCard({ request }: SectionProps) {
       <CardContent className="space-y-3 pt-5">
         <div className="flex items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">Reviewed by</span>
-          <span className="text-right font-medium text-foreground">
-            {request.reviewedBy?.name ?? 'Maintenance manager'}
+          <span className="text-end font-medium text-foreground">
+            {request.reviewedBy?.name ? <bdi>{request.reviewedBy.name}</bdi> : 'Maintenance manager'}
           </span>
         </div>
         {request.reviewedAt ? (
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="text-muted-foreground">Reviewed at</span>
-            <span className="text-right text-foreground">
+            <span className="text-end text-foreground">
               {formatDate(request.reviewedAt, { dateStyle: 'medium', timeStyle: 'short' })}
             </span>
           </div>
@@ -127,7 +127,7 @@ export function RequestWorkOrderCard({ request }: SectionProps) {
               to={`/work-orders/${workOrder.id}`}
               className="font-mono text-primary hover:underline"
             >
-              {workOrder.workOrderNumber}
+              <span dir="ltr">{workOrder.workOrderNumber}</span>
             </Link>
           </p>
         </div>
@@ -175,7 +175,7 @@ export function RequestMetaCard({ request }: SectionProps) {
       <CardContent className="space-y-3.5 pt-5 text-sm">
         <div className="flex items-start justify-between gap-3">
           <span className="text-muted-foreground">Category</span>
-          <span className="text-right font-medium text-foreground">{request.category}</span>
+          <span className="text-end font-medium text-foreground">{request.category}</span>
         </div>
 
         <div className="flex items-start gap-2.5">
@@ -204,7 +204,9 @@ export function RequestMetaCard({ request }: SectionProps) {
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Requester
             </p>
-            <p className="mt-0.5 text-foreground">{request.requester?.name ?? '—'}</p>
+            <p className="mt-0.5 text-foreground">
+              {request.requester?.name ? <bdi>{request.requester.name}</bdi> : '—'}
+            </p>
             {request.requester?.department ? (
               <p className="text-xs text-muted-foreground">{request.requester.department}</p>
             ) : null}
@@ -214,13 +216,13 @@ export function RequestMetaCard({ request }: SectionProps) {
         <div className="space-y-3.5 border-t pt-3.5">
           <div className="flex items-start justify-between gap-3">
             <span className="text-muted-foreground">Submitted</span>
-            <span className="text-right text-xs text-foreground">
+            <span className="text-end text-xs text-foreground">
               {formatDate(request.createdAt, { dateStyle: 'medium', timeStyle: 'short' })}
             </span>
           </div>
           <div className="flex items-start justify-between gap-3">
             <span className="text-muted-foreground">Last updated</span>
-            <span className="text-right text-xs text-foreground">
+            <span className="text-end text-xs text-foreground">
               {formatDate(request.updatedAt, { dateStyle: 'medium', timeStyle: 'short' })}
             </span>
           </div>
@@ -230,7 +232,7 @@ export function RequestMetaCard({ request }: SectionProps) {
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                 Reopened
               </span>
-              <span className="text-right font-medium text-foreground">
+              <span className="text-end font-medium text-foreground">
                 {request.reopenCount} {request.reopenCount === 1 ? 'time' : 'times'}
               </span>
             </div>

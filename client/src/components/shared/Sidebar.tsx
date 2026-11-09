@@ -54,7 +54,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
                       >
                         <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} aria-hidden="true" />
                         <span className="truncate">{item.label}</span>
-                        <span className="ml-auto rounded-full border border-sidebar-border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-sidebar-muted/80">
+                        <span className="ms-auto rounded-full border border-sidebar-border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-sidebar-muted/80">
                           Soon
                         </span>
                       </div>
@@ -72,7 +72,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
                         cn(
                           'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors',
                           isActive
-                            ? 'bg-sidebar-active font-medium text-sidebar-foreground shadow-[inset_3px_0_0_#d9a441]'
+                            ? 'bg-sidebar-active font-medium text-sidebar-foreground shadow-[inset_3px_0_0_#d9a441] rtl:shadow-[inset_-3px_0_0_#d9a441]'
                             : 'text-sidebar-muted hover:bg-sidebar-active/60 hover:text-sidebar-foreground',
                         )
                       }
@@ -107,7 +107,9 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">{user.name}</p>
+            <p className="truncate text-sm font-medium text-sidebar-foreground">
+              <bdi>{user.name}</bdi>
+            </p>
             <p className="truncate text-[11px] text-sidebar-muted">
               {ROLE_SHORT_LABELS[user.role]}
               {user.department ? ` · ${user.department}` : ''}

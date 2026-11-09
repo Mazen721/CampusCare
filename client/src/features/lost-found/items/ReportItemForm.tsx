@@ -129,8 +129,8 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
                 aria-pressed={selected}
                 className={
                   selected
-                    ? 'flex items-start gap-3 rounded-lg border border-primary/50 bg-primary/5 p-3 text-left ring-1 ring-primary/20'
-                    : 'flex items-start gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/40'
+                    ? 'flex items-start gap-3 rounded-lg border border-primary/50 bg-primary/5 p-3 text-start ring-1 ring-primary/20'
+                    : 'flex items-start gap-3 rounded-lg border bg-card p-3 text-start transition-colors hover:bg-muted/40'
                 }
               >
                 <span

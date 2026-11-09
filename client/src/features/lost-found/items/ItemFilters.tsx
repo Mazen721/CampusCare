@@ -61,7 +61,7 @@ export function ItemFilters({
           </label>
           <div className="relative">
             <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"
             />
             <input
@@ -70,7 +70,7 @@ export function ItemFilters({
               value={values.q}
               onChange={(event) => onChange({ q: event.target.value })}
               placeholder="Report number, title or description…"
-              className={`${fieldClass} pl-9`}
+              className={`${fieldClass} ps-9`}
             />
           </div>
         </div>

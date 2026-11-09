@@ -14,13 +14,14 @@ const PasswordInput = React.forwardRef<
       <Input
         ref={ref}
         type={visible ? 'text' : 'password'}
-        className={cn('pr-10', className)}
+        dir="ltr"
+        className={cn('pe-10 text-start', className)}
         {...props}
       />
       <button
         type="button"
         onClick={() => setVisible((current) => !current)}
-        className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute end-1 top-1 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={visible ? 'Hide password' : 'Show password'}
         aria-pressed={visible}
       >

@@ -117,7 +117,7 @@ export function PreventivePlansPage() {
           <p>
             Next: {formatDate(plan.nextScheduledDate)}
             {plan.overdue ? (
-              <span className="ml-1.5 inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">
+              <span className="ms-1.5 inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">
                 <TriangleAlert className="h-2.5 w-2.5" aria-hidden="true" />
                 Due
               </span>
@@ -149,7 +149,9 @@ export function PreventivePlansPage() {
       header: 'Technician',
       cell: (plan) => (
         <span className="text-xs text-muted-foreground">
-          {plan.assignedTechnician?.name ?? (
+          {plan.assignedTechnician?.name ? (
+            <bdi>{plan.assignedTechnician.name}</bdi>
+          ) : (
             <span className="italic">Unassigned</span>
           )}
         </span>
@@ -186,8 +188,8 @@ export function PreventivePlansPage() {
     columns.push({
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (plan) => (
         <div className="flex justify-end gap-1">
           <Button

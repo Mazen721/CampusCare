@@ -136,10 +136,10 @@ details. **Independent test**: spec US4 and US6 scenarios.
 
 ## Phase 7 — Day 7: Testing, fixes, README, deployment, demo prep
 
-- [ ] T069 Run quickstart manual scenarios 1–4 for every role; log and fix defects across `server/src/` and `client/src/`
-- [ ] T070 [P] UX pass: responsive layouts, confirmation dialogs on all state changes, loading/empty/error states, toasts in `client/src/`
-- [ ] T071 [P] Write README (local setup, env, seed, tests, deployment, demo accounts) in `README.md`
-- [ ] T072 Deploy server to Render (health check `/health`, env vars, `CLIENT_URL`) and client to Vercel; run seed against the demo database
+- [X] T069 Run quickstart manual scenarios 1–4 for every role; log and fix defects across `server/src/` and `client/src/`
+- [X] T070 [P] UX pass: responsive layouts, confirmation dialogs on all state changes, loading/empty/error states, toasts in `client/src/`
+- [X] T071 [P] Write README (local setup, env, seed, tests, deployment, demo accounts) in `README.md`
+- [ ] T072 Deploy server to Railway (health check `/health`, env vars, `CLIENT_URL`) and client to Vercel; run seed against the demo database
 - [ ] T073 **Verify Day 7**: all tests pass; zero TypeScript errors; deployed app passes scenarios 1–4; server warmed before demo
 
 ---

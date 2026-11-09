@@ -49,7 +49,7 @@ export function FeedbackPage() {
               to={`/maintenance/requests/${fb.maintenanceRequestId}`}
               className="font-mono text-xs font-semibold text-primary hover:underline"
             >
-              {fb.requestNumber}
+              <span dir="ltr">{fb.requestNumber}</span>
             </Link>
           ) : (
             <span className="font-mono text-xs text-muted-foreground">—</span>
@@ -64,7 +64,7 @@ export function FeedbackPage() {
               to={`/work-orders/${fb.workOrderId}`}
               className="text-[11px] text-muted-foreground hover:underline block"
             >
-              WO: {fb.workOrderNumber}
+              WO: <span dir="ltr">{fb.workOrderNumber}</span>
             </Link>
           )}
         </div>
@@ -81,7 +81,9 @@ export function FeedbackPage() {
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-foreground">{fb.technician.name}</p>
+            <p className="truncate text-xs font-medium text-foreground">
+              <bdi>{fb.technician.name}</bdi>
+            </p>
           </div>
         </div>
       ),
@@ -101,7 +103,7 @@ export function FeedbackPage() {
               }`}
             />
           ))}
-          <span className="ml-1 text-xs font-semibold">{fb.rating}</span>
+          <span className="ms-1 text-xs font-semibold">{fb.rating}</span>
         </div>
       ),
     },
@@ -119,7 +121,9 @@ export function FeedbackPage() {
       header: 'Submitted By',
       cell: (fb) => (
         <div className="text-xs text-muted-foreground">
-          <p className="font-medium text-foreground">{fb.requester.name}</p>
+          <p className="font-medium text-foreground">
+            <bdi>{fb.requester.name}</bdi>
+          </p>
           <p className="text-[11px]">{formatDate(fb.createdAt)}</p>
         </div>
       ),
@@ -178,7 +182,7 @@ export function FeedbackPage() {
                 {perTechnician.slice(0, 2).map((stat) => (
                   <div key={stat.technicianId} className="flex items-center justify-between">
                     <span className="font-medium text-foreground truncate max-w-[140px]">
-                      {stat.technicianName}
+                      <bdi>{stat.technicianName}</bdi>
                     </span>
                     <span className="flex items-center gap-1 font-semibold text-amber-500">
                       <Star className="h-3 w-3 fill-amber-400" />

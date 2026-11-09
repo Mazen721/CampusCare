@@ -37,7 +37,7 @@ function BackToClaims() {
       to="/lost-found/claims"
       className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
     >
-      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+      <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
       Back to claims
     </Link>
   );
@@ -189,7 +189,7 @@ export function ClaimDetailPage() {
                     to={`/lost-found/items/${claim.item.id}`}
                     className="font-mono text-xs font-semibold text-primary hover:underline"
                   >
-                    {claim.item.reportNumber}
+                    <span dir="ltr">{claim.item.reportNumber}</span>
                   </Link>
                   <p className="mt-1 font-semibold text-foreground">{claim.item.itemTitle}</p>
                   <p className="text-xs text-muted-foreground">
@@ -245,7 +245,7 @@ export function ClaimDetailPage() {
                   to={`/lost-found/items/${claim.linkedLostItem.id}`}
                   className="font-mono text-xs font-semibold text-primary hover:underline"
                 >
-                  {claim.linkedLostItem.reportNumber}
+                  <span dir="ltr">{claim.linkedLostItem.reportNumber}</span>
                 </Link>
                 <p className="font-medium text-foreground">{claim.linkedLostItem.itemTitle}</p>
                 <StatusBadge status={claim.linkedLostItem.status} />
@@ -262,9 +262,13 @@ export function ClaimDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
-                <p className="font-semibold text-foreground">{claim.claimant.name}</p>
+                <p className="font-semibold text-foreground">
+                  <bdi>{claim.claimant.name}</bdi>
+                </p>
                 {claim.claimant.email ? (
-                  <p className="text-xs text-muted-foreground">{claim.claimant.email}</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span dir="ltr">{claim.claimant.email}</span>
+                  </p>
                 ) : null}
                 {claim.claimant.department ? (
                   <p className="text-xs text-muted-foreground">{claim.claimant.department}</p>
@@ -284,7 +288,7 @@ export function ClaimDetailPage() {
               <CardContent className="space-y-3 pt-5 text-sm">
                 {claim.reviewedBy ? (
                   <p className="text-xs text-muted-foreground">
-                    Reviewed by <span className="font-medium text-foreground">{claim.reviewedBy.name}</span>
+                    Reviewed by <span className="font-medium text-foreground"><bdi>{claim.reviewedBy.name}</bdi></span>
                     {claim.reviewedAt
                       ? ` on ${formatDate(claim.reviewedAt, {
                           dateStyle: 'medium',
@@ -319,7 +323,7 @@ export function ClaimDetailPage() {
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
                 <p className="font-semibold text-emerald-950">
-                  Received by {claim.handover.receivedByName ?? 'the claimant'}
+                  Received by {claim.handover.receivedByName ? <bdi>{claim.handover.receivedByName}</bdi> : 'the claimant'}
                 </p>
                 {claim.handover.handedOverAt ? (
                   <p className="text-xs text-emerald-800">
@@ -331,7 +335,7 @@ export function ClaimDetailPage() {
                 ) : null}
                 {claim.handover.handedOverBy ? (
                   <p className="text-xs text-emerald-800">
-                    Handed over by {claim.handover.handedOverBy.name}
+                    Handed over by <bdi>{claim.handover.handedOverBy.name}</bdi>
                   </p>
                 ) : null}
                 {claim.handover.notes ? (

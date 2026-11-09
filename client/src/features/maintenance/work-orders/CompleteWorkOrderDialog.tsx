@@ -64,7 +64,7 @@ export function CompleteWorkOrderDialog({
             Complete Work Order
           </DialogTitle>
           <DialogDescription>
-            {workOrder?.workOrderNumber} — {workOrder?.title}
+            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title}
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +118,7 @@ export function CompleteWorkOrderDialog({
               }
             >
               {completeMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
               Complete Work Order
             </Button>

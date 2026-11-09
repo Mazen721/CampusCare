@@ -55,7 +55,7 @@ export function SummaryButton({
   });
 
   return (
-    <div className={cn('space-y-1.5 sm:text-right', className)}>
+    <div className={cn('space-y-1.5 sm:text-end', className)}>
       <Button
         type="button"
         variant="outline"

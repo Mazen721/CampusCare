@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -43,6 +44,7 @@ export function WorkOrderDetailPage() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [completeOpen, setCompleteOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const [startOpen, setStartOpen] = useState(false);
 
   const workOrderQuery = useQuery({
     queryKey: ['work-order', id],
@@ -59,12 +61,13 @@ export function WorkOrderDetailPage() {
       return workOrdersApi.start(id);
     },
     onSuccess: async () => {
+      setStartOpen(false);
       await queryClient.invalidateQueries({ queryKey: ['work-order', id] });
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
       toast.success('Work order marked as in progress');
     },
-    onError: (err: any) => {
-      toast.error(err.message || 'Unable to start work order');
+    onError: (err: unknown) => {
+      toast.error(err instanceof ApiError ? err.message : 'Unable to start work order');
     },
   });
 
@@ -93,7 +96,7 @@ export function WorkOrderDetailPage() {
           to="/work-orders"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           Back to work orders
         </Link>
         <LoadingState label="Loading work order details…" />
@@ -110,7 +113,7 @@ export function WorkOrderDetailPage() {
           to="/work-orders"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
           Back to work orders
         </Link>
         <ErrorState
@@ -132,7 +135,7 @@ export function WorkOrderDetailPage() {
         to="/work-orders"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
         Back to work orders
       </Link>
 
@@ -142,17 +145,17 @@ export function WorkOrderDetailPage() {
         description={`${workOrder.category} · ${workOrder.sourceType} Work Order`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={workOrder.status as any} />
+            <StatusBadge status={workOrder.status} />
             <PriorityBadge priority={workOrder.priority} />
 
             {/* Technician Start action */}
             {isAssignedTech && workOrder.status === 'ASSIGNED' && (
               <Button
-                onClick={() => startMutation.mutate()}
+                onClick={() => setStartOpen(true)}
                 disabled={startMutation.isPending}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                <Play className="mr-1.5 h-4 w-4" />
+                <Play className="me-1.5 h-4 w-4" />
                 Start Work
               </Button>
             )}
@@ -163,7 +166,7 @@ export function WorkOrderDetailPage() {
                 onClick={() => setCompleteOpen(true)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                <CheckCircle2 className="me-1.5 h-4 w-4" />
                 Complete
               </Button>
             )}
@@ -171,7 +174,7 @@ export function WorkOrderDetailPage() {
             {/* Add note (Tech or Manager) */}
             {(isAssignedTech || canManage) && (
               <Button variant="outline" onClick={() => setNoteOpen(true)}>
-                <MessageSquarePlus className="mr-1.5 h-4 w-4" />
+                <MessageSquarePlus className="me-1.5 h-4 w-4" />
                 Add Note
               </Button>
             )}
@@ -181,7 +184,7 @@ export function WorkOrderDetailPage() {
               (workOrder.status === 'PENDING_ASSIGNMENT' ||
                 workOrder.status === 'ASSIGNED') && (
                 <Button variant="outline" onClick={() => setAssignOpen(true)}>
-                  <UserCheck className="mr-1.5 h-4 w-4" />
+                  <UserCheck className="me-1.5 h-4 w-4" />
                   {workOrder.status === 'ASSIGNED' ? 'Reassign' : 'Assign Technician'}
                 </Button>
               )}
@@ -195,7 +198,7 @@ export function WorkOrderDetailPage() {
                   className="text-destructive hover:bg-destructive/10"
                   onClick={() => setCancelOpen(true)}
                 >
-                  <XCircle className="mr-1.5 h-4 w-4" />
+                  <XCircle className="me-1.5 h-4 w-4" />
                   Cancel
                 </Button>
               )}
@@ -316,7 +319,7 @@ export function WorkOrderDetailPage() {
               </div>
               {(isAssignedTech || isManager) && (
                 <Button size="sm" variant="outline" onClick={() => setNoteOpen(true)}>
-                  <MessageSquarePlus className="mr-1.5 h-3.5 w-3.5" />
+                  <MessageSquarePlus className="me-1.5 h-3.5 w-3.5" />
                   Add Note
                 </Button>
               )}
@@ -339,7 +342,7 @@ export function WorkOrderDetailPage() {
                     >
                       <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
                         <span className="font-semibold text-foreground">
-                          {n.isSystem ? 'System Note' : n.author.name}
+                          {n.isSystem ? 'System Note' : <bdi>{n.author.name}</bdi>}
                         </span>
                         <span>{formatDate(n.createdAt)}</span>
                       </div>
@@ -394,10 +397,10 @@ export function WorkOrderDetailPage() {
                   </Avatar>
                   <div className="min-w-0">
                     <p className="font-semibold text-sm text-foreground truncate">
-                      {workOrder.assignedTechnician.name}
+                      <bdi>{workOrder.assignedTechnician.name}</bdi>
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {workOrder.assignedTechnician.email}
+                      <span dir="ltr">{workOrder.assignedTechnician.email}</span>
                     </p>
                     {workOrder.assignedTechnician.availability && (
                       <Badge variant="outline" className="mt-1 text-[10px]">
@@ -503,6 +506,16 @@ export function WorkOrderDetailPage() {
         workOrder={workOrder}
         open={noteOpen}
         onOpenChange={setNoteOpen}
+      />
+
+      <ConfirmDialog
+        open={startOpen}
+        onOpenChange={setStartOpen}
+        title="Start this work order?"
+        description={`Starting ${workOrder.workOrderNumber} notifies the maintenance manager and marks the work as in progress.`}
+        confirmLabel="Start work"
+        isLoading={startMutation.isPending}
+        onConfirm={() => startMutation.mutate()}
       />
     </div>
   );

@@ -62,8 +62,13 @@ export function RequestsListPage() {
             {request.title}
           </Link>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {request.requestNumber}
-            {isAdmin && request.requester ? ` · ${request.requester.name}` : ''}
+            <span dir="ltr">{request.requestNumber}</span>
+            {isAdmin && request.requester ? (
+              <>
+                {' · '}
+                <bdi>{request.requester.name}</bdi>
+              </>
+            ) : ''}
           </p>
         </div>
       ),
@@ -107,13 +112,13 @@ export function RequestsListPage() {
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (request) => (
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/maintenance/requests/${request.id}`}>
             View
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
           </Link>
         </Button>
       ),

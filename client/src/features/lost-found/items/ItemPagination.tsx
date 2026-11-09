@@ -34,7 +34,7 @@ export function ItemPagination({
           disabled={page <= 1}
           aria-label="Previous page"
         >
-          <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
           Previous
         </Button>
         <span className="px-1 text-xs text-muted-foreground">
@@ -49,7 +49,7 @@ export function ItemPagination({
           aria-label="Next page"
         >
           Next
-          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
         </Button>
       </nav>
     </div>

@@ -48,14 +48,18 @@ export function TechniciansPage() {
           </Avatar>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="truncate font-medium text-foreground">{tech.name}</span>
+              <span className="truncate font-medium text-foreground">
+                <bdi>{tech.name}</bdi>
+              </span>
               {tech.matchesCategory && (
                 <Badge variant="default" className="text-[10px] py-0 px-1.5 bg-amber-500 hover:bg-amber-600">
                   Match
                 </Badge>
               )}
             </div>
-            <p className="truncate text-xs text-muted-foreground">{tech.email}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              <span dir="ltr">{tech.email}</span>
+            </p>
           </div>
         </div>
       ),
@@ -112,7 +116,7 @@ export function TechniciansPage() {
           <span className="font-semibold text-foreground">
             {tech.activeWorkOrderCount} active
           </span>
-          <span className="text-muted-foreground ml-1.5">
+          <span className="text-muted-foreground ms-1.5">
             ({tech.completedWorkOrderCount} done)
           </span>
         </div>
@@ -145,7 +149,7 @@ export function TechniciansPage() {
             onClick={() => setDetailTechnicianId(tech.id)}
             title="View live metrics"
           >
-            <Eye className="h-3.5 w-3.5 mr-1" />
+            <Eye className="h-3.5 w-3.5 me-1" />
             View
           </Button>
           <Button
@@ -158,7 +162,7 @@ export function TechniciansPage() {
             }}
             title="Edit technician details"
           >
-            <Pencil className="h-3.5 w-3.5 mr-1" />
+            <Pencil className="h-3.5 w-3.5 me-1" />
             Edit
           </Button>
         </div>
@@ -178,7 +182,7 @@ export function TechniciansPage() {
               setFormOpen(true);
             }}
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             Add Technician
           </Button>
         }
@@ -193,7 +197,7 @@ export function TechniciansPage() {
         <select
           value={categoryFilter}
           onChange={(e) => {
-            setCategoryFilter(e.target.value as any);
+            setCategoryFilter(e.target.value as 'ALL' | MaintenanceCategory);
             setPage(1);
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

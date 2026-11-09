@@ -39,7 +39,7 @@ export function HandoversPage() {
             to={`/lost-found/claims/${claim.id}`}
             className="font-mono text-xs font-semibold text-primary hover:underline"
           >
-            {claim.claimNumber}
+            <span dir="ltr">{claim.claimNumber}</span>
           </Link>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             Updated {formatDate(claim.updatedAt)}
@@ -55,7 +55,9 @@ export function HandoversPage() {
           <p className="max-w-[240px] truncate text-sm font-medium text-foreground">
             {claim.item?.itemTitle ?? 'Unavailable'}
           </p>
-          <p className="text-[11px] text-muted-foreground">{claim.item?.reportNumber}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {claim.item?.reportNumber ? <span dir="ltr">{claim.item.reportNumber}</span> : null}
+          </p>
         </div>
       ),
     },
@@ -64,8 +66,12 @@ export function HandoversPage() {
       header: 'Claimant',
       cell: (claim) => (
         <div className="min-w-0 text-xs">
-          <p className="font-medium text-foreground">{claim.claimant?.name ?? 'Unknown'}</p>
-          <p className="text-muted-foreground">{claim.claimant?.email}</p>
+          <p className="font-medium text-foreground">
+            <bdi>{claim.claimant?.name ?? 'Unknown'}</bdi>
+          </p>
+          <p className="text-muted-foreground">
+            {claim.claimant?.email ? <span dir="ltr">{claim.claimant.email}</span> : null}
+          </p>
         </div>
       ),
     },
@@ -77,8 +83,8 @@ export function HandoversPage() {
     {
       id: 'actions',
       header: 'Actions',
-      headerClassName: 'text-right',
-      className: 'text-right',
+      headerClassName: 'text-end',
+      className: 'text-end',
       cell: (claim) => (
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="sm" asChild>

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Bar,
   BarChart,
@@ -41,6 +42,8 @@ export function TechnicianCharts({
 }: {
   analytics: TechnicianDashboard['analytics'];
 }) {
+  const { t } = useTranslation();
+
   const priorityData = analytics.byPriority.map((item) => ({
     priority: humanizeEnum(item.priority),
     count: item.count,
@@ -62,18 +65,20 @@ export function TechnicianCharts({
         title="Jobs by priority"
         description="Assigned work orders categorized by severity level."
       >
-        <ResponsiveContainer width="100%" height={230}>
-          <BarChart data={priorityData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="priority" tick={{ fontSize: 11 }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-            <Tooltip
-              cursor={{ fill: 'hsl(var(--muted))' }}
-              contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
-            />
-            <Bar dataKey="count" name="Jobs" fill={PRIMARY} radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <div dir="ltr">
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={priorityData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="priority" tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <Tooltip
+                cursor={{ fill: 'hsl(var(--muted))' }}
+                contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
+              />
+              <Bar dataKey="count" name={t('dashboard.jobs')} fill={PRIMARY} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </ChartCard>
 
       <ChartCard
@@ -85,27 +90,29 @@ export function TechnicianCharts({
             No work orders assigned yet.
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={230}>
-            <BarChart
-              layout="vertical"
-              data={categoryData}
-              margin={{ top: 4, right: 16, left: 4, bottom: 4 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-              <YAxis
-                type="category"
-                dataKey="category"
-                width={100}
-                tick={{ fontSize: 10 }}
-              />
-              <Tooltip
-                cursor={{ fill: 'hsl(var(--muted))' }}
-                contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
-              />
-              <Bar dataKey="count" name="Jobs" fill={ACCENT} radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div dir="ltr">
+            <ResponsiveContainer width="100%" height={230}>
+              <BarChart
+                layout="vertical"
+                data={categoryData}
+                margin={{ top: 4, right: 16, left: 4, bottom: 4 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                <YAxis
+                  type="category"
+                  dataKey="category"
+                  width={100}
+                  tick={{ fontSize: 10 }}
+                />
+                <Tooltip
+                  cursor={{ fill: 'hsl(var(--muted))' }}
+                  contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
+                />
+                <Bar dataKey="count" name={t('dashboard.jobs')} fill={ACCENT} radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </ChartCard>
 
@@ -113,23 +120,25 @@ export function TechnicianCharts({
         title="Task status overview"
         description="Current state of your assigned jobs in this period."
       >
-        <ResponsiveContainer width="100%" height={230}>
-          <BarChart data={statusData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="status" tick={{ fontSize: 11 }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-            <Tooltip
-              cursor={{ fill: 'hsl(var(--muted))' }}
-              contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
-            />
-            <Bar
-              dataKey="count"
-              name="Jobs"
-              fill={DANGER}
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div dir="ltr">
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={statusData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="status" tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <Tooltip
+                cursor={{ fill: 'hsl(var(--muted))' }}
+                contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
+              />
+              <Bar
+                dataKey="count"
+                name={t('dashboard.jobs')}
+                fill={DANGER}
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </ChartCard>
     </div>
   );

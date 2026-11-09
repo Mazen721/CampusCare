@@ -196,6 +196,8 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
               <Input
                 id="user-email"
                 type="email"
+                dir="ltr"
+                className="text-start"
                 placeholder="name@mansnu.edu.eg"
                 autoComplete="email"
                 aria-invalid={Boolean(errors.email)}
@@ -248,6 +250,8 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
               <Input
                 id="user-phone"
                 type="tel"
+                dir="ltr"
+                className="text-start"
                 placeholder="+20 100 000 0000"
                 autoComplete="tel"
                 aria-invalid={Boolean(errors.contactPhone)}

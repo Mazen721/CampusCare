@@ -169,7 +169,9 @@ export function ReviewRequestDialog({
     >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Review request {request?.requestNumber}</DialogTitle>
+          <DialogTitle>
+            Review request <span dir="ltr">{request?.requestNumber}</span>
+          </DialogTitle>
           <DialogDescription>
             {request?.title}. Choose the next step. The requester is notified of every decision.
           </DialogDescription>
@@ -242,7 +244,7 @@ export function ReviewRequestDialog({
             <Label htmlFor="review-notes">
               {action === 'REJECT' ? 'Reason for rejection' : 'Review notes'}
               {action === 'REJECT' ? (
-                <span className="ml-1 text-destructive" aria-hidden="true">
+                <span className="ms-1 text-destructive" aria-hidden="true">
                   *
                 </span>
               ) : null}

@@ -125,7 +125,7 @@ export function AssignWorkOrderDialog({
             {workOrder?.assignedTechnician ? 'Reassign Work Order' : 'Assign Work Order'}
           </DialogTitle>
           <DialogDescription>
-            {workOrder?.workOrderNumber} — {workOrder?.title} ({workOrder?.category})
+            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title} ({workOrder?.category})
           </DialogDescription>
         </DialogHeader>
 
@@ -183,7 +183,7 @@ export function AssignWorkOrderDialog({
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <p className="text-xs font-medium">
-                  {selectedTech.name} does not specialize in{' '}
+                  <bdi>{selectedTech.name}</bdi> does not specialize in{' '}
                   <span className="font-bold underline">{workOrder?.category}</span>.
                 </p>
               </div>
@@ -239,7 +239,7 @@ export function AssignWorkOrderDialog({
               }
             >
               {assignMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
               {workOrder?.assignedTechnician ? 'Reassign' : 'Assign'}
             </Button>

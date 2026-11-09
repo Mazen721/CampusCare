@@ -68,7 +68,7 @@ export function RequestTimeline({ status, className }: RequestTimelineProps) {
                 {!isLast ? (
                   <span
                     className={cn(
-                      'absolute left-[9px] top-5 h-[calc(100%-12px)] w-px',
+                      'absolute start-[9px] top-5 h-[calc(100%-12px)] w-px',
                       isComplete ? 'bg-primary/40' : 'bg-border',
                     )}
                     aria-hidden="true"

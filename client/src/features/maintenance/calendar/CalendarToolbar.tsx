@@ -78,7 +78,7 @@ export function CalendarToolbar({
               onClick={onPrevious}
               aria-label={`Previous ${view}`}
             >
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={onToday}>
               Today
@@ -90,7 +90,7 @@ export function CalendarToolbar({
               onClick={onNext}
               aria-label={`Next ${view}`}
             >
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </Button>
           </div>
 
