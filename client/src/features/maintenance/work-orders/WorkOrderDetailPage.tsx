@@ -12,6 +12,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -33,9 +34,11 @@ import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/Cancel
 import { CompleteWorkOrderDialog } from '@/features/maintenance/work-orders/CompleteWorkOrderDialog';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { formatDate, getInitials } from '@/lib/utils';
 
 export function WorkOrderDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -64,10 +67,10 @@ export function WorkOrderDetailPage() {
       setStartOpen(false);
       await queryClient.invalidateQueries({ queryKey: ['work-order', id] });
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
-      toast.success('Work order marked as in progress');
+      toast.success(t('workOrders.workOrderStartedSuccess'));
     },
     onError: (err: unknown) => {
-      toast.error(err instanceof ApiError ? err.message : 'Unable to start work order');
+      toast.error(err instanceof ApiError ? err.message : t('errors.network'));
     },
   });
 
@@ -97,9 +100,9 @@ export function WorkOrderDetailPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-          Back to work orders
+          {t('workOrders.backToWorkOrders')}
         </Link>
-        <LoadingState label="Loading work order details…" />
+        <LoadingState label={t('common.loading')} />
       </div>
     );
   }
@@ -114,14 +117,14 @@ export function WorkOrderDetailPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-          Back to work orders
+          {t('workOrders.backToWorkOrders')}
         </Link>
         <ErrorState
-          title={isNotFound ? 'Work order not found' : 'Unable to load work order'}
+          title={isNotFound ? t('errors.network') : t('errors.network')}
           message={
             workOrderQuery.error instanceof ApiError
               ? workOrderQuery.error.message
-              : 'Check your connection and try again.'
+              : t('errors.network')
           }
           onRetry={isNotFound ? undefined : () => void workOrderQuery.refetch()}
         />
@@ -136,13 +139,13 @@ export function WorkOrderDetailPage() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-        Back to work orders
+        {t('workOrders.backToWorkOrders')}
       </Link>
 
       <PageHeader
         eyebrow={workOrder.workOrderNumber}
         title={workOrder.title}
-        description={`${workOrder.category} · ${workOrder.sourceType} Work Order`}
+        description={`${enumLabel('maintenanceCategory', workOrder.category)} · ${enumLabel('sourceType', workOrder.sourceType)}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={workOrder.status} />
@@ -155,8 +158,8 @@ export function WorkOrderDetailPage() {
                 disabled={startMutation.isPending}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                <Play className="me-1.5 h-4 w-4" />
-                Start Work
+                <Play className="me-1.5 h-4 w-4 rtl:rotate-180" />
+                {t('workOrders.startWork')}
               </Button>
             )}
 
@@ -167,7 +170,7 @@ export function WorkOrderDetailPage() {
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 <CheckCircle2 className="me-1.5 h-4 w-4" />
-                Complete
+                {t('workOrders.completeWork')}
               </Button>
             )}
 
@@ -175,7 +178,7 @@ export function WorkOrderDetailPage() {
             {(isAssignedTech || canManage) && (
               <Button variant="outline" onClick={() => setNoteOpen(true)}>
                 <MessageSquarePlus className="me-1.5 h-4 w-4" />
-                Add Note
+                {t('workOrders.addNote')}
               </Button>
             )}
 
@@ -185,7 +188,7 @@ export function WorkOrderDetailPage() {
                 workOrder.status === 'ASSIGNED') && (
                 <Button variant="outline" onClick={() => setAssignOpen(true)}>
                   <UserCheck className="me-1.5 h-4 w-4" />
-                  {workOrder.status === 'ASSIGNED' ? 'Reassign' : 'Assign Technician'}
+                  {workOrder.status === 'ASSIGNED' ? t('workOrders.reassign') : t('workOrders.assignTechnician')}
                 </Button>
               )}
 
@@ -199,7 +202,7 @@ export function WorkOrderDetailPage() {
                   onClick={() => setCancelOpen(true)}
                 >
                   <XCircle className="me-1.5 h-4 w-4" />
-                  Cancel
+                  {t('workOrders.cancel')}
                 </Button>
               )}
           </div>
@@ -210,9 +213,9 @@ export function WorkOrderDetailPage() {
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 shrink-0" />
           <div>
-            <p className="font-semibold">Work Order Overdue</p>
+            <p className="font-semibold">{t('workOrders.workOrderOverdue')}</p>
             <p className="text-xs">
-              This task was scheduled to be completed by {formatDate(workOrder.expectedCompletion!)}.
+              {t('workOrders.overdueScheduledFor', { date: formatDate(workOrder.expectedCompletion!) })}
             </p>
           </div>
         </div>
@@ -224,7 +227,7 @@ export function WorkOrderDetailPage() {
           {/* Description Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Task Description</CardTitle>
+              <CardTitle className="text-base">{t('workOrders.taskDescription')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
@@ -238,10 +241,10 @@ export function WorkOrderDetailPage() {
               <div className="space-y-1">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Issue summary
+                  {t('workOrders.issueSummary')}
                 </CardTitle>
                 <CardDescription>
-                  A short factual summary written from the work order title and description.
+                  {t('workOrders.issueSummaryDesc')}
                 </CardDescription>
               </div>
               {canSummarize ? (
@@ -258,14 +261,14 @@ export function WorkOrderDetailPage() {
                     {workOrder.aiSummary.text}
                   </p>
                   <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                    AI-generated · {formatDate(workOrder.aiSummary.generatedAt)}
+                    {t('workOrders.aiGeneratedAt', { date: formatDate(workOrder.aiSummary.generatedAt) })}
                   </p>
                 </div>
               ) : (
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {canSummarize
-                    ? 'No summary has been generated for this work order yet.'
-                    : 'No AI summary is available for this work order.'}
+                    ? t('workOrders.noSummaryYet')
+                    : t('workOrders.noSummaryAvailable')}
                 </p>
               )}
             </CardContent>
@@ -277,15 +280,15 @@ export function WorkOrderDetailPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                  Resolution Details
+                  {t('workOrders.resolutionDetails')}
                 </CardTitle>
                 <CardDescription>
-                  Completed on {formatDate(workOrder.completedAt!)}
+                  {t('workOrders.completedOn', { date: formatDate(workOrder.completedAt!) })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-foreground whitespace-pre-wrap">
-                  {workOrder.resolutionDetails || 'No resolution details recorded.'}
+                  {workOrder.resolutionDetails || t('workOrders.noResolutionDetails')}
                 </p>
               </CardContent>
             </Card>
@@ -297,12 +300,12 @@ export function WorkOrderDetailPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base text-destructive flex items-center gap-2">
                   <XCircle className="h-5 w-5" />
-                  Cancellation Reason
+                  {t('workOrders.cancellationReason')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-foreground">
-                  {workOrder.cancelReason || 'Cancelled by maintenance manager.'}
+                  {workOrder.cancelReason || t('workOrders.cancelledByManager')}
                 </p>
               </CardContent>
             </Card>
@@ -312,22 +315,22 @@ export function WorkOrderDetailPage() {
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-base">Technician Notes</CardTitle>
+                <CardTitle className="text-base">{t('workOrders.technicianNotes')}</CardTitle>
                 <CardDescription>
-                  Internal operational notes and activity records
+                  {t('workOrders.notesSubtitle')}
                 </CardDescription>
               </div>
               {(isAssignedTech || isManager) && (
                 <Button size="sm" variant="outline" onClick={() => setNoteOpen(true)}>
                   <MessageSquarePlus className="me-1.5 h-3.5 w-3.5" />
-                  Add Note
+                  {t('workOrders.addNote')}
                 </Button>
               )}
             </CardHeader>
             <CardContent>
               {workOrder.technicianNotes.length === 0 ? (
                 <p className="rounded-lg border border-dashed p-6 text-center text-xs text-muted-foreground">
-                  No notes recorded yet.
+                  {t('workOrders.noNotesYet')}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -342,7 +345,7 @@ export function WorkOrderDetailPage() {
                     >
                       <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
                         <span className="font-semibold text-foreground">
-                          {n.isSystem ? 'System Note' : <bdi>{n.author.name}</bdi>}
+                          {n.isSystem ? t('workOrders.systemNote') : <bdi>{n.author.name}</bdi>}
                         </span>
                         <span>{formatDate(n.createdAt)}</span>
                       </div>
@@ -361,19 +364,19 @@ export function WorkOrderDetailPage() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center justify-between">
-                  <span>Linked Maintenance Request</span>
+                  <span>{t('workOrders.linkedRequest')}</span>
                   <Link
                     to={`/maintenance/requests/${workOrder.maintenanceRequestId}`}
                     className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
                   >
-                    View Request
+                    {t('common.view')}
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-xs text-muted-foreground">
                 <p>
-                  This work order was created from an approved user maintenance request.
+                  {t('workOrders.linkedRequestDesc')}
                 </p>
               </CardContent>
             </Card>
@@ -385,7 +388,7 @@ export function WorkOrderDetailPage() {
           {/* Assigned Technician Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Assigned Technician</CardTitle>
+              <CardTitle className="text-base">{t('workOrders.assignedTechnician')}</CardTitle>
             </CardHeader>
             <CardContent>
               {workOrder.assignedTechnician ? (
@@ -404,14 +407,14 @@ export function WorkOrderDetailPage() {
                     </p>
                     {workOrder.assignedTechnician.availability && (
                       <Badge variant="outline" className="mt-1 text-[10px]">
-                        {workOrder.assignedTechnician.availability}
+                        {enumLabel('availability', workOrder.assignedTechnician.availability)}
                       </Badge>
                     )}
                   </div>
                 </div>
               ) : (
                 <p className="text-xs text-amber-600 italic">
-                  Not assigned yet. Manager assignment required.
+                  {t('workOrders.unassigned')}
                 </p>
               )}
             </CardContent>
@@ -422,30 +425,30 @@ export function WorkOrderDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Schedule & Timestamps
+                {t('workOrders.scheduleAndTimestamps')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
               <div className="flex justify-between border-b pb-2">
-                <span className="text-muted-foreground">Scheduled Start:</span>
+                <span className="text-muted-foreground">{t('workOrders.scheduledStart')}:</span>
                 <span className="font-medium text-foreground">
                   {workOrder.scheduledStart ? formatDate(workOrder.scheduledStart) : '—'}
                 </span>
               </div>
               <div className="flex justify-between border-b pb-2">
-                <span className="text-muted-foreground">Expected Completion:</span>
+                <span className="text-muted-foreground">{t('workOrders.expectedCompletion')}:</span>
                 <span className={`font-medium ${isOverdue ? 'text-destructive font-bold' : 'text-foreground'}`}>
                   {workOrder.expectedCompletion ? formatDate(workOrder.expectedCompletion) : '—'}
                 </span>
               </div>
               <div className="flex justify-between border-b pb-2">
-                <span className="text-muted-foreground">Actual Start:</span>
+                <span className="text-muted-foreground">{t('workOrders.actualStart')}:</span>
                 <span className="font-medium text-foreground">
                   {workOrder.actualStart ? formatDate(workOrder.actualStart) : '—'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Completed At:</span>
+                <span className="text-muted-foreground">{t('workOrders.completedAt')}:</span>
                 <span className="font-medium text-foreground">
                   {workOrder.completedAt ? formatDate(workOrder.completedAt) : '—'}
                 </span>
@@ -458,7 +461,7 @@ export function WorkOrderDetailPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                Location
+                {t('common.location')}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-1.5">
@@ -468,16 +471,16 @@ export function WorkOrderDetailPage() {
                     {workOrder.location.buildingName}
                   </p>
                   <p className="text-muted-foreground">
-                    Floor {workOrder.location.floor} · Room {workOrder.location.room}
+                    {workOrder.location.floor} · {workOrder.location.room}
                   </p>
                   {workOrder.location.locationType && (
                     <Badge variant="secondary" className="text-[10px]">
-                      {workOrder.location.locationType}
+                      {enumLabel('locationType', workOrder.location.locationType)}
                     </Badge>
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground">Location not recorded</p>
+                <p className="text-muted-foreground">{t('requests.notRecorded')}</p>
               )}
             </CardContent>
           </Card>
@@ -511,9 +514,10 @@ export function WorkOrderDetailPage() {
       <ConfirmDialog
         open={startOpen}
         onOpenChange={setStartOpen}
-        title="Start this work order?"
-        description={`Starting ${workOrder.workOrderNumber} notifies the maintenance manager and marks the work as in progress.`}
-        confirmLabel="Start work"
+        title={t('workOrders.confirmStartTitle')}
+        description={t('workOrders.confirmStartDesc', { number: workOrder.workOrderNumber })}
+        confirmLabel={t('workOrders.startWork')}
+        cancelLabel={t('common.cancel')}
         isLoading={startMutation.isPending}
         onConfirm={() => startMutation.mutate()}
       />

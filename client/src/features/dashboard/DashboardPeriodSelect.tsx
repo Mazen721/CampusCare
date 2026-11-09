@@ -1,5 +1,5 @@
+import { useTranslation } from 'react-i18next';
 import {
-  DASHBOARD_PERIOD_LABELS,
   DASHBOARD_PERIODS,
   type DashboardPeriod,
 } from '@/types/dashboard';
@@ -10,10 +10,19 @@ interface DashboardPeriodSelectProps {
 }
 
 export function DashboardPeriodSelect({ value, onChange }: DashboardPeriodSelectProps) {
+  const { t } = useTranslation();
+
+  const labels: Record<DashboardPeriod, string> = {
+    '7d': t('dashboard.period7d'),
+    '30d': t('dashboard.period30d'),
+    '90d': t('dashboard.period90d'),
+    all: t('common.all'),
+  };
+
   return (
     <div className="flex items-center gap-2">
       <label htmlFor="dashboard-period" className="text-xs font-medium text-muted-foreground">
-        Period
+        {t('dashboard.period')}
       </label>
       <select
         id="dashboard-period"
@@ -23,7 +32,7 @@ export function DashboardPeriodSelect({ value, onChange }: DashboardPeriodSelect
       >
         {DASHBOARD_PERIODS.map((period) => (
           <option key={period} value={period}>
-            {DASHBOARD_PERIOD_LABELS[period]}
+            {labels[period]}
           </option>
         ))}
       </select>

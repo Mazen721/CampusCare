@@ -1,5 +1,6 @@
 import { Handshake, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { FormField } from '@/components/shared/FormField';
@@ -25,6 +26,7 @@ interface HandoverDialogProps {
 }
 
 export function HandoverDialog({ claim, open, onOpenChange }: HandoverDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [receivedByName, setReceivedByName] = useState('');
   const [notes, setNotes] = useState('');
@@ -48,19 +50,19 @@ export function HandoverDialog({ claim, open, onOpenChange }: HandoverDialogProp
       void queryClient.invalidateQueries({ queryKey: ['lost-found-claims'] });
       void queryClient.invalidateQueries({ queryKey: ['lost-found-claim', claim.id] });
       void queryClient.invalidateQueries({ queryKey: ['lost-found-item', claim.item?.id] });
-      toast.success(`Handover recorded for ${claim.claimNumber}.`);
+      toast.success(t('claims.handoverSuccess'));
       onOpenChange(false);
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : 'Unable to record the handover.',
+        error instanceof ApiError ? error.message : t('errors.generic'),
       );
     },
   });
 
   function submit(): void {
     if (receivedByName.trim().length < 2) {
-      setNameError('Enter who received the item');
+      setNameError(t('validation.fieldRequired', { field: t('claims.receivedByName') }));
       return;
     }
     setNameError(null);
@@ -76,19 +78,18 @@ export function HandoverDialog({ claim, open, onOpenChange }: HandoverDialogProp
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Handshake className="h-4 w-4 text-primary" aria-hidden="true" />
-            Record handover
+            {t('claims.recordHandoverTitle')}
           </DialogTitle>
           <DialogDescription>
-            Confirming the handover completes the claim and marks the found item and linked lost
-            report as returned.
+            {t('claims.recordHandoverDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <FormField
           id="handover-received-by"
-          label="Received by"
+          label={t('claims.receivedByName')}
           error={nameError ?? undefined}
-          hint="The person who physically collected the item."
+          hint={t('claims.whoCollected')}
           required
         >
           <Input
@@ -96,15 +97,15 @@ export function HandoverDialog({ claim, open, onOpenChange }: HandoverDialogProp
             value={receivedByName}
             maxLength={120}
             onChange={(event) => setReceivedByName(event.target.value)}
-            placeholder="Full name"
+            placeholder={t('claims.receivedByNamePlaceholder')}
             aria-invalid={Boolean(nameError)}
           />
         </FormField>
 
         <FormField
           id="handover-notes"
-          label="Handover notes"
-          hint="Optional. Add an ID reference or anything the office should keep on record."
+          label={t('claims.handoverNotes')}
+          hint={t('claims.handoverNotesPlaceholder')}
         >
           <Textarea
             id="handover-notes"
@@ -112,7 +113,7 @@ export function HandoverDialog({ claim, open, onOpenChange }: HandoverDialogProp
             maxLength={1000}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            placeholder="Student ID checked and recorded."
+            placeholder={t('claims.handoverNotesPlaceholder')}
           />
         </FormField>
 
@@ -123,7 +124,7 @@ export function HandoverDialog({ claim, open, onOpenChange }: HandoverDialogProp
             onClick={() => onOpenChange(false)}
             disabled={handoverMutation.isPending}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="button" onClick={submit} disabled={handoverMutation.isPending}>
             {handoverMutation.isPending ? (
@@ -131,7 +132,7 @@ export function HandoverDialog({ claim, open, onOpenChange }: HandoverDialogProp
             ) : (
               <Handshake className="h-4 w-4" aria-hidden="true" />
             )}
-            Confirm handover
+            {t('claims.confirmHandover')}
           </Button>
         </DialogFooter>
       </DialogContent>

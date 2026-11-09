@@ -1,18 +1,24 @@
+import type { TFunction } from 'i18next';
 import { z } from 'zod';
+import i18n from '@/i18n';
 
-export const claimFormSchema = z.object({
-  itemId: z.string().min(1, 'Select the found item you are claiming'),
-  claimDescription: z
-    .string()
-    .trim()
-    .min(10, 'Describe your claim in at least 10 characters')
-    .max(4000, 'Claim description must be 4000 characters or fewer'),
-  identifyingDetailsProvided: z
-    .string()
-    .trim()
-    .min(3, 'Add at least one identifying detail')
-    .max(4000, 'Identifying details must be 4000 characters or fewer'),
-  linkedLostItemId: z.string().optional(),
-});
+export function createClaimFormSchema(t: TFunction) {
+  return z.object({
+    itemId: z.string().min(1, t('validation.claimFoundItemRequired')),
+    claimDescription: z
+      .string()
+      .trim()
+      .min(10, t('validation.min10Chars'))
+      .max(4000, t('validation.maxChars', { field: t('claims.claimDescription'), max: 4000 })),
+    identifyingDetailsProvided: z
+      .string()
+      .trim()
+      .min(3, t('validation.min3Chars'))
+      .max(4000, t('validation.maxChars', { field: t('claims.identifyingDetails'), max: 4000 })),
+    linkedLostItemId: z.string().optional(),
+  });
+}
 
-export type ClaimFormValues = z.infer<typeof claimFormSchema>;
+export const claimFormSchema = createClaimFormSchema(i18n.t);
+export type ClaimFormSchema = ReturnType<typeof createClaimFormSchema>;
+export type ClaimFormValues = z.infer<ClaimFormSchema>;

@@ -1,5 +1,6 @@
 import { ImageOff } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Lightbox } from '@/components/shared/Lightbox';
 import type { ImageAsset } from '@/types/maintenance';
 
@@ -9,6 +10,7 @@ interface ItemGalleryProps {
 }
 
 export function ItemGallery({ images, itemTitle }: ItemGalleryProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [initialIndex, setInitialIndex] = useState(0);
 
@@ -16,9 +18,9 @@ export function ItemGallery({ images, itemTitle }: ItemGalleryProps) {
     return (
       <div className="flex min-h-[260px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/30 p-8 text-center">
         <ImageOff className="h-8 w-8 text-muted-foreground" strokeWidth={1.6} aria-hidden="true" />
-        <p className="text-sm font-medium text-foreground">No photos attached</p>
+        <p className="text-sm font-medium text-foreground">{t('lostFound.noPhotosAttached')}</p>
         <p className="text-xs text-muted-foreground">
-          Use the description and private details to identify this item.
+          {t('lostFound.noPhotosAttachedDesc')}
         </p>
       </div>
     );
@@ -36,11 +38,11 @@ export function ItemGallery({ images, itemTitle }: ItemGalleryProps) {
                 setOpen(true);
               }}
               className="group relative block aspect-[4/3] w-full overflow-hidden rounded-md border bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label={`Open photo ${index + 1} of ${itemTitle}`}
+              aria-label={t('requests.openPhotoAria', { index: index + 1, total: images.length })}
             >
               <img
                 src={image.url}
-                alt={`${itemTitle} photo ${index + 1}`}
+                alt={t('lostFound.itemPhoto', { title: itemTitle })}
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               />
             </button>

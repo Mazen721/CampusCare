@@ -1,5 +1,6 @@
 import { MessageSquarePlus, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export function AddNoteDialog({
   open,
   onOpenChange,
 }: AddNoteDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [note, setNote] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export function AddNoteDialog({
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['work-order', workOrder?.id] });
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
-      toast.success('Note added to work order');
+      toast.success(t('workOrders.noteAddedSuccess'));
       setNote('');
       onOpenChange(false);
     },
@@ -56,10 +58,10 @@ export function AddNoteDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquarePlus className="h-5 w-5" />
-            Add Technician Note
+            {t('workOrders.addNoteTitle')}
           </DialogTitle>
           <DialogDescription>
-            <span dir="ltr">{workOrder?.workOrderNumber}</span> — Internal notes are visible to technicians and managers.
+            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {t('workOrders.notesSubtitle')}
           </DialogDescription>
         </DialogHeader>
 
@@ -82,13 +84,13 @@ export function AddNoteDialog({
         >
           <FormField
             id="wo-note"
-            label="Note"
-            hint="Record progress updates, part numbers, or special equipment required."
+            label={t('common.notes')}
+            hint={t('workOrders.notePlaceholder')}
             required
           >
             <Textarea
               id="wo-note"
-              placeholder="e.g. Ordered replacement ballast, will install tomorrow morning..."
+              placeholder={t('workOrders.notePlaceholder')}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={3}
@@ -103,7 +105,7 @@ export function AddNoteDialog({
               onClick={() => onOpenChange(false)}
               disabled={addNoteMutation.isPending}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -112,7 +114,7 @@ export function AddNoteDialog({
               {addNoteMutation.isPending && (
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
-              Add Note
+              {t('workOrders.addNote')}
             </Button>
           </DialogFooter>
         </form>

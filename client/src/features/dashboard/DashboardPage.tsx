@@ -1,5 +1,6 @@
 import { CalendarDays } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { LoadingState } from '@/components/shared/LoadingState';
@@ -13,16 +14,9 @@ import { DashboardPeriodSelect } from '@/features/dashboard/DashboardPeriodSelec
 import { dashboardApi } from '@/features/dashboard/dashboardApi';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
-import { ROLE_LABELS } from '@/types/auth';
 import type { DashboardPeriod, DashboardResponse } from '@/types/dashboard';
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 function RoleDashboard({ data }: { data: DashboardResponse }) {
   switch (data.role) {
@@ -42,6 +36,7 @@ function RoleDashboard({ data }: { data: DashboardResponse }) {
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [period, setPeriod] = useState<DashboardPeriod>('7d');
 
@@ -64,15 +59,27 @@ export function DashboardPage() {
     dashboardQuery.error instanceof ApiError
       ? dashboardQuery.error.message
       : dashboardQuery.error
-        ? 'Unable to load your dashboard right now.'
+        ? t('errors.generic')
         : null;
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12
+      ? t('dashboard.greetingMorning')
+      : hour < 18
+        ? t('dashboard.greetingAfternoon')
+        : t('dashboard.greetingEvening');
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Your workspace"
-        title={`${getGreeting()}, ${firstName}.`}
-        description={`Signed in as ${ROLE_LABELS[user.role]}. Here is what is happening across your areas.`}
+        eyebrow={t('dashboard.workspace')}
+        title={
+          <span>
+            {greeting}، <bdi>{firstName}</bdi>
+          </span>
+        }
+        description={t('dashboard.signedInAs', { role: enumLabel('role', user.role) })}
         actions={
           <>
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm">
@@ -85,10 +92,10 @@ export function DashboardPage() {
       />
 
       {dashboardQuery.isLoading || (dashboardQuery.data && !isRoleMatched) ? (
-        <LoadingState label="Loading your dashboard…" />
+        <LoadingState label={t('common.loading')} />
       ) : errorMessage ? (
         <ErrorState
-          title="Unable to load your dashboard"
+          title={t('errors.generic')}
           message={errorMessage}
           onRetry={() => void dashboardQuery.refetch()}
         />

@@ -1,5 +1,6 @@
 import { GitCompareArrows } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
@@ -7,7 +8,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { MatchActions } from '@/features/lost-found/matches/MatchActions';
 import { MatchScoreSummary } from '@/features/lost-found/matches/MatchScoreSummary';
 import { matchesApi } from '@/features/lost-found/matches/matchesApi';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import {
   MATCH_STATUSES,
@@ -18,6 +19,7 @@ import {
 const PAGE_SIZE = 10;
 
 export function MatchSuggestionsPage() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'ALL' | MatchStatus>('SUGGESTED');
   const [page, setPage] = useState(1);
 
@@ -34,12 +36,12 @@ export function MatchSuggestionsPage() {
   const columns: Array<DataTableColumn<ItemMatch>> = [
     {
       id: 'match',
-      header: 'Match',
+      header: t('matches.matchScore'),
       cell: (match) => <MatchScoreSummary match={match} />,
     },
     {
       id: 'lost',
-      header: 'Lost report',
+      header: t('matches.lostItem'),
       cell: (match) =>
         match.lostItem ? (
           <div className="min-w-0">
@@ -57,12 +59,12 @@ export function MatchSuggestionsPage() {
             </p>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Unavailable</span>
+          <span className="text-xs text-muted-foreground">{t('common.none')}</span>
         ),
     },
     {
       id: 'found',
-      header: 'Found report',
+      header: t('matches.foundItem'),
       cell: (match) =>
         match.foundItem ? (
           <div className="min-w-0">
@@ -80,12 +82,12 @@ export function MatchSuggestionsPage() {
             </p>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Unavailable</span>
+          <span className="text-xs text-muted-foreground">{t('common.none')}</span>
         ),
     },
     {
       id: 'created',
-      header: 'Suggested',
+      header: t('common.date'),
       cell: (match) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
           {formatDate(match.createdAt)}
@@ -94,7 +96,7 @@ export function MatchSuggestionsPage() {
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (match) => <MatchActions match={match} />,
@@ -104,9 +106,9 @@ export function MatchSuggestionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Lost & Found"
-        title="Match suggestions"
-        description="Deterministic suggestions from category, location, date, colour, brand and keywords. Confirm a match to let the owner submit a claim."
+        eyebrow={t('nav.lostFound')}
+        title={t('matches.title')}
+        description={t('matches.subtitle')}
       />
 
       <DataTable
@@ -116,19 +118,19 @@ export function MatchSuggestionsPage() {
         isLoading={matchesQuery.isLoading}
         error={
           matchesQuery.isError
-            ? 'Unable to load match suggestions. Check your connection and try again.'
+            ? t('errors.network')
             : null
         }
         onRetry={() => void matchesQuery.refetch()}
         filters={[
           {
             id: 'match-status',
-            label: 'Status',
+            label: t('common.status'),
             value: status,
             options: [
-              { label: 'All statuses', value: 'ALL' },
+              { label: t('common.all'), value: 'ALL' },
               ...MATCH_STATUSES.map((value) => ({
-                label: humanizeEnum(value),
+                label: enumLabel('status', value),
                 value,
               })),
             ],
@@ -143,8 +145,8 @@ export function MatchSuggestionsPage() {
         total={matchesQuery.data?.total ?? 0}
         onPageChange={setPage}
         emptyIcon={GitCompareArrows}
-        emptyTitle="No match suggestions"
-        emptyDescription="New reports are scored automatically when they are created. Recalculate an item if you need to refresh its suggestions."
+        emptyTitle={t('matches.noMatchesFound')}
+        emptyDescription={t('matches.noMatchesFound')}
       />
     </div>
   );

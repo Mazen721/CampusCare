@@ -1,6 +1,7 @@
 import { RotateCcw, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import {
   ACTIVE_BROWSE_STATUSES,
   LOST_FOUND_CATEGORIES,
@@ -52,12 +53,14 @@ export function ItemFilters({
   onReset,
   allowedStatuses = ACTIVE_BROWSE_STATUSES,
 }: ItemFiltersProps) {
+  const { t } = useTranslation();
+
   return (
-    <section className="rounded-lg border bg-card p-4 shadow-panel" aria-label="Lost and found filters">
+    <section className="rounded-lg border bg-card p-4 shadow-panel" aria-label={t('common.filters')}>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="md:col-span-2">
           <label htmlFor="item-search" className={labelClass}>
-            Search
+            {t('common.search')}
           </label>
           <div className="relative">
             <Search
@@ -69,7 +72,7 @@ export function ItemFilters({
               type="search"
               value={values.q}
               onChange={(event) => onChange({ q: event.target.value })}
-              placeholder="Report number, title or description…"
+              placeholder={t('lostFound.searchPlaceholder')}
               className={`${fieldClass} ps-9`}
             />
           </div>
@@ -77,7 +80,7 @@ export function ItemFilters({
 
         <div>
           <label htmlFor="item-type" className={labelClass}>
-            Report type
+            {t('lostFound.filterByType')}
           </label>
           <select
             id="item-type"
@@ -87,10 +90,10 @@ export function ItemFilters({
             }
             className={fieldClass}
           >
-            <option value="ALL">Lost and found</option>
+            <option value="ALL">{t('lostFound.allTypes')}</option>
             {REPORT_TYPES.map((type) => (
               <option key={type} value={type}>
-                {humanizeEnum(type)}
+                {enumLabel('reportType', type)}
               </option>
             ))}
           </select>
@@ -98,7 +101,7 @@ export function ItemFilters({
 
         <div>
           <label htmlFor="item-category" className={labelClass}>
-            Category
+            {t('common.category')}
           </label>
           <select
             id="item-category"
@@ -108,10 +111,10 @@ export function ItemFilters({
             }
             className={fieldClass}
           >
-            <option value="ALL">All categories</option>
+            <option value="ALL">{t('lostFound.allCategories')}</option>
             {LOST_FOUND_CATEGORIES.map((category) => (
               <option key={category} value={category}>
-                {category}
+                {enumLabel('lostFoundCategory', category)}
               </option>
             ))}
           </select>
@@ -119,49 +122,49 @@ export function ItemFilters({
 
         <div>
           <label htmlFor="item-building" className={labelClass}>
-            Building
+            {t('locations.buildingName')}
           </label>
           <input
             id="item-building"
             type="text"
             value={values.building}
             onChange={(event) => onChange({ building: event.target.value })}
-            placeholder="e.g. Engineering"
+            placeholder={t('locations.buildingNamePlaceholder')}
             className={fieldClass}
           />
         </div>
 
         <div>
           <label htmlFor="item-color" className={labelClass}>
-            Colour
+            {t('lostFound.color')}
           </label>
           <input
             id="item-color"
             type="text"
             value={values.color}
             onChange={(event) => onChange({ color: event.target.value })}
-            placeholder="e.g. Black"
+            placeholder={t('lostFound.colorPlaceholder')}
             className={fieldClass}
           />
         </div>
 
         <div>
           <label htmlFor="item-brand" className={labelClass}>
-            Brand
+            {t('lostFound.brand')}
           </label>
           <input
             id="item-brand"
             type="text"
             value={values.brand}
             onChange={(event) => onChange({ brand: event.target.value })}
-            placeholder="e.g. North Face"
+            placeholder={t('lostFound.brandPlaceholder')}
             className={fieldClass}
           />
         </div>
 
         <div>
           <label htmlFor="item-status" className={labelClass}>
-            Status
+            {t('common.status')}
           </label>
           <select
             id="item-status"
@@ -171,10 +174,10 @@ export function ItemFilters({
             }
             className={fieldClass}
           >
-            <option value="ALL">All statuses</option>
+            <option value="ALL">{t('lostFound.allStatuses')}</option>
             {allowedStatuses.map((status) => (
               <option key={status} value={status}>
-                {humanizeEnum(status)}
+                {enumLabel('status', status)}
               </option>
             ))}
           </select>
@@ -182,7 +185,7 @@ export function ItemFilters({
 
         <div>
           <label htmlFor="item-from" className={labelClass}>
-            Occurred from
+            {t('common.date')} ({t('common.previous')})
           </label>
           <input
             id="item-from"
@@ -195,7 +198,7 @@ export function ItemFilters({
 
         <div>
           <label htmlFor="item-to" className={labelClass}>
-            Occurred to
+            {t('common.date')} ({t('common.next')})
           </label>
           <input
             id="item-to"
@@ -209,7 +212,7 @@ export function ItemFilters({
         <div className="flex items-end md:col-span-2 xl:col-span-1">
           <Button type="button" variant="outline" className="w-full" onClick={onReset}>
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            Reset filters
+            {t('common.clearFilters')}
           </Button>
         </div>
       </div>

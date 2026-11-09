@@ -28,7 +28,7 @@ import {
 import type { Role } from '@/types/auth';
 
 export interface NavigationItem {
-  label: string;
+  labelKey: string;
   to: string;
   icon: LucideIcon;
   end?: boolean;
@@ -37,62 +37,62 @@ export interface NavigationItem {
 }
 
 export interface NavigationGroup {
-  title: string;
+  titleKey: string;
   items: NavigationItem[];
 }
 
 const WORKSPACE_ITEMS: Record<Role, NavigationItem[]> = {
   STUDENT_EMPLOYEE: [
-    { label: 'New request', to: '/maintenance/requests/new', icon: PlusCircle },
-    { label: 'My requests', to: '/maintenance/requests', icon: ClipboardList, end: true },
-    { label: 'Report lost / found', to: '/lost-found/report', icon: PackagePlus },
-    { label: 'Browse lost & found', to: '/lost-found', icon: Search, end: true },
-    { label: 'My claims', to: '/lost-found/claims', icon: BadgeCheck },
-    { label: 'My reports', to: '/lost-found/my-reports', icon: FolderSearch },
+    { labelKey: 'nav.newRequest', to: '/maintenance/requests/new', icon: PlusCircle },
+    { labelKey: 'nav.myRequests', to: '/maintenance/requests', icon: ClipboardList, end: true },
+    { labelKey: 'nav.reportLostFound', to: '/lost-found/report', icon: PackagePlus },
+    { labelKey: 'nav.browseLostFound', to: '/lost-found', icon: Search, end: true },
+    { labelKey: 'nav.myClaims', to: '/lost-found/claims', icon: BadgeCheck },
+    { labelKey: 'nav.myReports', to: '/lost-found/my-reports', icon: FolderSearch },
   ],
   TECHNICIAN: [
-    { label: 'My work orders', to: '/work-orders', icon: Wrench },
-    { label: 'My schedule', to: '/maintenance/calendar', icon: CalendarDays },
+    { labelKey: 'nav.myWorkOrders', to: '/work-orders', icon: Wrench },
+    { labelKey: 'nav.mySchedule', to: '/maintenance/calendar', icon: CalendarDays },
   ],
   MAINTENANCE_MANAGER: [
-    { label: 'Request queue', to: '/maintenance/request-queue', icon: Inbox },
-    { label: 'Work orders', to: '/work-orders', icon: ClipboardCheck },
-    { label: 'Technicians', to: '/technicians', icon: UsersRound },
-    { label: 'Calendar', to: '/maintenance/calendar', icon: CalendarDays },
-    { label: 'Preventive plans', to: '/maintenance/preventive', icon: Repeat2 },
-    { label: 'Feedback', to: '/maintenance/feedback', icon: Star },
+    { labelKey: 'nav.requestQueue', to: '/maintenance/request-queue', icon: Inbox },
+    { labelKey: 'nav.workOrders', to: '/work-orders', icon: ClipboardCheck },
+    { labelKey: 'nav.technicians', to: '/technicians', icon: UsersRound },
+    { labelKey: 'nav.calendar', to: '/maintenance/calendar', icon: CalendarDays },
+    { labelKey: 'nav.preventive', to: '/maintenance/preventive', icon: Repeat2 },
+    { labelKey: 'nav.feedback', to: '/maintenance/feedback', icon: Star },
   ],
   LOST_FOUND_OFFICER: [
-    { label: 'All reports', to: '/lost-found/items', icon: Files },
-    { label: 'Archived items', to: '/lost-found/archived', icon: Archive },
-    { label: 'Match suggestions', to: '/lost-found/matches', icon: GitCompareArrows },
-    { label: 'Claims', to: '/lost-found/claims', icon: ShieldCheck },
-    { label: 'Handovers', to: '/lost-found/handovers', icon: Handshake },
+    { labelKey: 'nav.allReports', to: '/lost-found/items', icon: Files },
+    { labelKey: 'nav.archivedItems', to: '/lost-found/archived', icon: Archive },
+    { labelKey: 'nav.matches', to: '/lost-found/matches', icon: GitCompareArrows },
+    { labelKey: 'nav.claims', to: '/lost-found/claims', icon: ShieldCheck },
+    { labelKey: 'nav.handovers', to: '/lost-found/handovers', icon: Handshake },
   ],
   SUPER_ADMIN: [
-    { label: 'Users', to: '/users', icon: Users },
-    { label: 'Locations', to: '/locations', icon: MapPin },
-    { label: 'Activity logs', to: '/activity-logs', icon: ScrollText },
-    { label: 'Maintenance view', to: '/maintenance/requests', icon: Eye },
-    { label: 'Lost & Found view', to: '/lost-found/items', icon: Eye },
+    { labelKey: 'nav.users', to: '/users', icon: Users },
+    { labelKey: 'nav.locations', to: '/locations', icon: MapPin },
+    { labelKey: 'nav.activityLogs', to: '/activity-logs', icon: ScrollText },
+    { labelKey: 'nav.maintenanceView', to: '/maintenance/requests', icon: Eye },
+    { labelKey: 'nav.lostFoundView', to: '/lost-found/items', icon: Eye },
   ],
 };
 
 export function getNavigation(role: Role): NavigationGroup[] {
   return [
     {
-      title: 'Overview',
+      titleKey: 'nav.groupOverview',
       items: [
-        { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, end: true },
+        { labelKey: 'nav.dashboard', to: '/dashboard', icon: LayoutDashboard, end: true },
       ],
     },
     {
-      title: 'Workspace',
+      titleKey: 'nav.groupWorkspace',
       items: WORKSPACE_ITEMS[role],
     },
     {
-      title: 'Account',
-      items: [{ label: 'Profile', to: '/profile', icon: UserRound }],
+      titleKey: 'nav.groupAccount',
+      items: [{ labelKey: 'nav.profile', to: '/profile', icon: UserRound }],
     },
   ];
 }

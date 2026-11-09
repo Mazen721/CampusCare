@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { AlertCircle, Loader2, MapPin, PackageOpen, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -14,10 +15,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
 import {
-  reportItemSchema,
+  createReportItemSchema,
   type ReportItemValues,
 } from '@/features/lost-found/items/reportItemSchema';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import {
   LOST_FOUND_CATEGORIES,
   type LostFoundCategory,
@@ -32,6 +34,7 @@ interface ReportItemFormProps {
 }
 
 export function ReportItemForm({ onCancel }: ReportItemFormProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [images, setImages] = useState<File[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -41,6 +44,8 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
     queryFn: () => locationsApi.list({ limit: 100 }),
   });
 
+  const schema = useMemo(() => createReportItemSchema(t), [t]);
+
   const {
     register,
     handleSubmit,
@@ -48,7 +53,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<ReportItemValues>({
-    resolver: zodResolver(reportItemSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       reportType: 'LOST',
       itemTitle: '',
@@ -64,7 +69,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
   });
 
   const reportType = watch('reportType');
-  const dateLabel = reportType === 'LOST' ? 'When did you lose it?' : 'When did you find it?';
+  const dateLabel = reportType === 'LOST' ? t('lostFound.whenLostDate') : t('lostFound.whenFoundDate');
   const locations = locationsQuery.data?.data ?? [];
   const noLocations = !locationsQuery.isLoading && !locationsQuery.isError && locations.length === 0;
 
@@ -77,13 +82,13 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
         brand: values.brand || undefined,
         images,
       });
-      toast.success(`Report ${result.item.reportNumber} submitted`);
+      toast.success(t('lostFound.reportSavedSuccess'));
       navigate(`/lost-found/items/${result.item.id}`);
     } catch (error) {
       setServerError(
         error instanceof ApiError
           ? error.message
-          : 'Unable to submit this report right now. Please try again.',
+          : t('errors.generic'),
       );
     }
   };
@@ -101,20 +106,20 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       ) : null}
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium text-foreground">Report type</legend>
+        <legend className="mb-2 text-sm font-medium text-foreground">{t('lostFound.filterByType')}</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {(
             [
               {
                 value: 'LOST' as ReportType,
-                title: 'I lost something',
-                description: 'Create a lost report so others can help identify it.',
+                title: t('lostFound.iLostSomething'),
+                description: t('lostFound.iLostSomethingDesc'),
                 icon: Search,
               },
               {
                 value: 'FOUND' as ReportType,
-                title: 'I found something',
-                description: 'Log a found item for the Lost & Found Office to hold.',
+                title: t('lostFound.iFoundSomething'),
+                description: t('lostFound.iFoundSomethingDesc'),
                 icon: PackageOpen,
               },
             ] as const
@@ -158,14 +163,14 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
 
       <FormField
         id="item-title"
-        label="Item title"
+        label={t('lostFound.itemTitle')}
         error={errors.itemTitle?.message}
-        hint="Keep it recognisable but do not include serial numbers or other private identifiers."
+        hint={t('lostFound.itemTitleHint')}
         required
       >
         <Input
           id="item-title"
-          placeholder="Black North Face backpack with a blue keychain"
+          placeholder={t('lostFound.itemTitlePlaceholder')}
           maxLength={160}
           aria-invalid={Boolean(errors.itemTitle)}
           {...register('itemTitle')}
@@ -174,14 +179,14 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
 
       <FormField
         id="item-description"
-        label="Public description"
+        label={t('lostFound.publicDescription')}
         error={errors.description?.message}
-        hint="This is visible to every signed-in user. Describe the item without private details."
+        hint={t('lostFound.descriptionHint')}
         required
       >
         <Textarea
           id="item-description"
-          placeholder="What does it look like, and where was it last seen?"
+          placeholder={t('lostFound.descriptionPlaceholder')}
           rows={4}
           maxLength={4000}
           aria-invalid={Boolean(errors.description)}
@@ -192,14 +197,14 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       <div className="rounded-lg border border-amber-300/70 bg-amber-50 px-3.5 py-3">
         <FormField
           id="item-private-details"
-          label="Private identification details"
+          label={t('lostFound.privateDetails')}
           error={errors.privateIdentificationDetails?.message}
-          hint="Only you, Lost & Found Officers and the Admin can see this. Add serial numbers, engravings, contents or anything needed to prove ownership."
+          hint={t('lostFound.privateDetailsHintLong')}
           required
         >
           <Textarea
             id="item-private-details"
-            placeholder="Serial number, an engraving, a hidden mark, or a distinctive item inside the bag…"
+            placeholder={t('lostFound.privateDetailsPlaceholderLong')}
             rows={3}
             maxLength={4000}
             aria-invalid={Boolean(errors.privateIdentificationDetails)}
@@ -209,7 +214,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField id="item-category" label="Category" error={errors.category?.message} required>
+        <FormField id="item-category" label={t('common.category')} error={errors.category?.message} required>
           <select
             id="item-category"
             className={selectClass}
@@ -218,7 +223,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
           >
             {LOST_FOUND_CATEGORIES.map((category) => (
               <option key={category} value={category}>
-                {category}
+                {enumLabel('lostFoundCategory', category)}
               </option>
             ))}
           </select>
@@ -233,20 +238,20 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
           />
         </FormField>
 
-        <FormField id="item-color" label="Colour" error={errors.color?.message} hint="Optional.">
+        <FormField id="item-color" label={t('lostFound.color')} error={errors.color?.message} hint={t('common.optional')}>
           <Input
             id="item-color"
-            placeholder="Black"
+            placeholder={t('lostFound.colorPlaceholder')}
             maxLength={60}
             aria-invalid={Boolean(errors.color)}
             {...register('color')}
           />
         </FormField>
 
-        <FormField id="item-brand" label="Brand" error={errors.brand?.message} hint="Optional.">
+        <FormField id="item-brand" label={t('lostFound.brand')} error={errors.brand?.message} hint={t('common.optional')}>
           <Input
             id="item-brand"
-            placeholder="North Face"
+            placeholder={t('lostFound.brandPlaceholder')}
             maxLength={80}
             aria-invalid={Boolean(errors.brand)}
             {...register('brand')}
@@ -256,12 +261,12 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
 
       <FormField
         id="item-location"
-        label="Campus location"
+        label={t('lostFound.campusLocation')}
         error={errors.locationId?.message}
         hint={
           locationsQuery.isError
-            ? 'Locations could not be loaded. Use the retry button below.'
-            : 'Choose the building, floor and room closest to where it was lost or found.'
+            ? t('errors.network')
+            : t('lostFound.selectLocationHint')
         }
         required
       >
@@ -273,11 +278,11 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
           {...register('locationId')}
         >
           <option value="">
-            {locationsQuery.isLoading ? 'Loading locations…' : 'Select a campus location'}
+            {locationsQuery.isLoading ? t('common.loading') : t('lostFound.selectLocation')}
           </option>
           {locations.map((location) => (
             <option key={location.id} value={location.id}>
-              {location.buildingName} · {location.floor} · Room {location.room}
+              {location.buildingName} · {location.floor} · {t('locations.room')} {location.room}
             </option>
           ))}
         </select>
@@ -286,7 +291,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       {locationsQuery.isError ? (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-3.5 py-3">
           <p className="text-xs leading-relaxed text-destructive">
-            Unable to load locations. Check your connection and try again.
+            {t('errors.network')}
           </p>
           <Button
             type="button"
@@ -294,7 +299,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
             size="sm"
             onClick={() => void locationsQuery.refetch()}
           >
-            Retry
+            {t('common.refresh')}
           </Button>
         </div>
       ) : null}
@@ -302,20 +307,20 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       {noLocations ? (
         <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-relaxed text-amber-900">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <p>No active locations are configured yet. Ask an administrator to add one first.</p>
+          <p>{t('lostFound.noLocationsWarning')}</p>
         </div>
       ) : null}
 
       <FormField
         id="item-location-details"
-        label="Location details"
+        label={t('lostFound.locationDetails')}
         error={errors.locationDetails?.message}
-        hint="For example: bench outside Lab 204, second-floor library desk."
+        hint={t('lostFound.locationDetailsHint')}
         required
       >
         <Input
           id="item-location-details"
-          placeholder="Bench outside Lab 204"
+          placeholder={t('lostFound.locationDetailsPlaceholder')}
           maxLength={500}
           aria-invalid={Boolean(errors.locationDetails)}
           {...register('locationDetails')}
@@ -324,7 +329,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
 
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-foreground">
-          Photos <span className="font-normal text-muted-foreground">(optional)</span>
+          {t('lostFound.images')} <span className="font-normal text-muted-foreground">({t('common.optional')})</span>
         </legend>
         <ImageUpload files={images} onChange={setImages} maxFiles={3} />
       </fieldset>
@@ -332,12 +337,12 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
       <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:justify-end">
         {onCancel ? (
           <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         ) : null}
         <Button type="submit" disabled={isSubmitting || noLocations || locationsQuery.isLoading}>
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-          Submit report
+          {t('lostFound.submitReport')}
         </Button>
       </div>
     </form>

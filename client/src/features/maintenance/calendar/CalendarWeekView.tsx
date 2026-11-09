@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   eachDayOfInterval,
   endOfWeek,
@@ -21,6 +22,7 @@ export function CalendarWeekView({
   workOrders,
   showTechnician,
 }: CalendarWeekViewProps) {
+  const { t } = useTranslation();
   const weekStart = startOfWeek(anchor, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(anchor, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
@@ -58,7 +60,7 @@ export function CalendarWeekView({
               <div className="space-y-1.5 p-1.5">
                 {dayItems.length === 0 ? (
                   <p className="rounded-md border border-dashed px-2 py-3 text-center text-[10px] text-muted-foreground">
-                    No work
+                    {t('calendar.noWorkForDay')}
                   </p>
                 ) : (
                   dayItems.map((workOrder) => (

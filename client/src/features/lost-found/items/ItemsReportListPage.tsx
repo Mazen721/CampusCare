@@ -1,5 +1,6 @@
 import { PackagePlus } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface ItemsReportListPageProps {
 type ViewFilter = 'all' | 'active' | 'archived';
 
 export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
+  const { t } = useTranslation();
   const isMine = scope === 'mine';
   const [viewFilter, setViewFilter] = useState<ViewFilter>(
     scope === 'archived' ? 'archived' : 'all',
@@ -65,40 +67,40 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
     itemsQuery.error instanceof ApiError
       ? itemsQuery.error.message
       : itemsQuery.error
-        ? 'Unable to load lost and found reports right now.'
+        ? t('errors.generic')
         : null;
 
   const title = isMine
-    ? 'My reports'
+    ? t('lostFound.myReportsTitle')
     : viewFilter === 'archived'
-      ? 'Archived & resolved items'
+      ? t('lostFound.archivedTitle')
       : viewFilter === 'active'
-        ? 'Available lost & found items'
-        : 'All reports';
+        ? t('lostFound.availableTitle')
+        : t('lostFound.allReportsTitle');
 
   const description = isMine
-    ? 'Track the lost and found reports you have submitted and close a lost report when it is resolved.'
+    ? t('lostFound.myReportsDescription')
     : viewFilter === 'archived'
-      ? 'Previous lost and found items that have been returned, closed, or approved for handover and removed from public browse.'
+      ? t('lostFound.archivedDescription')
       : viewFilter === 'active'
-        ? 'Items currently active and visible to students in the public browse view.'
-        : 'Review every lost and found report submitted across campus.';
+        ? t('lostFound.availableDescription')
+        : t('lostFound.allReportsDescription');
 
   const emptyTitle = isMine
-    ? 'You have not reported any items yet'
+    ? t('lostFound.noReportsMine')
     : viewFilter === 'archived'
-      ? 'No archived items yet'
+      ? t('lostFound.noArchivedYet')
       : viewFilter === 'active'
-        ? 'No active items available'
-        : 'No reports yet';
+        ? t('lostFound.noActiveAvailable')
+        : t('lostFound.noReportsYet');
 
   const emptyDescription = isMine
-    ? 'Report a lost or found item and it will appear here for you to track.'
+    ? t('lostFound.noReportsMineDesc')
     : viewFilter === 'archived'
-      ? 'Items that are returned or closed will appear here after leaving the main browse page.'
+      ? t('lostFound.noArchivedDesc')
       : viewFilter === 'active'
-        ? 'When items are reported and awaiting claim, they will appear here.'
-        : 'Reports submitted by campus users will appear here.';
+        ? t('lostFound.noActiveAvailableDesc')
+        : t('lostFound.allReports');
 
   const allowedStatuses = isMine
     ? undefined
@@ -111,7 +113,7 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Lost & Found"
+        eyebrow={t('lostFound.title')}
         title={title}
         description={description}
         actions={
@@ -119,7 +121,7 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
             <Button asChild>
               <Link to="/lost-found/report">
                 <PackagePlus className="h-4 w-4" aria-hidden="true" />
-                Report an item
+                {t('lostFound.reportAnItem')}
               </Link>
             </Button>
           ) : undefined
@@ -138,7 +140,7 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
               setPage(1);
             }}
           >
-            All reports
+            {t('lostFound.allReportsTab')}
           </Button>
           <Button
             type="button"
@@ -150,7 +152,7 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
               setPage(1);
             }}
           >
-            Available in browse
+            {t('lostFound.availableInBrowse')}
           </Button>
           <Button
             type="button"
@@ -162,7 +164,7 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
               setPage(1);
             }}
           >
-            Archived (Previous items)
+            {t('lostFound.archivedPrevious')}
           </Button>
         </div>
       )}
@@ -197,7 +199,7 @@ export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
         emptyAction={
           isMine ? (
             <Button asChild size="sm">
-              <Link to="/lost-found/report">Report an item</Link>
+              <Link to="/lost-found/report">{t('lostFound.reportAnItem')}</Link>
             </Button>
           ) : undefined
         }

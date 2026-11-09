@@ -9,11 +9,13 @@ import {
   ShieldCheck,
   Wrench,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 import { BrandMark } from '@/components/shared/BrandMark';
 import { LanguageToggle } from '@/components/shared/LanguageToggle';
 import { Button } from '@/components/ui/button';
@@ -22,18 +24,21 @@ import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ApiError, isDemoModeEnabled } from '@/lib/api';
-import { cn } from '@/lib/utils';
-import { ROLE_SHORT_LABELS, type Role } from '@/types/auth';
+import { enumLabel } from '@/lib/labels';
+import type { Role } from '@/types/auth';
 
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
+export function createLoginSchema(t: TFunction) {
+  return z.object({
+    email: z
+      .string()
+      .min(1, t('validation.email'))
+      .email(t('validation.email')),
+    password: z.string().min(1, t('validation.required')),
+  });
+}
 
-type LoginValues = z.infer<typeof loginSchema>;
+export type LoginSchema = ReturnType<typeof createLoginSchema>;
+export type LoginValues = z.infer<LoginSchema>;
 
 const DEMO_ROLES: Array<{ role: Role; icon: typeof ShieldCheck }> = [
   { role: 'SUPER_ADMIN', icon: ShieldCheck },
@@ -44,12 +49,15 @@ const DEMO_ROLES: Array<{ role: Role; icon: typeof ShieldCheck }> = [
 ];
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const { user, login, demoLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [serverError, setServerError] = useState<string | null>(null);
   const [activeDemoRole, setActiveDemoRole] = useState<Role | null>(null);
   const demoEnabled = isDemoModeEnabled();
+
+  const loginSchema = useMemo(() => createLoginSchema(t), [t]);
 
   const {
     register,
@@ -70,14 +78,14 @@ export function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     setServerError(null);
     try {
-      const signedInUser = await login(values);
-      toast.success(`Welcome back, ${signedInUser.name.split(' ')[0]}`);
+      await login(values);
+      toast.success(t('auth.signedOut'));
       navigate(destination === '/login' ? '/dashboard' : destination, { replace: true });
     } catch (error) {
       setServerError(
         error instanceof ApiError
           ? error.message
-          : 'Unable to sign in right now. Please try again.',
+          : t('errors.generic'),
       );
     }
   };
@@ -86,14 +94,14 @@ export function LoginPage() {
     setServerError(null);
     setActiveDemoRole(role);
     try {
-      const signedInUser = await demoLogin(role);
-      toast.success(`Signed in as ${ROLE_SHORT_LABELS[signedInUser.role]}`);
+      await demoLogin(role);
+      toast.success(enumLabel('role', role));
       navigate('/dashboard', { replace: true });
     } catch (error) {
       setServerError(
         error instanceof ApiError
           ? error.message
-          : 'Demo sign-in is unavailable right now. Please try again.',
+          : t('errors.generic'),
       );
     } finally {
       setActiveDemoRole(null);
@@ -122,16 +130,13 @@ export function LoginPage() {
           <div className="my-auto max-w-xl py-16">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-sidebar-border bg-sidebar-active/70 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-muted">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true" />
-              University operations platform
+              CampusCare
             </p>
             <h1 className="font-display text-5xl leading-[1.05] tracking-tight text-sidebar-foreground xl:text-6xl">
-              Every campus issue,
-              <br />
-              <span className="italic text-amber-300">one clear path.</span>
+              CampusCare
             </h1>
             <p className="mt-6 max-w-md text-sm leading-relaxed text-sidebar-muted">
-              CampusCare connects maintenance and lost &amp; found work in one place — with the
-              right people, the right permissions and a visible trail from report to resolution.
+              {t('meta.description')}
             </p>
 
             <div className="mt-10 space-y-4">
@@ -140,9 +145,9 @@ export function LoginPage() {
                   <Wrench className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-sidebar-foreground">Maintenance</p>
+                  <p className="text-sm font-medium text-sidebar-foreground">{t('nav.maintenance')}</p>
                   <p className="text-xs leading-relaxed text-sidebar-muted">
-                    Report an issue, review it, assign a technician and follow it to completion.
+                    {t('requests.subtitle')}
                   </p>
                 </div>
               </div>
@@ -152,9 +157,9 @@ export function LoginPage() {
                   <PackageSearch className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-sidebar-foreground">Lost &amp; Found</p>
+                  <p className="text-sm font-medium text-sidebar-foreground">{t('nav.lostFound')}</p>
                   <p className="text-xs leading-relaxed text-sidebar-muted">
-                    Report lost or found items, review suggestions and verify ownership privately.
+                    {t('lostFound.subtitle')}
                   </p>
                 </div>
               </div>
@@ -164,10 +169,9 @@ export function LoginPage() {
                   <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-sidebar-foreground">Role-aware access</p>
+                  <p className="text-sm font-medium text-sidebar-foreground">{t('dashboard.roleAtAGlance')}</p>
                   <p className="text-xs leading-relaxed text-sidebar-muted">
-                    Students, technicians, managers, officers and administrators each see their own
-                    workspace.
+                    {t('auth.demoDisclaimer')}
                   </p>
                 </div>
               </div>
@@ -175,7 +179,7 @@ export function LoginPage() {
           </div>
 
           <p className="relative text-[11px] uppercase tracking-[0.18em] text-sidebar-muted/80">
-            Maintenance · Lost &amp; Found · Five roles
+            {t('nav.maintenance')} · {t('nav.lostFound')} · {t('nav.users')}
           </p>
         </div>
       </section>
@@ -187,14 +191,11 @@ export function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
-              Welcome back
-            </p>
             <h2 className="font-display text-3xl leading-tight text-foreground sm:text-4xl">
-              Sign in to CampusCare
+              {t('auth.loginTitle')}
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Use the account created for you by a university administrator.
+              {t('auth.loginSubtitle')}
             </p>
           </div>
 
@@ -210,7 +211,7 @@ export function LoginPage() {
             ) : null}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -230,10 +231,10 @@ export function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <PasswordInput
                 id="password"
-                placeholder="Enter your password"
+                placeholder={t('auth.password')}
                 autoComplete="current-password"
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={errors.password ? 'password-error' : undefined}
@@ -250,7 +251,7 @@ export function LoginPage() {
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : null}
-              Sign in
+              {t('auth.signIn')}
               {!isSubmitting ? (
                 <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
               ) : null}
@@ -265,13 +266,13 @@ export function LoginPage() {
                 </div>
                 <div className="relative flex justify-center">
                   <span className="bg-background px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Demo access
+                    {t('auth.quickDemoAccess')}
                   </span>
                 </div>
               </div>
 
               <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
-                Skip the form and open a seeded account for any role.
+                {t('auth.demoDisclaimer')}
               </p>
 
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -289,29 +290,12 @@ export function LoginPage() {
                     ) : (
                       <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
                     )}
-                    {ROLE_SHORT_LABELS[role]}
+                    {enumLabel('role', role)}
                   </Button>
                 ))}
               </div>
-
-              <p
-                className={cn(
-                  'mt-3 text-center text-[11px] leading-relaxed text-muted-foreground',
-                  activeDemoRole !== null && 'text-primary',
-                )}
-              >
-                {activeDemoRole
-                  ? `Opening the ${ROLE_SHORT_LABELS[activeDemoRole].toLowerCase()} demo…`
-                  : 'Demo accounts must be created with npm run seed.'}
-              </p>
             </div>
           ) : null}
-
-          <p className="mt-10 text-center text-[11px] leading-relaxed text-muted-foreground">
-            Accounts are created by university administrators.
-            <br />
-            No self-registration.
-          </p>
         </div>
       </section>
     </main>

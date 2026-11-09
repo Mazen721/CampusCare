@@ -8,6 +8,7 @@ import {
   type ChangeEvent,
   type DragEvent,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ export function ImageUpload({
   disabled = false,
   error,
 }: ImageUploadProps) {
+  const { t } = useTranslation();
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -51,15 +53,15 @@ export function ImageUpload({
 
     Array.from(incoming).forEach((file) => {
       if (files.length + accepted.length >= maxFiles) {
-        message = `You can attach up to ${maxFiles} images.`;
+        message = t('serverErrors.uploadTooLarge');
         return;
       }
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        message = 'Only JPEG, PNG and WebP images are allowed.';
+        message = t('serverErrors.uploadInvalid');
         return;
       }
       if (file.size > MAX_BYTES) {
-        message = 'Each image must be 5 MB or smaller.';
+        message = t('serverErrors.uploadTooLarge');
         return;
       }
       accepted.push(file);
@@ -121,10 +123,10 @@ export function ImageUpload({
             <ImagePlus className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
           </span>
           <p className="text-sm font-medium text-foreground">
-            Drag images here, or choose files
+            {t('common.upload')}
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            JPEG, PNG or WebP · up to {maxFiles} images · max 5 MB each
+            JPEG, PNG, WebP · max {maxFiles} · 5 MB
           </p>
           <Button
             type="button"
@@ -134,16 +136,16 @@ export function ImageUpload({
             onClick={() => inputRef.current?.click()}
             disabled={disabled || files.length >= maxFiles}
           >
-            Choose images
+            {t('common.upload')}
           </Button>
           <p className="text-[11px] text-muted-foreground">
-            {files.length} of {maxFiles} selected
+            {files.length} / {maxFiles}
           </p>
         </div>
       </div>
 
       {previews.length > 0 ? (
-        <ul className="grid grid-cols-3 gap-2" aria-label="Selected image previews">
+        <ul className="grid grid-cols-3 gap-2" aria-label={t('common.preview')}>
           {previews.map((preview, index) => (
             <li
               key={`${preview.file.name}-${preview.file.lastModified}-${index}`}
@@ -151,14 +153,14 @@ export function ImageUpload({
             >
               <img
                 src={preview.url}
-                alt={`Preview of ${preview.file.name}`}
+                alt={preview.file.name}
                 className="h-full w-full object-cover"
               />
               <button
                 type="button"
                 onClick={() => removeFile(index)}
                 disabled={disabled}
-                aria-label={`Remove ${preview.file.name}`}
+                aria-label={t('common.remove')}
                 className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-stone-950/75 text-white transition-colors hover:bg-destructive focus-visible:ring-2 focus-visible:ring-white"
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />

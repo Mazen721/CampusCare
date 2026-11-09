@@ -1,5 +1,6 @@
 import { CheckCircle2, Loader2, MessageSquare, Star } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ interface FeedbackCardProps {
 }
 
 export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [rating, setRating] = useState(5);
@@ -45,11 +47,11 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['feedback'] });
       await queryClient.invalidateQueries({ queryKey: ['request', request.id] });
-      toast.success('Thank you! Your feedback has been recorded.');
+      toast.success(t('feedback.feedbackSubmittedSuccess'));
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : 'Unable to submit feedback',
+        error instanceof ApiError ? error.message : t('errors.network'),
       );
     },
   });
@@ -70,14 +72,14 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              Service Feedback Recorded
+              {t('feedback.recordedTitle')}
             </CardTitle>
             <span className="text-xs text-muted-foreground">
               {formatDate(existingFeedback.createdAt)}
             </span>
           </div>
           <CardDescription>
-            Feedback submitted for technician <bdi>{existingFeedback.technician.name}</bdi>
+            {t('feedback.submittedForTech', { name: existingFeedback.technician.name })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -116,16 +118,16 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-amber-500" />
-          Rate Maintenance Service
+          {t('feedback.rateService')}
         </CardTitle>
         <CardDescription>
-          How satisfied were you with the resolution of this issue? Your feedback helps improve service quality.
+          {t('feedback.satisfactionPrompt')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
           <label className="text-xs font-medium text-foreground block mb-2">
-            Rating (1 to 5 stars)
+            {t('feedback.ratingLabel')}
           </label>
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((star) => {
@@ -138,7 +140,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(null)}
                   className="rounded p-1 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label={`${star} star${star > 1 ? 's' : ''}`}
+                  aria-label={`${star} star`}
                 >
                   <Star
                     className={`h-7 w-7 transition-colors ${
@@ -158,11 +160,11 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
 
         <div>
           <label htmlFor="feedback-comment" className="text-xs font-medium text-foreground block mb-1.5">
-            Comments (optional)
+            {t('feedback.comment')}
           </label>
           <Textarea
             id="feedback-comment"
-            placeholder="Share details about technician professionalism, timeliness, or fix quality..."
+            placeholder={t('feedback.commentPlaceholder')}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             maxLength={500}
@@ -170,7 +172,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
             className="text-sm bg-background"
           />
           <span className="text-[11px] text-muted-foreground text-end block mt-1">
-            {comment.length} / 500 characters
+            {t('feedback.charCount', { count: comment.length })}
           </span>
         </div>
 
@@ -180,7 +182,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
           className="w-full sm:w-auto"
         >
           {submitMutation.isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-          Submit Service Feedback
+          {t('feedback.submitButton')}
         </Button>
       </CardContent>
     </Card>

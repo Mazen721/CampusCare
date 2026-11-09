@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface LoadingStateProps {
@@ -6,7 +7,10 @@ interface LoadingStateProps {
   className?: string;
 }
 
-export function LoadingState({ label = 'Loading…', className }: LoadingStateProps) {
+export function LoadingState({ label, className }: LoadingStateProps) {
+  const { t } = useTranslation();
+  const effectiveLabel = label ?? t('common.loading');
+
   return (
     <div
       role="status"
@@ -17,7 +21,7 @@ export function LoadingState({ label = 'Loading…', className }: LoadingStatePr
       )}
     >
       <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
-      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="text-sm text-muted-foreground">{effectiveLabel}</p>
     </div>
   );
 }

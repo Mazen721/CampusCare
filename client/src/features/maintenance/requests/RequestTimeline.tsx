@@ -1,21 +1,22 @@
 import { Check, Circle, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { RequestStatus } from '@/types/meta';
 
 interface TimelineStep {
   status: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
 }
 
 const FLOW_STEPS: TimelineStep[] = [
-  { status: 'SUBMITTED', label: 'Submitted', description: 'Request received' },
-  { status: 'UNDER_REVIEW', label: 'Under review', description: 'Manager triage' },
-  { status: 'APPROVED', label: 'Approved', description: 'Work order created' },
-  { status: 'IN_PROGRESS', label: 'In progress', description: 'Technician working' },
-  { status: 'COMPLETED', label: 'Completed', description: 'Awaiting confirmation' },
-  { status: 'CLOSED', label: 'Closed', description: 'Request resolved' },
+  { status: 'SUBMITTED', labelKey: 'requests.stepSubmitted', descriptionKey: 'requests.stepSubmittedDesc' },
+  { status: 'UNDER_REVIEW', labelKey: 'requests.stepUnderReview', descriptionKey: 'requests.stepUnderReviewDesc' },
+  { status: 'APPROVED', labelKey: 'requests.stepApproved', descriptionKey: 'requests.stepApprovedDesc' },
+  { status: 'IN_PROGRESS', labelKey: 'requests.stepInProgress', descriptionKey: 'requests.stepInProgressDesc' },
+  { status: 'COMPLETED', labelKey: 'requests.stepCompleted', descriptionKey: 'requests.stepCompletedDesc' },
+  { status: 'CLOSED', labelKey: 'requests.stepClosed', descriptionKey: 'requests.stepClosedDesc' },
 ];
 
 const STEP_INDEX: Record<RequestStatus, number> = {
@@ -35,17 +36,18 @@ interface RequestTimelineProps {
 }
 
 export function RequestTimeline({ status, className }: RequestTimelineProps) {
+  const { t } = useTranslation();
   const isRejected = status === 'REJECTED';
   const isReopened = status === 'REOPENED';
-  const steps = isRejected
+  const steps: TimelineStep[] = isRejected
     ? [
         ...FLOW_STEPS.slice(0, 2),
-        { status: 'REJECTED', label: 'Rejected', description: 'No work order created' },
+        { status: 'REJECTED', labelKey: 'requests.stepRejected', descriptionKey: 'requests.stepRejectedDesc' },
       ]
     : isReopened
       ? [
           ...FLOW_STEPS.slice(0, 5),
-          { status: 'REOPENED', label: 'Reopened', description: 'Reopened after completion' },
+          { status: 'REOPENED', labelKey: 'requests.stepReopened', descriptionKey: 'requests.stepReopenedDesc' },
         ]
       : FLOW_STEPS;
   const currentIndex = STEP_INDEX[status];
@@ -53,7 +55,7 @@ export function RequestTimeline({ status, className }: RequestTimelineProps) {
   return (
     <Card className={className}>
       <CardHeader className="border-b">
-        <CardTitle>Progress</CardTitle>
+        <CardTitle>{t('requests.progress')}</CardTitle>
       </CardHeader>
       <CardContent className="pt-5">
         <ol className="space-y-0">
@@ -105,9 +107,9 @@ export function RequestTimeline({ status, className }: RequestTimelineProps) {
                             : 'text-muted-foreground',
                     )}
                   >
-                    {step.label}
+                    {t(step.labelKey)}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{step.description}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t(step.descriptionKey)}</p>
                 </div>
               </li>
             );
@@ -115,7 +117,7 @@ export function RequestTimeline({ status, className }: RequestTimelineProps) {
         </ol>
         {status === 'REOPENED' ? (
           <p className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-xs leading-relaxed text-orange-900">
-            This request was reopened after completion and is back with the technician.
+            {t('requests.reopenedNotice')}
           </p>
         ) : null}
       </CardContent>

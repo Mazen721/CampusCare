@@ -1,5 +1,6 @@
 import { ClipboardCheck, Inbox } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
 import { ReviewRequestDialog } from '@/features/maintenance/requests/ReviewRequestDialog';
 import { ApiError } from '@/lib/api';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import { formatDate } from '@/lib/utils';
 import type { MaintenanceRequestRecord } from '@/types/maintenance';
@@ -25,6 +26,7 @@ const PAGE_SIZE = 10;
 const REVIEWABLE: RequestStatus[] = ['SUBMITTED', 'UNDER_REVIEW'];
 
 export function RequestQueuePage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState<'ALL' | RequestStatus>('ALL');
@@ -47,7 +49,7 @@ export function RequestQueuePage() {
   const columns: Array<DataTableColumn<MaintenanceRequestRecord>> = [
     {
       id: 'request',
-      header: 'Request',
+      header: t('requests.itemTitle'),
       cell: (request) => (
         <div className="min-w-0">
           <Link
@@ -64,7 +66,7 @@ export function RequestQueuePage() {
     },
     {
       id: 'requester',
-      header: 'Requester',
+      header: t('requests.requester'),
       cell: (request) => (
         <div className="min-w-0">
           <p className="truncate text-sm text-foreground">
@@ -78,17 +80,17 @@ export function RequestQueuePage() {
     },
     {
       id: 'priority',
-      header: 'Priority',
+      header: t('common.priority'),
       cell: (request) => <PriorityBadge priority={request.priority} />,
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (request) => <StatusBadge status={request.status} />,
     },
     {
       id: 'location',
-      header: 'Location',
+      header: t('common.location'),
       cell: (request) =>
         request.location ? (
           <span className="text-sm text-muted-foreground">
@@ -100,7 +102,7 @@ export function RequestQueuePage() {
     },
     {
       id: 'created',
-      header: 'Submitted',
+      header: t('requests.submittedOn'),
       cell: (request) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
           {formatDate(request.createdAt)}
@@ -109,18 +111,18 @@ export function RequestQueuePage() {
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (request) => (
         <div className="flex items-center justify-end gap-1">
           <Button variant="ghost" size="sm" asChild>
-            <Link to={`/maintenance/requests/${request.id}`}>View</Link>
+            <Link to={`/maintenance/requests/${request.id}`}>{t('common.view')}</Link>
           </Button>
           {REVIEWABLE.includes(request.status) ? (
             <Button size="sm" onClick={() => setSelected(request)}>
               <ClipboardCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              Review
+              {t('requests.review')}
             </Button>
           ) : null}
         </div>
@@ -132,15 +134,15 @@ export function RequestQueuePage() {
     requestsQuery.error instanceof ApiError
       ? requestsQuery.error.message
       : requestsQuery.error
-        ? 'Unable to load the request queue right now.'
+        ? t('errors.network')
         : null;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Maintenance"
-        title="Request queue"
-        description="Triage incoming requests. Critical and high priority items are listed first, followed by the newest submissions."
+        eyebrow={t('nav.maintenance')}
+        title={t('requests.queue')}
+        description={t('requests.queueDescription')}
       />
 
       <DataTable
@@ -155,16 +157,16 @@ export function RequestQueuePage() {
           setSearch(value);
           setPage(1);
         }}
-        searchPlaceholder="Search request number, title or description…"
+        searchPlaceholder={t('requests.searchPlaceholder')}
         filters={[
           {
             id: 'status',
-            label: 'Status',
+            label: t('common.status'),
             value: statusFilter,
             options: [
-              { label: 'All statuses', value: 'ALL' },
+              { label: t('requests.allStatuses'), value: 'ALL' },
               ...REQUEST_STATUSES.map((status) => ({
-                label: humanizeEnum(status),
+                label: enumLabel('status', status),
                 value: status,
               })),
             ],
@@ -175,12 +177,12 @@ export function RequestQueuePage() {
           },
           {
             id: 'priority',
-            label: 'Priority',
+            label: t('common.priority'),
             value: priorityFilter,
             options: [
-              { label: 'All priorities', value: 'ALL' },
+              { label: t('requests.allPriorities'), value: 'ALL' },
               ...PRIORITIES.map((priority) => ({
-                label: humanizeEnum(priority),
+                label: enumLabel('priority', priority),
                 value: priority,
               })),
             ],
@@ -195,11 +197,11 @@ export function RequestQueuePage() {
         total={requestsQuery.data?.total ?? 0}
         onPageChange={setPage}
         emptyIcon={Inbox}
-        emptyTitle={search || statusFilter !== 'ALL' ? 'No matching requests' : 'The queue is clear'}
+        emptyTitle={search || statusFilter !== 'ALL' ? t('requests.noMatchingRequests') : t('requests.queueClearTitle')}
         emptyDescription={
           search || statusFilter !== 'ALL'
-            ? 'Try a different keyword or clear the filters.'
-            : 'New maintenance requests will appear here as soon as users submit them.'
+            ? t('requests.noMatchingDesc')
+            : t('requests.queueClearDesc')
         }
       />
 

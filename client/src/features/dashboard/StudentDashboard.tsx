@@ -4,6 +4,7 @@ import {
   PackageSearch,
   ShieldCheck,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
@@ -11,6 +12,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { RequestStatus } from '@/types/meta';
 import type { StudentDashboard as StudentDashboardData } from '@/types/dashboard';
@@ -24,6 +26,7 @@ const ACTIVE_STATUSES: RequestStatus[] = [
 ];
 
 export function StudentDashboard({ data }: { data: StudentDashboardData }) {
+  const { t } = useTranslation();
   const activeRequests = ACTIVE_STATUSES.reduce(
     (sum, status) => sum + data.requests.byStatus[status],
     0,
@@ -33,28 +36,28 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardStatCard
-          label="My requests"
+          label={t('dashboard.myRequests')}
           value={data.requests.total}
           icon={ClipboardList}
-          hint="In the selected period"
+          hint={t('dashboard.recentRequestsDesc')}
         />
         <DashboardStatCard
-          label="Active requests"
+          label={t('dashboard.activeRequests')}
           value={activeRequests}
           icon={ClipboardList}
-          hint="Submitted through in progress"
+          hint={t('dashboard.active')}
         />
         <DashboardStatCard
-          label="My claims"
+          label={t('dashboard.myClaims')}
           value={data.claims.total}
           icon={ShieldCheck}
-          hint="Lost & found claims"
+          hint={t('claims.title')}
         />
         <DashboardStatCard
-          label="My reports"
+          label={t('dashboard.myReports')}
           value={data.reports.total}
           icon={PackageSearch}
-          hint={`${data.reports.lost} lost · ${data.reports.found} found`}
+          hint={`${data.reports.lost} ${t('dashboard.lost')} · ${data.reports.found} ${t('dashboard.found')}`}
         />
       </div>
 
@@ -62,23 +65,23 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
         <Card className="shadow-none">
           <CardHeader className="flex-row items-start justify-between gap-3 pb-2">
             <div>
-              <CardTitle className="text-sm">Recent requests</CardTitle>
+              <CardTitle className="text-sm">{t('dashboard.recentRequests')}</CardTitle>
               <p className="mt-1 text-xs text-muted-foreground">
-                Your latest maintenance submissions.
+                {t('dashboard.recentRequestsDesc')}
               </p>
             </div>
             <Link
               to="/maintenance/requests"
               className="shrink-0 text-xs font-medium text-primary hover:underline"
             >
-              View all
+              {t('common.viewAll')}
             </Link>
           </CardHeader>
           <CardContent className="pt-2">
             {data.requests.recent.length === 0 ? (
               <EmptyState
-                title="No requests yet"
-                description="Submit a maintenance request and follow its progress here."
+                title={t('requests.noRequestsYet')}
+                description={t('dashboard.noRecentRequestsDesc')}
                 icon={ClipboardList}
                 className="min-h-[170px]"
               />
@@ -95,7 +98,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                           {request.title}
                         </Link>
                         <p className="mt-0.5 text-xs text-muted-foreground">
-                          {request.requestNumber} · {formatDate(request.createdAt)}
+                          <span dir="ltr">{request.requestNumber}</span> · {formatDate(request.createdAt)}
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
@@ -115,23 +118,23 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
             <div>
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Bell className="h-4 w-4 text-primary" aria-hidden="true" />
-                Notifications
+                {t('dashboard.notificationsTitle')}
               </CardTitle>
               <p className="mt-1 text-xs text-muted-foreground">
-                Updates about your requests, reports and claims.
+                {t('dashboard.notificationsDesc')}
               </p>
             </div>
             {data.notifications.unreadCount > 0 ? (
               <Badge variant="default" className="shrink-0">
-                {data.notifications.unreadCount} unread
+                {t('dashboard.unreadBadge', { count: data.notifications.unreadCount })}
               </Badge>
             ) : null}
           </CardHeader>
           <CardContent className="pt-2">
             {data.notifications.recent.length === 0 ? (
               <EmptyState
-                title="You're all caught up"
-                description="Notifications will appear here when something changes."
+                title={t('dashboard.allCaughtUpTitle')}
+                description={t('dashboard.allCaughtUpDesc')}
                 icon={Bell}
                 className="min-h-[170px]"
               />
@@ -165,7 +168,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                                 to={notification.linkUrl}
                                 className="font-medium text-primary hover:underline"
                               >
-                                Open
+                                {t('common.open')}
                               </Link>
                             </>
                           ) : null}
@@ -184,23 +187,23 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
         <Card className="shadow-none">
           <CardHeader className="flex-row items-start justify-between gap-3 pb-2">
             <div>
-              <CardTitle className="text-sm">Recent claims</CardTitle>
+              <CardTitle className="text-sm">{t('dashboard.recentClaims')}</CardTitle>
               <p className="mt-1 text-xs text-muted-foreground">
-                Lost & found claims you submitted.
+                {t('dashboard.recentClaimsDesc')}
               </p>
             </div>
             <Link
               to="/lost-found/claims"
               className="shrink-0 text-xs font-medium text-primary hover:underline"
             >
-              View all
+              {t('common.viewAll')}
             </Link>
           </CardHeader>
           <CardContent className="pt-2">
             {data.claims.recent.length === 0 ? (
               <EmptyState
-                title="No claims yet"
-                description="Claims you submit for found items will appear here."
+                title={t('claims.noClaimsFound')}
+                description={t('dashboard.noRecentClaimsDesc')}
                 icon={ShieldCheck}
                 className="min-h-[150px]"
               />
@@ -219,7 +222,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                         {claim.itemTitle}
                       </Link>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {claim.claimNumber} · {formatDate(claim.createdAt)}
+                        <span dir="ltr">{claim.claimNumber}</span> · {formatDate(claim.createdAt)}
                       </p>
                     </div>
                     <StatusBadge status={claim.status} />
@@ -233,23 +236,23 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
         <Card className="shadow-none">
           <CardHeader className="flex-row items-start justify-between gap-3 pb-2">
             <div>
-              <CardTitle className="text-sm">Recent lost & found reports</CardTitle>
+              <CardTitle className="text-sm">{t('dashboard.recentReports')}</CardTitle>
               <p className="mt-1 text-xs text-muted-foreground">
-                Items you reported as lost or found.
+                {t('dashboard.recentReportsDesc')}
               </p>
             </div>
             <Link
               to="/lost-found/my-reports"
               className="shrink-0 text-xs font-medium text-primary hover:underline"
             >
-              View all
+              {t('common.viewAll')}
             </Link>
           </CardHeader>
           <CardContent className="pt-2">
             {data.reports.recent.length === 0 ? (
               <EmptyState
-                title="No reports yet"
-                description="Report a lost or found item to see it here."
+                title={t('lostFound.noReportsYet')}
+                description={t('dashboard.noRecentReportsDesc')}
                 icon={PackageSearch}
                 className="min-h-[150px]"
               />
@@ -268,7 +271,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                         {report.itemTitle}
                       </Link>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {report.reportNumber} · {report.reportType} ·{' '}
+                        <span dir="ltr">{report.reportNumber}</span> · {enumLabel('reportType', report.reportType)} ·{' '}
                         {formatDate(report.createdAt)}
                       </p>
                     </div>

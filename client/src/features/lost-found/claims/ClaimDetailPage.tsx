@@ -14,6 +14,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -28,22 +29,25 @@ import { claimsApi } from '@/features/lost-found/claims/claimsApi';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ItemGallery } from '@/features/lost-found/items/ItemGallery';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { ClaimReviewAction } from '@/types/claims';
 
 function BackToClaims() {
+  const { t } = useTranslation();
   return (
     <Link
       to="/lost-found/claims"
       className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-      Back to claims
+      {t('claims.backToClaims')}
     </Link>
   );
 }
 
 export function ClaimDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const isOfficer = user?.role === 'LOST_FOUND_OFFICER';
@@ -65,7 +69,7 @@ export function ClaimDetailPage() {
     return (
       <div className="space-y-6">
         <BackToClaims />
-        <LoadingState label="Loading claim details…" />
+        <LoadingState label={t('common.loading')} />
       </div>
     );
   }
@@ -76,11 +80,11 @@ export function ClaimDetailPage() {
       <div className="space-y-6">
         <BackToClaims />
         <ErrorState
-          title={notFound ? 'Claim not found' : 'Unable to load this claim'}
+          title={notFound ? t('errors.notFoundTitle') : t('errors.generic')}
           message={
             claimQuery.error instanceof ApiError
               ? claimQuery.error.message
-              : 'Check your connection and try again.'
+              : t('errors.network')
           }
           onRetry={notFound ? undefined : () => void claimQuery.refetch()}
         />
@@ -92,23 +96,23 @@ export function ClaimDetailPage() {
     isOfficer && claim.status === 'PENDING_REVIEW' ? (
       <Button variant="outline" onClick={() => setReviewAction('START_VERIFICATION')}>
         <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
-        Start verification
+        {t('claims.startVerificationAction')}
       </Button>
     ) : isOfficer && claim.status === 'UNDER_VERIFICATION' ? (
       <>
         <Button variant="outline" onClick={() => setReviewAction('REJECT')}>
           <XCircle className="h-4 w-4" aria-hidden="true" />
-          Reject
+          {t('claims.rejectAction')}
         </Button>
         <Button onClick={() => setReviewAction('APPROVE')}>
           <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          Approve
+          {t('claims.approveAction')}
         </Button>
       </>
     ) : isOfficer && claim.status === 'APPROVED' ? (
       <Button onClick={() => setHandoverOpen(true)}>
         <Handshake className="h-4 w-4" aria-hidden="true" />
-        Record handover
+        {t('claims.recordHandoverAction')}
       </Button>
     ) : null;
 
@@ -117,12 +121,12 @@ export function ClaimDetailPage() {
       <BackToClaims />
 
       <PageHeader
-        eyebrow={claim.claimNumber}
-        title={claim.item?.itemTitle ?? 'Claim request'}
-        description={`Submitted ${formatDate(claim.createdAt, {
+        eyebrow={<span dir="ltr">{claim.claimNumber}</span>}
+        title={claim.item?.itemTitle ?? t('claims.claimNumber')}
+        description={`${formatDate(claim.createdAt, {
           dateStyle: 'medium',
           timeStyle: 'short',
-        })}${claim.claimant ? ` by ${claim.claimant.name}` : ''}`}
+        })}${claim.claimant ? ` · ${claim.claimant.name}` : ''}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={claim.status} />
@@ -137,13 +141,13 @@ export function ClaimDetailPage() {
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2 text-base">
                 <MessageSquare className="h-4 w-4 text-primary" aria-hidden="true" />
-                Claimant response
+                {t('claims.claimantResponse')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5 pt-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  Why this is their item
+                  {t('claims.whyTheirItem')}
                 </p>
                 <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                   {claim.claimDescription}
@@ -152,7 +156,7 @@ export function ClaimDetailPage() {
               <div className="rounded-lg border border-amber-300/70 bg-amber-50/60 p-4">
                 <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-800">
                   <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                  Identifying details provided
+                  {t('claims.identifyingProvided')}
                 </p>
                 <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-amber-950">
                   {claim.identifyingDetailsProvided}
@@ -163,7 +167,7 @@ export function ClaimDetailPage() {
 
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Supporting photos</CardTitle>
+              <CardTitle>{t('claims.supportingPhotos')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-5">
               <ItemGallery
@@ -180,7 +184,7 @@ export function ClaimDetailPage() {
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <BadgeCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Found item
+                  {t('claims.foundItemDetails')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 pt-5 text-sm">
@@ -193,7 +197,7 @@ export function ClaimDetailPage() {
                   </Link>
                   <p className="mt-1 font-semibold text-foreground">{claim.item.itemTitle}</p>
                   <p className="text-xs text-muted-foreground">
-                    {claim.item.category} · {claim.item.reportType}
+                    {enumLabel('lostFoundCategory', claim.item.category)} · {enumLabel('reportType', claim.item.reportType)}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -201,12 +205,12 @@ export function ClaimDetailPage() {
                 </div>
                 <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
                   <CalendarDays className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  Occurred {formatDate(claim.item.occurrenceDate, { dateStyle: 'long' })}
+                  {formatDate(claim.item.occurrenceDate, { dateStyle: 'long' })}
                 </p>
                 <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
                   <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   {claim.item.location
-                    ? `${claim.item.location.buildingName} · ${claim.item.location.floor} · Room ${claim.item.location.room}`
+                    ? `${claim.item.location.buildingName} · ${claim.item.location.floor} · ${t('locations.room')} ${claim.item.location.room}`
                     : claim.item.locationDetails}
                 </p>
               </CardContent>
@@ -218,7 +222,7 @@ export function ClaimDetailPage() {
               <CardHeader className="border-b border-amber-200/70">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <EyeOff className="h-4 w-4 text-amber-700" aria-hidden="true" />
-                  Private identification details
+                  {t('lostFound.privateDetails')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 pt-5">
@@ -226,7 +230,7 @@ export function ClaimDetailPage() {
                   {claim.item.privateIdentificationDetails}
                 </p>
                 <p className="text-[11px] leading-relaxed text-amber-800">
-                  Compare these details with the claimant’s answer before approving.
+                  {t('claims.compareNotice')}
                 </p>
               </CardContent>
             </Card>
@@ -237,7 +241,7 @@ export function ClaimDetailPage() {
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Link2 className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Linked lost report
+                  {t('claims.linkedLostItem')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 pt-5 text-sm">
@@ -258,7 +262,7 @@ export function ClaimDetailPage() {
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <UserRound className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Claimant
+                  {t('claims.claimant')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
@@ -282,15 +286,15 @@ export function ClaimDetailPage() {
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <ClipboardCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Review outcome
+                  {t('claims.reviewOutcome')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 pt-5 text-sm">
                 {claim.reviewedBy ? (
                   <p className="text-xs text-muted-foreground">
-                    Reviewed by <span className="font-medium text-foreground"><bdi>{claim.reviewedBy.name}</bdi></span>
+                    {t('requests.reviewedBy')} <span className="font-medium text-foreground"><bdi>{claim.reviewedBy.name}</bdi></span>
                     {claim.reviewedAt
-                      ? ` on ${formatDate(claim.reviewedAt, {
+                      ? ` · ${formatDate(claim.reviewedAt, {
                           dateStyle: 'medium',
                           timeStyle: 'short',
                         })}`
@@ -299,13 +303,13 @@ export function ClaimDetailPage() {
                 ) : null}
                 {claim.rejectionReason ? (
                   <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-900">
-                    <p className="font-semibold">Rejection reason</p>
+                    <p className="font-semibold">{t('claims.rejectionReason')}</p>
                     <p className="mt-1">{claim.rejectionReason}</p>
                   </div>
                 ) : null}
                 {claim.verificationNotes ? (
                   <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
-                    <p className="font-semibold text-foreground">Internal notes</p>
+                    <p className="font-semibold text-foreground">{t('claims.internalNotes')}</p>
                     <p className="mt-1 whitespace-pre-wrap">{claim.verificationNotes}</p>
                   </div>
                 ) : null}
@@ -318,12 +322,12 @@ export function ClaimDetailPage() {
               <CardHeader className="border-b border-emerald-200/70">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Handshake className="h-4 w-4 text-emerald-700" aria-hidden="true" />
-                  Handover
+                  {t('claims.handoverItem')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
                 <p className="font-semibold text-emerald-950">
-                  Received by {claim.handover.receivedByName ? <bdi>{claim.handover.receivedByName}</bdi> : 'the claimant'}
+                  {t('claims.receivedByPerson', { name: claim.handover.receivedByName ? claim.handover.receivedByName : '' })}
                 </p>
                 {claim.handover.handedOverAt ? (
                   <p className="text-xs text-emerald-800">
@@ -335,7 +339,7 @@ export function ClaimDetailPage() {
                 ) : null}
                 {claim.handover.handedOverBy ? (
                   <p className="text-xs text-emerald-800">
-                    Handed over by <bdi>{claim.handover.handedOverBy.name}</bdi>
+                    {t('claims.handedOverByPerson', { name: claim.handover.handedOverBy.name })}
                   </p>
                 ) : null}
                 {claim.handover.notes ? (

@@ -1,5 +1,6 @@
 import { ChevronRight, ClipboardList, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/AuthContext';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
 import { ApiError } from '@/lib/api';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import { formatDate } from '@/lib/utils';
 import {
@@ -24,6 +25,7 @@ import type { MaintenanceRequestRecord } from '@/types/maintenance';
 const PAGE_SIZE = 10;
 
 export function RequestsListPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search);
@@ -52,7 +54,7 @@ export function RequestsListPage() {
   const columns: Array<DataTableColumn<MaintenanceRequestRecord>> = [
     {
       id: 'request',
-      header: 'Request',
+      header: t('requests.itemTitle'),
       cell: (request) => (
         <div className="min-w-0">
           <Link
@@ -75,22 +77,26 @@ export function RequestsListPage() {
     },
     {
       id: 'category',
-      header: 'Category',
-      cell: (request) => <span className="text-sm text-muted-foreground">{request.category}</span>,
+      header: t('common.category'),
+      cell: (request) => (
+        <span className="text-sm text-muted-foreground">
+          {enumLabel('maintenanceCategory', request.category)}
+        </span>
+      ),
     },
     {
       id: 'priority',
-      header: 'Priority',
+      header: t('common.priority'),
       cell: (request) => <PriorityBadge priority={request.priority} />,
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (request) => <StatusBadge status={request.status} />,
     },
     {
       id: 'location',
-      header: 'Location',
+      header: t('common.location'),
       cell: (request) =>
         request.location ? (
           <span className="text-sm text-muted-foreground">
@@ -102,7 +108,7 @@ export function RequestsListPage() {
     },
     {
       id: 'created',
-      header: 'Submitted',
+      header: t('requests.submittedOn'),
       cell: (request) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
           {formatDate(request.createdAt)}
@@ -111,13 +117,13 @@ export function RequestsListPage() {
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (request) => (
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/maintenance/requests/${request.id}`}>
-            View
+            {t('common.view')}
             <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
           </Link>
         </Button>
@@ -129,25 +135,25 @@ export function RequestsListPage() {
     requestsQuery.error instanceof ApiError
       ? requestsQuery.error.message
       : requestsQuery.error
-        ? 'Unable to load maintenance requests right now.'
+        ? t('errors.network')
         : null;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Maintenance"
-        title={isStudent ? 'My requests' : 'Maintenance requests'}
+        eyebrow={t('nav.maintenance')}
+        title={isStudent ? t('requests.myRequests') : t('requests.title')}
         description={
           isStudent
-            ? 'Follow every request you have submitted, from manager review through to completion.'
-            : 'A read-only view of every maintenance request across campus, ranked by priority.'
+            ? t('requests.myRequestsDescription')
+            : t('requests.allRequestsDescription')
         }
         actions={
           isStudent ? (
             <Button asChild>
               <Link to="/maintenance/requests/new">
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                New request
+                {t('requests.newRequest')}
               </Link>
             </Button>
           ) : undefined
@@ -166,16 +172,16 @@ export function RequestsListPage() {
           setSearch(value);
           setPage(1);
         }}
-        searchPlaceholder="Search request number, title or description…"
+        searchPlaceholder={t('requests.searchPlaceholder')}
         filters={[
           {
             id: 'status',
-            label: 'Status',
+            label: t('common.status'),
             value: statusFilter,
             options: [
-              { label: 'All statuses', value: 'ALL' },
+              { label: t('requests.allStatuses'), value: 'ALL' },
               ...REQUEST_STATUSES.map((status) => ({
-                label: humanizeEnum(status),
+                label: enumLabel('status', status),
                 value: status,
               })),
             ],
@@ -186,12 +192,12 @@ export function RequestsListPage() {
           },
           {
             id: 'priority',
-            label: 'Priority',
+            label: t('common.priority'),
             value: priorityFilter,
             options: [
-              { label: 'All priorities', value: 'ALL' },
+              { label: t('requests.allPriorities'), value: 'ALL' },
               ...PRIORITIES.map((priority) => ({
-                label: humanizeEnum(priority),
+                label: enumLabel('priority', priority),
                 value: priority,
               })),
             ],
@@ -206,20 +212,20 @@ export function RequestsListPage() {
         total={requestsQuery.data?.total ?? 0}
         onPageChange={setPage}
         emptyIcon={ClipboardList}
-        emptyTitle={search ? 'No matching requests' : 'No maintenance requests yet'}
+        emptyTitle={search ? t('requests.noMatchingRequests') : t('requests.noRequestsYet')}
         emptyDescription={
           search
-            ? 'Try a different keyword or clear the filters.'
+            ? t('requests.noMatchingDesc')
             : isStudent
-              ? 'Report an issue and it will appear here as soon as it is submitted.'
-              : 'Requests submitted by campus users will appear here.'
+              ? t('requests.noRequestsStudent')
+              : t('requests.noRequestsAdmin')
         }
         emptyAction={
           isStudent ? (
             <Button asChild size="sm">
               <Link to="/maintenance/requests/new">
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                New request
+                {t('requests.newRequest')}
               </Link>
             </Button>
           ) : undefined

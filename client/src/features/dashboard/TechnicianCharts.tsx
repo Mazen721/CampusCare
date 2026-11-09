@@ -10,7 +10,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import type { TechnicianDashboard } from '@/types/dashboard';
 
 const PRIMARY = 'hsl(var(--primary))';
@@ -45,25 +45,25 @@ export function TechnicianCharts({
   const { t } = useTranslation();
 
   const priorityData = analytics.byPriority.map((item) => ({
-    priority: humanizeEnum(item.priority),
+    priority: enumLabel('priority', item.priority),
     count: item.count,
   }));
 
   const categoryData = analytics.byCategory.slice(0, 6).map((item) => ({
-    category: item.category,
+    category: enumLabel('maintenanceCategory', item.category),
     count: item.count,
   }));
 
   const statusData = analytics.statusDistribution.map((item) => ({
-    status: item.status,
+    status: enumLabel('status', item.status),
     count: item.count,
   }));
 
   return (
     <div className="grid gap-4 xl:grid-cols-3">
       <ChartCard
-        title="Jobs by priority"
-        description="Assigned work orders categorized by severity level."
+        title={t('common.priority')}
+        description={t('requests.filterByPriority')}
       >
         <div dir="ltr">
           <ResponsiveContainer width="100%" height={230}>
@@ -82,12 +82,12 @@ export function TechnicianCharts({
       </ChartCard>
 
       <ChartCard
-        title="Jobs by category"
-        description="Your work orders grouped by maintenance specialty."
+        title={t('dashboard.requestsByCategory')}
+        description={t('technicians.specializations')}
       >
         {categoryData.length === 0 ? (
           <p className="flex h-[230px] items-center justify-center text-sm text-muted-foreground">
-            No work orders assigned yet.
+            {t('workOrders.noWorkOrdersFound')}
           </p>
         ) : (
           <div dir="ltr">
@@ -102,7 +102,7 @@ export function TechnicianCharts({
                 <YAxis
                   type="category"
                   dataKey="category"
-                  width={100}
+                  width={105}
                   tick={{ fontSize: 10 }}
                 />
                 <Tooltip
@@ -117,25 +117,20 @@ export function TechnicianCharts({
       </ChartCard>
 
       <ChartCard
-        title="Task status overview"
-        description="Current state of your assigned jobs in this period."
+        title={t('dashboard.statusDistribution')}
+        description={t('workOrders.subtitle')}
       >
         <div dir="ltr">
           <ResponsiveContainer width="100%" height={230}>
             <BarChart data={statusData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="status" tick={{ fontSize: 11 }} />
+              <XAxis dataKey="status" tick={{ fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={44} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip
                 cursor={{ fill: 'hsl(var(--muted))' }}
                 contentStyle={{ borderRadius: 8, borderColor: 'hsl(var(--border))', fontSize: 12 }}
               />
-              <Bar
-                dataKey="count"
-                name={t('dashboard.jobs')}
-                fill={DANGER}
-                radius={[4, 4, 0, 0]}
-              />
+              <Bar dataKey="count" name={t('dashboard.jobs')} fill={DANGER} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -1,5 +1,6 @@
 import { Eye, Filter, Pencil, Plus, Star, Users } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { TechnicianDetailDialog } from '@/features/maintenance/technicians/TechnicianDetailDialog';
 import { TechnicianFormDialog } from '@/features/maintenance/technicians/TechnicianFormDialog';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
+import { enumLabel } from '@/lib/labels';
 import { getInitials } from '@/lib/utils';
 import { MAINTENANCE_CATEGORIES, type MaintenanceCategory } from '@/types/meta';
 import type { TechnicianRecord } from '@/types/technicians';
@@ -16,6 +18,7 @@ import type { TechnicianRecord } from '@/types/technicians';
 const PAGE_SIZE = 10;
 
 export function TechniciansPage() {
+  const { t } = useTranslation();
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | MaintenanceCategory>('ALL');
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -38,7 +41,7 @@ export function TechniciansPage() {
   const columns: Array<DataTableColumn<TechnicianRecord>> = [
     {
       id: 'technician',
-      header: 'Technician',
+      header: t('workOrders.technician'),
       cell: (tech: TechnicianRecord) => (
         <div className="flex min-w-0 items-center gap-3">
           <Avatar className="h-9 w-9 shrink-0">
@@ -53,7 +56,7 @@ export function TechniciansPage() {
               </span>
               {tech.matchesCategory && (
                 <Badge variant="default" className="text-[10px] py-0 px-1.5 bg-amber-500 hover:bg-amber-600">
-                  Match
+                  {t('technicians.matchBadge')}
                 </Badge>
               )}
             </div>
@@ -66,7 +69,7 @@ export function TechniciansPage() {
     },
     {
       id: 'availability',
-      header: 'Availability',
+      header: t('technicians.availability'),
       cell: (tech: TechnicianRecord) => {
         const isAvail = tech.availability === 'AVAILABLE';
         const isBusy = tech.availability === 'BUSY';
@@ -81,24 +84,24 @@ export function TechniciansPage() {
                 : 'border-slate-500/40 bg-slate-50 text-slate-700'
             }
           >
-            {isAvail ? 'Available' : isBusy ? 'Busy' : 'Off Duty'}
+            {enumLabel('availability', tech.availability)}
           </Badge>
         );
       },
     },
     {
       id: 'specializations',
-      header: 'Specializations',
+      header: t('technicians.specializations'),
       cell: (tech: TechnicianRecord) => (
         <div className="flex max-w-[200px] flex-wrap gap-1">
           {tech.specializations && tech.specializations.length > 0 ? (
             tech.specializations.slice(0, 2).map((cat: string) => (
               <Badge key={cat} variant="secondary" className="text-[10px] font-normal">
-                {cat}
+                {enumLabel('maintenanceCategory', cat)}
               </Badge>
             ))
           ) : (
-            <span className="text-xs text-muted-foreground">General</span>
+            <span className="text-xs text-muted-foreground">{t('technicians.generalMaintenance')}</span>
           )}
           {tech.specializations && tech.specializations.length > 2 && (
             <span className="text-[10px] text-muted-foreground self-center">
@@ -110,21 +113,21 @@ export function TechniciansPage() {
     },
     {
       id: 'workload',
-      header: 'Workload',
+      header: t('technicians.activeWorkOrders'),
       cell: (tech: TechnicianRecord) => (
         <div className="text-xs">
           <span className="font-semibold text-foreground">
-            {tech.activeWorkOrderCount} active
+            {t('technicians.activeTasksCount', { count: tech.activeWorkOrderCount })}
           </span>
           <span className="text-muted-foreground ms-1.5">
-            ({tech.completedWorkOrderCount} done)
+            {t('technicians.doneTasksCount', { count: tech.completedWorkOrderCount })}
           </span>
         </div>
       ),
     },
     {
       id: 'performance',
-      header: 'Performance',
+      header: t('dashboard.feedbackRating'),
       cell: (tech: TechnicianRecord) => (
         <div className="flex items-center gap-3 text-xs">
           <span className="flex items-center gap-1 font-medium">
@@ -132,7 +135,7 @@ export function TechniciansPage() {
             {tech.averageRating !== null ? tech.averageRating.toFixed(1) : '—'}
           </span>
           <span className="text-muted-foreground">
-            {tech.averageResolutionHours !== null ? `${tech.averageResolutionHours}h avg` : '—'}
+            {tech.averageResolutionHours !== null ? t('technicians.avgResolution', { hours: tech.averageResolutionHours }) : '—'}
           </span>
         </div>
       ),
@@ -147,10 +150,10 @@ export function TechniciansPage() {
             size="sm"
             className="h-8 px-2 text-xs"
             onClick={() => setDetailTechnicianId(tech.id)}
-            title="View live metrics"
+            title={t('common.view')}
           >
             <Eye className="h-3.5 w-3.5 me-1" />
-            View
+            {t('common.view')}
           </Button>
           <Button
             variant="ghost"
@@ -160,10 +163,10 @@ export function TechniciansPage() {
               setEditingTechnician(tech);
               setFormOpen(true);
             }}
-            title="Edit technician details"
+            title={t('common.edit')}
           >
             <Pencil className="h-3.5 w-3.5 me-1" />
-            Edit
+            {t('common.edit')}
           </Button>
         </div>
       ),
@@ -173,8 +176,8 @@ export function TechniciansPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Technicians"
-        description="Monitor staff workload, response performance, and assignment availability."
+        title={t('technicians.title')}
+        description={t('technicians.monitorStaff')}
         actions={
           <Button
             onClick={() => {
@@ -183,7 +186,7 @@ export function TechniciansPage() {
             }}
           >
             <Plus className="me-2 h-4 w-4" />
-            Add Technician
+            {t('technicians.createTechnician')}
           </Button>
         }
       />
@@ -192,7 +195,7 @@ export function TechniciansPage() {
       <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Filter className="h-3.5 w-3.5" />
-          <span>Match Category:</span>
+          <span>{t('technicians.matchCategory')}</span>
         </div>
         <select
           value={categoryFilter}
@@ -202,16 +205,16 @@ export function TechniciansPage() {
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <option value="ALL">All Categories</option>
+          <option value="ALL">{t('technicians.allCategories')}</option>
           {MAINTENANCE_CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
-              {cat}
+              {enumLabel('maintenanceCategory', cat)}
             </option>
           ))}
         </select>
         {categoryFilter !== 'ALL' && (
           <span className="text-xs text-muted-foreground italic">
-            Technicians specialized in {categoryFilter} appear at the top.
+            {t('technicians.filterSpecializedHint', { category: enumLabel('maintenanceCategory', categoryFilter) })}
           </span>
         )}
       </div>
@@ -226,8 +229,8 @@ export function TechniciansPage() {
         total={total}
         onPageChange={setPage}
         emptyIcon={Users}
-        emptyTitle="No technicians found"
-        emptyDescription="No technician accounts match the selected category filter."
+        emptyTitle={t('technicians.noTechniciansFound')}
+        emptyDescription={t('technicians.noTechniciansFound')}
       />
 
       <TechnicianFormDialog

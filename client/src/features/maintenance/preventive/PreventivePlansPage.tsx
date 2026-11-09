@@ -1,5 +1,6 @@
 import { CalendarClock, Pencil, Plus, Power, Repeat2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -12,17 +13,16 @@ import { PreventivePlanFormDialog } from '@/features/maintenance/preventive/Prev
 import { preventiveApi } from '@/features/maintenance/preventive/preventiveApi';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
-import {
-  RECURRENCE_LABELS,
-  type PreventivePlanRecord,
-} from '@/types/preventive';
+import type { PreventivePlanRecord } from '@/types/preventive';
 
 const PAGE_SIZE = 10;
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 
 export function PreventivePlansPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const canManage = user?.role === 'MAINTENANCE_MANAGER';
@@ -52,8 +52,8 @@ export function PreventivePlansPage() {
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       toast.success(
         created === 0
-          ? 'No preventive plans are due right now'
-          : `${created} preventive work order${created === 1 ? '' : 's'} created`,
+          ? t('preventive.noPlansFound')
+          : t('preventive.generatedSuccess'),
       );
       setGenerateOpen(false);
     },
@@ -61,7 +61,7 @@ export function PreventivePlansPage() {
       toast.error(
         error instanceof ApiError
           ? error.message
-          : 'Unable to generate preventive work orders',
+          : t('errors.network'),
       );
     },
   });
@@ -72,7 +72,7 @@ export function PreventivePlansPage() {
     onSuccess: async (response, plan) => {
       await queryClient.invalidateQueries({ queryKey: ['preventive-plans'] });
       toast.success(
-        `${response.plan.title} ${plan.isActive ? 'deactivated' : 'activated'}`,
+        `${response.plan.title} ${plan.isActive ? t('common.inactive') : t('common.active')}`,
       );
       setStatusPlan(null);
     },
@@ -80,7 +80,7 @@ export function PreventivePlansPage() {
       toast.error(
         error instanceof ApiError
           ? error.message
-          : 'Unable to update the preventive plan',
+          : t('errors.network'),
       );
     },
   });
@@ -91,13 +91,13 @@ export function PreventivePlansPage() {
   const columns: Array<DataTableColumn<PreventivePlanRecord>> = [
     {
       id: 'plan',
-      header: 'Plan',
+      header: t('preventive.planTitle'),
       cell: (plan) => (
         <div className="min-w-0 max-w-[280px]">
           <p className="truncate text-sm font-medium text-foreground">{plan.title}</p>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <Badge variant="outline" className="text-[10px]">
-              {plan.category}
+              {enumLabel('maintenanceCategory', plan.category)}
             </Badge>
             <PriorityBadge priority={plan.priority} />
           </div>
@@ -106,32 +106,32 @@ export function PreventivePlansPage() {
     },
     {
       id: 'schedule',
-      header: 'Schedule',
+      header: t('preventive.recurrence'),
       cell: (plan) => (
         <div className="min-w-0 space-y-1 text-xs text-muted-foreground">
           <p className="font-medium text-foreground">
             {plan.recurrenceType === 'CUSTOM_DAYS'
-              ? `Every ${plan.recurrenceIntervalDays ?? '—'} days`
-              : RECURRENCE_LABELS[plan.recurrenceType]}
+              ? t('preventive.everyDays', { days: plan.recurrenceIntervalDays ?? '—' })
+              : enumLabel('recurrence', plan.recurrenceType)}
           </p>
           <p>
-            Next: {formatDate(plan.nextScheduledDate)}
+            {t('preventive.nextScheduledDate')}: {formatDate(plan.nextScheduledDate)}
             {plan.overdue ? (
               <span className="ms-1.5 inline-flex items-center gap-1 rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-800">
                 <TriangleAlert className="h-2.5 w-2.5" aria-hidden="true" />
-                Due
+                {t('preventive.due')}
               </span>
             ) : null}
           </p>
           {plan.lastGeneratedDate ? (
-            <p>Last generated: {formatDate(plan.lastGeneratedDate)}</p>
+            <p>{t('preventive.lastGeneratedDate')}: {formatDate(plan.lastGeneratedDate)}</p>
           ) : null}
         </div>
       ),
     },
     {
       id: 'location',
-      header: 'Location',
+      header: t('common.location'),
       cell: (plan) =>
         plan.location ? (
           <div className="text-xs text-muted-foreground">
@@ -146,29 +146,29 @@ export function PreventivePlansPage() {
     },
     {
       id: 'technician',
-      header: 'Technician',
+      header: t('workOrders.technician'),
       cell: (plan) => (
         <span className="text-xs text-muted-foreground">
           {plan.assignedTechnician?.name ? (
             <bdi>{plan.assignedTechnician.name}</bdi>
           ) : (
-            <span className="italic">Unassigned</span>
+            <span className="italic">{t('workOrders.unassigned')}</span>
           )}
         </span>
       ),
     },
     {
       id: 'duration',
-      header: 'Duration',
+      header: t('preventive.expectedDurationHours'),
       cell: (plan) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
-          {plan.expectedDurationHours} h
+          {plan.expectedDurationHours} {t('dashboard.hoursShort', { hours: '' }).trim()}
         </span>
       ),
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (plan) => (
         <Badge
           variant="outline"
@@ -178,7 +178,7 @@ export function PreventivePlansPage() {
               : 'border-stone-300 bg-stone-100 text-stone-700'
           }
         >
-          {plan.isActive ? 'Active' : 'Inactive'}
+          {plan.isActive ? t('common.active') : t('common.inactive')}
         </Badge>
       ),
     },
@@ -187,7 +187,7 @@ export function PreventivePlansPage() {
   if (canManage) {
     columns.push({
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (plan) => (
@@ -195,7 +195,7 @@ export function PreventivePlansPage() {
           <Button
             variant="ghost"
             size="sm"
-            aria-label={`Edit ${plan.title}`}
+            aria-label={`${t('common.edit')} ${plan.title}`}
             onClick={() => {
               setEditingPlan(plan);
               setFormOpen(true);
@@ -206,7 +206,7 @@ export function PreventivePlansPage() {
           <Button
             variant="ghost"
             size="sm"
-            aria-label={`${plan.isActive ? 'Deactivate' : 'Activate'} ${plan.title}`}
+            aria-label={`${plan.isActive ? t('common.inactive') : t('common.active')} ${plan.title}`}
             onClick={() => setStatusPlan(plan)}
           >
             <Power className="h-4 w-4" aria-hidden="true" />
@@ -220,25 +220,25 @@ export function PreventivePlansPage() {
     plansQuery.error instanceof ApiError
       ? plansQuery.error.message
       : plansQuery.error
-        ? 'Unable to load preventive plans right now.'
+        ? t('errors.network')
         : null;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Preventive maintenance"
-        title="Preventive plans"
+        eyebrow={t('preventive.title')}
+        title={t('preventive.title')}
         description={
           canManage
-            ? 'Create recurring maintenance plans and generate due work orders manually. Nothing runs automatically.'
-            : 'Read-only view of recurring maintenance plans. Only maintenance managers can change them.'
+            ? t('preventive.managerDesc')
+            : t('preventive.readOnlyDesc')
         }
         actions={
           canManage ? (
             <>
               <Button variant="outline" onClick={() => setGenerateOpen(true)}>
                 <CalendarClock className="h-4 w-4" aria-hidden="true" />
-                Generate due work orders
+                {t('preventive.generateDueButton')}
               </Button>
               <Button
                 onClick={() => {
@@ -247,7 +247,7 @@ export function PreventivePlansPage() {
                 }}
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                New plan
+                {t('preventive.createPlan')}
               </Button>
             </>
           ) : null
@@ -264,12 +264,12 @@ export function PreventivePlansPage() {
         filters={[
           {
             id: 'status',
-            label: 'Status',
+            label: t('common.status'),
             value: statusFilter,
             options: [
-              { label: 'All plans', value: 'ALL' },
-              { label: 'Active', value: 'ACTIVE' },
-              { label: 'Inactive', value: 'INACTIVE' },
+              { label: t('common.all'), value: 'ALL' },
+              { label: t('common.active'), value: 'ACTIVE' },
+              { label: t('common.inactive'), value: 'INACTIVE' },
             ],
             onChange: (value) => {
               setStatusFilter(value as StatusFilter);
@@ -281,8 +281,8 @@ export function PreventivePlansPage() {
         limit={PAGE_SIZE}
         total={total}
         onPageChange={setPage}
-        emptyTitle="No preventive plans"
-        emptyDescription="Recurring maintenance plans will appear here once they are created."
+        emptyTitle={t('preventive.noPlansFound')}
+        emptyDescription={t('preventive.noPlansFound')}
         emptyIcon={Repeat2}
       />
 
@@ -295,13 +295,14 @@ export function PreventivePlansPage() {
       <ConfirmDialog
         open={Boolean(statusPlan)}
         onOpenChange={(open) => !open && setStatusPlan(null)}
-        title={statusPlan?.isActive ? 'Deactivate this plan?' : 'Activate this plan?'}
+        title={statusPlan?.isActive ? t('common.inactive') : t('common.active')}
         description={
           statusPlan?.isActive
-            ? `"${statusPlan.title}" will stop generating work orders until it is activated again.`
-            : `"${statusPlan?.title ?? 'This plan'}" will become eligible for Generate due work orders again.`
+            ? `"${statusPlan.title}"`
+            : `"${statusPlan?.title ?? ''}"`
         }
-        confirmLabel={statusPlan?.isActive ? 'Deactivate' : 'Activate'}
+        confirmLabel={statusPlan?.isActive ? t('common.inactive') : t('common.active')}
+        cancelLabel={t('common.cancel')}
         tone={statusPlan?.isActive ? 'destructive' : 'default'}
         isLoading={statusMutation.isPending}
         onConfirm={() => {
@@ -312,9 +313,10 @@ export function PreventivePlansPage() {
       <ConfirmDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}
-        title="Generate due work orders?"
-        description="One work order will be created for every active plan whose next scheduled date has passed. Missed occurrences are skipped, not backfilled."
-        confirmLabel="Generate"
+        title={t('preventive.generateDueButton')}
+        description={t('preventive.managerDesc')}
+        confirmLabel={t('preventive.generateNow')}
+        cancelLabel={t('common.cancel')}
         isLoading={generateMutation.isPending}
         onConfirm={() => generateMutation.mutate()}
       />

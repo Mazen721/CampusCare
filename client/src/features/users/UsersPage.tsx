@@ -1,5 +1,6 @@
 import { Pencil, Plus, Power, UserCheck, UserRound, Users } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -12,9 +13,10 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { UserFormDialog } from '@/features/users/UserFormDialog';
 import { usersApi } from '@/features/users/usersApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import { formatDate, getInitials } from '@/lib/utils';
-import { ROLES, ROLE_LABELS, type Role } from '@/types/auth';
+import { ROLES, type Role } from '@/types/auth';
 import type { UserRecord } from '@/types/users';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
@@ -22,6 +24,7 @@ type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 const PAGE_SIZE = 10;
 
 export function UsersPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const [search, setSearch] = useState('');
@@ -51,18 +54,18 @@ export function UsersPage() {
       usersApi.updateStatus(id, isActive),
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success(variables.isActive ? 'Account activated' : 'Account deactivated');
+      toast.success(variables.isActive ? t('users.userActivatedSuccess') : t('users.userDeactivatedSuccess'));
       setStatusTarget(null);
     },
     onError: (error) => {
-      toast.error(error instanceof ApiError ? error.message : 'Unable to update this account');
+      toast.error(error instanceof ApiError ? error.message : t('errors.generic'));
     },
   });
 
   const columns: Array<DataTableColumn<UserRecord>> = [
     {
       id: 'user',
-      header: 'Account',
+      header: t('users.account'),
       cell: (user) => (
         <div className="flex min-w-0 items-center gap-3">
           <Avatar className="h-9 w-9 shrink-0">
@@ -83,16 +86,16 @@ export function UsersPage() {
     },
     {
       id: 'role',
-      header: 'Role',
+      header: t('users.role'),
       cell: (user) => (
         <Badge variant="outline" className="font-normal">
-          {ROLE_LABELS[user.role]}
+          {enumLabel('role', user.role)}
         </Badge>
       ),
     },
     {
       id: 'department',
-      header: 'Department',
+      header: t('users.department'),
       cell: (user) => (
         <span className="line-clamp-2 text-sm text-muted-foreground">
           {user.department || '—'}
@@ -101,7 +104,7 @@ export function UsersPage() {
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (user) => (
         <Badge
           variant="outline"
@@ -119,13 +122,13 @@ export function UsersPage() {
             }
             aria-hidden="true"
           />
-          {user.isActive ? 'Active' : 'Inactive'}
+          {user.isActive ? t('common.active') : t('common.inactive')}
         </Badge>
       ),
     },
     {
       id: 'created',
-      header: 'Created',
+      header: t('common.createdAt'),
       cell: (user) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
           {formatDate(user.createdAt)}
@@ -134,7 +137,7 @@ export function UsersPage() {
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (user) => {
@@ -145,7 +148,7 @@ export function UsersPage() {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              aria-label={`Edit ${user.name}`}
+              aria-label={`${t('common.edit')} ${user.name}`}
               onClick={() => {
                 setEditing(user);
                 setFormOpen(true);
@@ -154,8 +157,8 @@ export function UsersPage() {
               <Pencil className="h-4 w-4" aria-hidden="true" />
             </Button>
             {isSelf ? (
-              <span className="px-2 text-[11px] text-muted-foreground" title="You cannot deactivate your own account">
-                You
+              <span className="px-2 text-[11px] text-muted-foreground" title={t('users.cannotDeactivateSelf')}>
+                {t('users.you')}
               </span>
             ) : (
               <Button
@@ -166,7 +169,7 @@ export function UsersPage() {
                     ? 'h-8 w-8 text-muted-foreground hover:text-destructive'
                     : 'h-8 w-8 text-muted-foreground hover:text-primary'
                 }
-                aria-label={`${user.isActive ? 'Deactivate' : 'Activate'} ${user.name}`}
+                aria-label={`${user.isActive ? t('users.deactivateUser') : t('users.activateUser')} ${user.name}`}
                 onClick={() => setStatusTarget(user)}
               >
                 {user.isActive ? (
@@ -186,7 +189,7 @@ export function UsersPage() {
     usersQuery.error instanceof ApiError
       ? usersQuery.error.message
       : usersQuery.error
-        ? 'Unable to load user accounts right now.'
+        ? t('errors.generic')
         : null;
 
   const isReactivating = statusTarget ? !statusTarget.isActive : false;
@@ -194,9 +197,9 @@ export function UsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Administration"
-        title="User accounts"
-        description="Create accounts for every role, keep profiles current and deactivate access without deleting history."
+        eyebrow={t('nav.groupOverview')}
+        title={t('users.title')}
+        description={t('users.subtitle')}
         actions={
           <Button
             onClick={() => {
@@ -205,7 +208,7 @@ export function UsersPage() {
             }}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Create account
+            {t('users.createUser')}
           </Button>
         }
       />
@@ -222,15 +225,15 @@ export function UsersPage() {
           setSearch(value);
           setPage(1);
         }}
-        searchPlaceholder="Search name, email or department…"
+        searchPlaceholder={t('users.searchPlaceholder')}
         filters={[
           {
             id: 'role',
-            label: 'Role',
+            label: t('users.role'),
             value: roleFilter,
             options: [
-              { label: 'All roles', value: 'ALL' },
-              ...ROLES.map((role) => ({ label: ROLE_LABELS[role], value: role })),
+              { label: t('users.allRoles'), value: 'ALL' },
+              ...ROLES.map((role) => ({ label: enumLabel('role', role), value: role })),
             ],
             onChange: (value) => {
               setRoleFilter(value as 'ALL' | Role);
@@ -239,12 +242,12 @@ export function UsersPage() {
           },
           {
             id: 'status',
-            label: 'Status',
+            label: t('common.status'),
             value: statusFilter,
             options: [
-              { label: 'All statuses', value: 'ALL' },
-              { label: 'Active', value: 'ACTIVE' },
-              { label: 'Inactive', value: 'INACTIVE' },
+              { label: t('users.allStatuses'), value: 'ALL' },
+              { label: t('common.active'), value: 'ACTIVE' },
+              { label: t('common.inactive'), value: 'INACTIVE' },
             ],
             onChange: (value) => {
               setStatusFilter(value as StatusFilter);
@@ -257,12 +260,8 @@ export function UsersPage() {
         total={usersQuery.data?.total ?? 0}
         onPageChange={setPage}
         emptyIcon={search ? UserRound : Users}
-        emptyTitle={search ? 'No matching accounts' : 'No user accounts yet'}
-        emptyDescription={
-          search
-            ? 'Try a different name, email address or department.'
-            : 'Create the first account to give someone access to CampusCare.'
-        }
+        emptyTitle={t('users.noUsersFound')}
+        emptyDescription={t('users.noUsersFound')}
         emptyAction={
           <Button
             size="sm"
@@ -272,7 +271,7 @@ export function UsersPage() {
             }}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Create account
+            {t('users.createUser')}
           </Button>
         }
       />
@@ -284,15 +283,15 @@ export function UsersPage() {
         onOpenChange={(open) => {
           if (!open && !updateStatus.isPending) setStatusTarget(null);
         }}
-        title={isReactivating ? 'Activate this account?' : 'Deactivate this account?'}
+        title={isReactivating ? t('users.activateAccount') : t('users.deactivateAccount')}
         description={
           statusTarget
             ? isReactivating
-              ? `${statusTarget.name} will be able to sign in again immediately.`
-              : `${statusTarget.name} will be signed out and refused access. Their history is kept.`
+              ? t('users.confirmActivateDesc', { name: statusTarget.name })
+              : t('users.confirmDeactivateDesc', { name: statusTarget.name })
             : ''
         }
-        confirmLabel={isReactivating ? 'Activate account' : 'Deactivate account'}
+        confirmLabel={isReactivating ? t('users.activateAccount') : t('users.deactivateAccount')}
         tone={isReactivating ? 'default' : 'destructive'}
         isLoading={updateStatus.isPending}
         onConfirm={() => {

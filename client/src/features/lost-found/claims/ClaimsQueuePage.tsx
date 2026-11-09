@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ClaimsTable } from '@/features/lost-found/claims/ClaimsTable';
@@ -8,6 +9,7 @@ import type { ClaimStatus } from '@/types/claims';
 const PAGE_SIZE = 10;
 
 export function ClaimsQueuePage() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'ALL' | ClaimStatus>('ALL');
   const [page, setPage] = useState(1);
 
@@ -24,9 +26,9 @@ export function ClaimsQueuePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Lost & Found"
-        title="Claims queue"
-        description="Compare each claimant's answers with the private identification details before approving a handover."
+        eyebrow={t('lostFound.title')}
+        title={t('claims.queueTitle')}
+        description={t('claims.queueDescription')}
       />
 
       <ClaimsTable
@@ -35,7 +37,7 @@ export function ClaimsQueuePage() {
         isLoading={claimsQuery.isLoading}
         error={
           claimsQuery.isError
-            ? 'Unable to load the claims queue. Check your connection and try again.'
+            ? t('errors.network')
             : null
         }
         onRetry={() => void claimsQuery.refetch()}

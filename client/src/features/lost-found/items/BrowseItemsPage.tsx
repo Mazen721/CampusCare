@@ -1,5 +1,6 @@
 import { PackagePlus, SearchX } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ import { useDebouncedValue } from '@/lib/useDebouncedValue';
 const PAGE_SIZE = 12;
 
 export function BrowseItemsPage() {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<ItemFilterState>({ ...EMPTY_ITEM_FILTERS });
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebouncedValue(filters.q);
@@ -71,20 +73,20 @@ export function BrowseItemsPage() {
     itemsQuery.error instanceof ApiError
       ? itemsQuery.error.message
       : itemsQuery.error
-        ? 'Unable to load lost and found reports right now.'
+        ? t('errors.generic')
         : null;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Lost & Found"
-        title="Browse lost & found"
-        description="Search public reports across campus. Private identifying details and reporter contact information are never shown here."
+        eyebrow={t('lostFound.title')}
+        title={t('lostFound.browseTitle')}
+        description={t('lostFound.browseSubtitle')}
         actions={
           <Button asChild>
             <Link to="/lost-found/report">
               <PackagePlus className="h-4 w-4" aria-hidden="true" />
-              Report an item
+              {t('lostFound.reportAnItem')}
             </Link>
           </Button>
         }
@@ -93,30 +95,30 @@ export function BrowseItemsPage() {
       <ItemFilters values={filters} onChange={updateFilters} onReset={resetFilters} />
 
       {itemsQuery.isLoading ? (
-        <LoadingState label="Loading lost and found reports…" />
+        <LoadingState label={t('common.loading')} />
       ) : errorMessage ? (
         <ErrorState
-          title="Unable to load lost and found reports"
+          title={t('errors.generic')}
           message={errorMessage}
           onRetry={() => void itemsQuery.refetch()}
         />
       ) : items.length === 0 ? (
         <EmptyState
           icon={SearchX}
-          title={hasActiveFilters ? 'No reports match those filters' : 'No reports yet'}
+          title={hasActiveFilters ? t('lostFound.noReportsMatch') : t('lostFound.noReportsYet')}
           description={
             hasActiveFilters
-              ? 'Try a broader search or reset the filters to see every report.'
-              : 'When someone reports a lost or found item, it will appear here.'
+              ? t('lostFound.tryBroaderSearch')
+              : t('lostFound.whenReportedAppear')
           }
           action={
             hasActiveFilters ? (
               <Button type="button" variant="outline" size="sm" onClick={resetFilters}>
-                Reset filters
+                {t('common.clearFilters')}
               </Button>
             ) : (
               <Button asChild size="sm">
-                <Link to="/lost-found/report">Report an item</Link>
+                <Link to="/lost-found/report">{t('lostFound.reportAnItem')}</Link>
               </Button>
             )
           }
@@ -126,9 +128,9 @@ export function BrowseItemsPage() {
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">{total}</span>{' '}
-              {total === 1 ? 'report' : 'reports'}
+              {t('lostFound.count', { count: total })}
             </p>
-            <p className="text-xs text-muted-foreground">Page {page}</p>
+            <p className="text-xs text-muted-foreground">{t('lostFound.page', { page })}</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

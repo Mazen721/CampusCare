@@ -1,5 +1,6 @@
 import { MapPin, Pencil, Plus, Power } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { LocationFormDialog } from '@/features/locations/LocationFormDialog';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
 import type { LocationRecord } from '@/types/locations';
 
@@ -18,6 +20,7 @@ type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 const PAGE_SIZE = 10;
 
 export function LocationsPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search);
@@ -44,49 +47,49 @@ export function LocationsPage() {
     mutationFn: (id: string) => locationsApi.deactivate(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['locations'] });
-      toast.success('Location deactivated. It will no longer appear in request forms.');
+      toast.success(t('locations.locationDeactivatedSuccess'));
       setDeactivating(null);
     },
     onError: (error) => {
-      toast.error(error instanceof ApiError ? error.message : 'Unable to deactivate this location');
+      toast.error(error instanceof ApiError ? error.message : t('errors.generic'));
     },
   });
 
   const columns: Array<DataTableColumn<LocationRecord>> = [
     {
       id: 'location',
-      header: 'Location',
+      header: t('locations.building'),
       cell: (location) => (
         <div className="min-w-0">
           <p className="font-medium text-foreground">{location.buildingName}</p>
           <p className="truncate text-xs text-muted-foreground">
-            {location.description || `${location.floor} · Room ${location.room}`}
+            {location.description || `${location.floor} · ${t('locations.room')} ${location.room}`}
           </p>
         </div>
       ),
     },
     {
       id: 'floor',
-      header: 'Floor',
+      header: t('locations.floor'),
       cell: (location) => <span className="text-sm text-foreground">{location.floor}</span>,
     },
     {
       id: 'room',
-      header: 'Room',
+      header: t('locations.room'),
       cell: (location) => <span className="text-sm text-foreground">{location.room}</span>,
     },
     {
       id: 'type',
-      header: 'Type',
+      header: t('locations.type'),
       cell: (location) => (
         <Badge variant="outline" className="font-normal capitalize">
-          {location.locationType.toLowerCase()}
+          {enumLabel('locationType', location.locationType)}
         </Badge>
       ),
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (location) => (
         <Badge
           variant="outline"
@@ -104,13 +107,13 @@ export function LocationsPage() {
             }
             aria-hidden="true"
           />
-          {location.isActive ? 'Active' : 'Inactive'}
+          {location.isActive ? t('common.active') : t('common.inactive')}
         </Badge>
       ),
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (location) => (
@@ -119,7 +122,7 @@ export function LocationsPage() {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            aria-label={`Edit ${location.buildingName}, room ${location.room}`}
+            aria-label={`${t('common.edit')} ${location.buildingName}`}
             onClick={() => {
               setEditing(location);
               setFormOpen(true);
@@ -132,7 +135,7 @@ export function LocationsPage() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-              aria-label={`Deactivate ${location.buildingName}, room ${location.room}`}
+              aria-label={`${t('locations.deactivate')} ${location.buildingName}`}
               onClick={() => setDeactivating(location)}
             >
               <Power className="h-4 w-4" aria-hidden="true" />
@@ -147,15 +150,15 @@ export function LocationsPage() {
     locationsQuery.error instanceof ApiError
       ? locationsQuery.error.message
       : locationsQuery.error
-        ? 'Unable to load locations right now.'
+        ? t('errors.generic')
         : null;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Administration"
-        title="Campus locations"
-        description="Reusable buildings, floors and rooms. Deactivating a location hides it from new reports while keeping its history intact."
+        eyebrow={t('nav.groupOverview')}
+        title={t('locations.title')}
+        description={t('locations.subtitle')}
         actions={
           <Button
             onClick={() => {
@@ -164,7 +167,7 @@ export function LocationsPage() {
             }}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Add location
+            {t('locations.createLocation')}
           </Button>
         }
       />
@@ -181,16 +184,16 @@ export function LocationsPage() {
           setSearch(value);
           setPage(1);
         }}
-        searchPlaceholder="Search building, floor or room…"
+        searchPlaceholder={t('locations.searchPlaceholder')}
         filters={[
           {
             id: 'status',
-            label: 'Status',
+            label: t('common.status'),
             value: statusFilter,
             options: [
-              { label: 'All statuses', value: 'ALL' },
-              { label: 'Active', value: 'ACTIVE' },
-              { label: 'Inactive', value: 'INACTIVE' },
+              { label: t('common.all'), value: 'ALL' },
+              { label: t('common.active'), value: 'ACTIVE' },
+              { label: t('common.inactive'), value: 'INACTIVE' },
             ],
             onChange: (value) => {
               setStatusFilter(value as StatusFilter);
@@ -203,12 +206,8 @@ export function LocationsPage() {
         total={locationsQuery.data?.total ?? 0}
         onPageChange={setPage}
         emptyIcon={MapPin}
-        emptyTitle={search ? 'No matching locations' : 'No locations yet'}
-        emptyDescription={
-          search
-            ? 'Try a different building, floor or room name.'
-            : 'Add the first campus location so users can report issues.'
-        }
+        emptyTitle={t('locations.noLocationsFound')}
+        emptyDescription={t('locations.noLocationsFound')}
         emptyAction={
           <Button
             size="sm"
@@ -218,7 +217,7 @@ export function LocationsPage() {
             }}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Add location
+            {t('locations.createLocation')}
           </Button>
         }
       />
@@ -230,13 +229,17 @@ export function LocationsPage() {
         onOpenChange={(open) => {
           if (!open && !deactivateLocation.isPending) setDeactivating(null);
         }}
-        title="Deactivate this location?"
+        title={t('locations.confirmDeactivate')}
         description={
           deactivating
-            ? `${deactivating.buildingName}, ${deactivating.floor}, Room ${deactivating.room} will be hidden from new requests and reports. Existing records are not changed.`
+            ? t('locations.confirmDeactivateDesc', {
+                building: deactivating.buildingName,
+                floor: deactivating.floor,
+                room: deactivating.room,
+              })
             : ''
         }
-        confirmLabel="Deactivate location"
+        confirmLabel={t('locations.deactivateLocation')}
         tone="destructive"
         isLoading={deactivateLocation.isPending}
         onConfirm={() => {

@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, KeyRound, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -11,25 +13,31 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ApiError } from '@/lib/api';
 
-const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Enter your current password'),
-    newPassword: z
-      .string()
-      .min(8, 'New password must be at least 8 characters')
-      .max(72, 'New password must be 72 characters or fewer'),
-    confirmPassword: z.string().min(1, 'Confirm your new password'),
-  })
-  .refine((values) => values.newPassword === values.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
+export function createChangePasswordSchema(t: TFunction) {
+  return z
+    .object({
+      currentPassword: z.string().min(1, t('validation.enterCurrentPassword')),
+      newPassword: z
+        .string()
+        .min(8, t('validation.passwordMin', { min: 8 }))
+        .max(72, t('validation.passwordMax', { max: 72 })),
+      confirmPassword: z.string().min(1, t('validation.confirmNewPassword')),
+    })
+    .refine((values) => values.newPassword === values.confirmPassword, {
+      message: t('validation.passwordMismatch'),
+      path: ['confirmPassword'],
+    });
+}
 
-type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
+export type ChangePasswordSchema = ReturnType<typeof createChangePasswordSchema>;
+export type ChangePasswordValues = z.infer<ChangePasswordSchema>;
 
 export function ChangePasswordForm() {
+  const { t } = useTranslation();
   const { changePassword } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const schema = useMemo(() => createChangePasswordSchema(t), [t]);
 
   const {
     register,
@@ -37,7 +45,7 @@ export function ChangePasswordForm() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ChangePasswordValues>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       currentPassword: '',
       newPassword: '',
@@ -54,12 +62,12 @@ export function ChangePasswordForm() {
         newPassword: values.newPassword,
       });
       reset();
-      toast.success('Password updated. Use the new password the next time you sign in.');
+      toast.success(t('auth.passwordChangedSuccess'));
     } catch (error) {
       setServerError(
         error instanceof ApiError
           ? error.message
-          : 'Unable to update your password right now. Please try again.',
+          : t('errors.generic'),
       );
     }
   };
@@ -69,10 +77,10 @@ export function ChangePasswordForm() {
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <KeyRound className="h-4 w-4 text-primary" aria-hidden="true" />
-          <CardTitle>Change password</CardTitle>
+          <CardTitle>{t('auth.changePassword')}</CardTitle>
         </div>
         <CardDescription>
-          Choose a password of at least 8 characters. You will use it the next time you sign in.
+          {t('auth.changePasswordDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
@@ -88,7 +96,7 @@ export function ChangePasswordForm() {
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="current-password">Current password</Label>
+            <Label htmlFor="current-password">{t('auth.currentPassword')}</Label>
             <PasswordInput
               id="current-password"
               autoComplete="current-password"
@@ -104,7 +112,7 @@ export function ChangePasswordForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-password">New password</Label>
+            <Label htmlFor="new-password">{t('auth.newPassword')}</Label>
             <PasswordInput
               id="new-password"
               autoComplete="new-password"
@@ -118,13 +126,13 @@ export function ChangePasswordForm() {
               </p>
             ) : (
               <p id="new-password-hint" className="text-xs text-muted-foreground">
-                At least 8 characters, up to 72.
+                {t('validation.passwordMin', { min: 8 })}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm new password</Label>
+            <Label htmlFor="confirm-password">{t('auth.confirmPassword')}</Label>
             <PasswordInput
               id="confirm-password"
               autoComplete="new-password"
@@ -139,10 +147,14 @@ export function ChangePasswordForm() {
             ) : null}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-            Update password
-          </Button>
+          <div className="flex justify-end pt-2">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              {t('auth.changePassword')}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

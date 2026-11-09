@@ -1,4 +1,5 @@
 import { ClipboardCheck, Eye, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,17 +7,18 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { ReportItemForm } from '@/features/lost-found/items/ReportItemForm';
 
 export function ReportItemPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Lost & Found"
-        title="Report a lost or found item"
-        description="Create a public listing and give the Lost & Found Office the private details needed to verify ownership."
+        eyebrow={t('lostFound.reportItemEyebrow')}
+        title={t('lostFound.reportItemTitle')}
+        description={t('lostFound.reportItemDescription')}
         actions={
           <Button asChild variant="outline">
-            <Link to="/lost-found">Back to browse</Link>
+            <Link to="/lost-found">{t('lostFound.backToBrowse')}</Link>
           </Button>
         }
       />
@@ -24,10 +26,9 @@ export function ReportItemPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Card>
           <CardHeader className="border-b">
-            <CardTitle>Report details</CardTitle>
+            <CardTitle>{t('lostFound.reportDetails')}</CardTitle>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Public fields help people recognise the item. Private details are only used to verify a
-              claim.
+              {t('lostFound.reportDetailsDesc')}
             </p>
           </CardHeader>
           <CardContent className="pt-6">
@@ -40,18 +41,12 @@ export function ReportItemPage() {
             <CardHeader className="border-b border-amber-200/70">
               <CardTitle className="flex items-center gap-2 text-base">
                 <ShieldCheck className="h-4 w-4 text-amber-700" aria-hidden="true" />
-                Protect identifying details
+                {t('lostFound.protectDetailsTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-5 text-xs leading-relaxed text-amber-950">
-              <p>
-                Never put serial numbers, full names, phone numbers or unique hidden marks in the
-                public title or description.
-              </p>
-              <p>
-                Put them in <strong>Private identification details</strong>. Only the reporter, a
-                Lost &amp; Found Officer and the Admin can view that field.
-              </p>
+              <p>{t('lostFound.protectDetailsDesc')}</p>
+              <p>{t('lostFound.protectDetailsHint')}</p>
             </CardContent>
           </Card>
 
@@ -59,13 +54,11 @@ export function ReportItemPage() {
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Eye className="h-4 w-4 text-primary" aria-hidden="true" />
-                What everyone sees
+                {t('lostFound.whatEveryoneSeesTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-5 text-xs leading-relaxed text-muted-foreground">
-              <p>Report number, type, title, public description and category.</p>
-              <p>Colour, brand, campus location, occurrence date and photos.</p>
-              <p>Current status. Reporter contact details are never included.</p>
+              <p>{t('lostFound.whatEveryoneSeesDesc')}</p>
             </CardContent>
           </Card>
 
@@ -73,17 +66,11 @@ export function ReportItemPage() {
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2 text-base">
                 <ClipboardCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-                After you submit
+                {t('lostFound.afterSubmitTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-5 text-xs leading-relaxed text-muted-foreground">
-              <p>
-                Your report becomes searchable immediately. The Lost &amp; Found Office reviews
-                possible matches and manages claims.
-              </p>
-              <p>
-                You can close your own lost report from its detail page while it remains open.
-              </p>
+              <p>{t('lostFound.afterSubmitDesc')}</p>
             </CardContent>
           </Card>
         </div>

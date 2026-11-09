@@ -1,7 +1,9 @@
 import { CalendarDays, ImageOff, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { LostFoundItem } from '@/types/lostFound';
 
@@ -10,6 +12,7 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item }: ItemCardProps) {
+  const { t } = useTranslation();
   const image = item.images[0];
 
   return (
@@ -21,14 +24,14 @@ export function ItemCard({ item }: ItemCardProps) {
         {image ? (
           <img
             src={image.url}
-            alt={`Photo of ${item.itemTitle}`}
+            alt={t('lostFound.itemPhoto', { title: item.itemTitle })}
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <ImageOff className="h-7 w-7" strokeWidth={1.6} aria-hidden="true" />
-            <span className="text-[11px] font-medium">No photo</span>
+            <span className="text-[11px] font-medium">{t('lostFound.noPhoto')}</span>
           </div>
         )}
         <div className="absolute start-2.5 top-2.5">
@@ -44,7 +47,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <h2 className="line-clamp-2 font-display text-lg leading-snug text-foreground group-hover:text-primary">
             {item.itemTitle}
           </h2>
-          <p className="text-xs text-muted-foreground">{item.category}</p>
+          <p className="text-xs text-muted-foreground">{enumLabel('lostFoundCategory', item.category)}</p>
         </div>
 
         <div className="mt-auto space-y-2 text-xs text-muted-foreground">

@@ -7,6 +7,7 @@ import {
   TriangleAlert,
   Wrench,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
@@ -14,41 +15,44 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { TechnicianCharts } from '@/features/dashboard/TechnicianCharts';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { TechnicianDashboard as TechnicianDashboardData } from '@/types/dashboard';
 
 export function TechnicianDashboard({ data }: { data: TechnicianDashboardData }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        <DashboardStatCard label="Assigned" value={data.counts.assigned} icon={Wrench} />
-        <DashboardStatCard label="In progress" value={data.counts.inProgress} icon={Clock3} />
+        <DashboardStatCard label={enumLabel('status', 'ASSIGNED')} value={data.counts.assigned} icon={Wrench} />
+        <DashboardStatCard label={enumLabel('status', 'IN_PROGRESS')} value={data.counts.inProgress} icon={Clock3} />
         <DashboardStatCard
-          label="Overdue"
+          label={t('common.overdue')}
           value={data.counts.overdue}
           icon={TriangleAlert}
           tone={data.counts.overdue > 0 ? 'danger' : 'success'}
         />
         <DashboardStatCard
-          label="Completed"
+          label={enumLabel('status', 'COMPLETED')}
           value={data.counts.completed}
           icon={CheckCircle2}
           tone="success"
-          hint="In this period"
+          hint={t('dashboard.period')}
         />
         <DashboardStatCard
-          label="Avg. resolution"
+          label={t('dashboard.avgResolution')}
           value={
             data.analytics?.averageResolutionHours !== null &&
             data.analytics?.averageResolutionHours !== undefined
-              ? `${data.analytics.averageResolutionHours} h`
+              ? t('dashboard.hoursShort', { hours: data.analytics.averageResolutionHours })
               : '—'
           }
           icon={Timer}
-          hint="Start to completion"
+          hint={t('technicians.avgResolutionHours')}
         />
         <DashboardStatCard
-          label="My rating"
+          label={t('dashboard.feedbackRating')}
           value={
             data.analytics?.averageRating !== null &&
             data.analytics?.averageRating !== undefined
@@ -57,7 +61,7 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
           }
           icon={Star}
           tone="warning"
-          hint={`${data.analytics?.feedbackCount ?? 0} review${data.analytics?.feedbackCount === 1 ? '' : 's'}`}
+          hint={`${data.analytics?.feedbackCount ?? 0} ${t('feedback.totalReviews')}`}
         />
       </div>
 
@@ -67,17 +71,17 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-sm">
             <CalendarClock className="h-4 w-4 text-primary" aria-hidden="true" />
-            Your schedule
+            {t('nav.mySchedule')}
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Assigned and in-progress work orders, soonest first.
+            {t('technicians.activeTasks')}
           </p>
         </CardHeader>
         <CardContent className="pt-1">
           {data.schedule.length === 0 ? (
             <EmptyState
-              title="No active work orders"
-              description="Assigned and in-progress jobs will appear here."
+              title={t('technicians.noActiveTasks')}
+              description={t('technicians.noActiveOrders')}
               icon={Wrench}
               className="min-h-[180px]"
             />
@@ -96,14 +100,14 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
                         </Link>
                         {workOrder.overdue ? (
                           <span className="rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-800">
-                            Overdue
+                            {t('common.overdue')}
                           </span>
                         ) : null}
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {workOrder.workOrderNumber} · {workOrder.category}
+                        <span dir="ltr">{workOrder.workOrderNumber}</span> · {enumLabel('maintenanceCategory', workOrder.category)}
                         {workOrder.location
-                          ? ` · ${workOrder.location.buildingName}, ${workOrder.location.floor}, Room ${workOrder.location.room}`
+                          ? ` · ${workOrder.location.buildingName}, ${workOrder.location.floor}, ${t('locations.room')} ${workOrder.location.room}`
                           : ''}
                       </p>
                     </div>
@@ -114,13 +118,13 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
                   </div>
                   <p className="mt-1.5 text-xs text-muted-foreground">
                     {workOrder.scheduledStart
-                      ? `Scheduled ${formatDate(workOrder.scheduledStart, {
+                      ? `${t('workOrders.scheduledStart')} ${formatDate(workOrder.scheduledStart, {
                           dateStyle: 'medium',
                           timeStyle: 'short',
                         })}`
-                      : 'Not scheduled'}
+                      : t('workOrders.notScheduled')}
                     {workOrder.expectedCompletion
-                      ? ` · Due ${formatDate(workOrder.expectedCompletion, {
+                      ? ` · ${t('workOrders.expectedCompletion')} ${formatDate(workOrder.expectedCompletion, {
                           dateStyle: 'medium',
                           timeStyle: 'short',
                         })}`

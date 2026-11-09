@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { ItemMatch } from '@/types/matches';
 
@@ -7,6 +8,7 @@ interface MatchScoreSummaryProps {
 }
 
 export function MatchScoreSummary({ match, className }: MatchScoreSummaryProps) {
+  const { t } = useTranslation();
   const strong = match.level === 'STRONG';
 
   return (
@@ -26,13 +28,15 @@ export function MatchScoreSummary({ match, className }: MatchScoreSummaryProps) 
             strong ? 'text-emerald-700' : 'text-amber-700',
           )}
         >
-          {strong ? 'Strong' : 'Possible'}
+          {strong ? t('matches.strong') : t('matches.possible')}
         </span>
       </div>
       <p className="text-[11px] text-muted-foreground">
-        Category {Math.round(match.breakdown.category * 100)}% · Location{' '}
-        {Math.round(match.breakdown.location * 100)}% · Date{' '}
-        {Math.round(match.breakdown.date * 100)}%
+        {t('matches.criteriaBreakdown', {
+          cat: Math.round(match.breakdown.category * 100),
+          loc: Math.round(match.breakdown.location * 100),
+          date: Math.round(match.breakdown.date * 100),
+        })}
       </p>
     </div>
   );

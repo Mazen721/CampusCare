@@ -1,5 +1,6 @@
 import { ArrowLeft, CheckCircle2, ClipboardCheck, Loader2, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -23,24 +24,26 @@ import { RequestTimeline } from '@/features/maintenance/requests/RequestTimeline
 import { ReviewRequestDialog } from '@/features/maintenance/requests/ReviewRequestDialog';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import type { RequestStatus } from '@/types/meta';
 
 const REVIEWABLE: RequestStatus[] = ['SUBMITTED', 'UNDER_REVIEW'];
 
-function backTarget(role: string | undefined): { to: string; label: string } {
+function backTarget(role: string | undefined): { to: string; labelKey: string } {
   if (role === 'MAINTENANCE_MANAGER') {
-    return { to: '/maintenance/request-queue', label: 'Back to request queue' };
+    return { to: '/maintenance/request-queue', labelKey: 'requests.backToQueue' };
   }
   if (role === 'SUPER_ADMIN') {
-    return { to: '/maintenance/requests', label: 'Back to maintenance requests' };
+    return { to: '/maintenance/requests', labelKey: 'requests.backToRequests' };
   }
   if (role === 'TECHNICIAN') {
-    return { to: '/work-orders', label: 'Back to work orders' };
+    return { to: '/work-orders', labelKey: 'requests.backToWorkOrders' };
   }
-  return { to: '/maintenance/requests', label: 'Back to my requests' };
+  return { to: '/maintenance/requests', labelKey: 'requests.backToMyRequests' };
 }
 
 export function RequestDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -66,10 +69,10 @@ export function RequestDetailPage() {
       setConfirmOpen(false);
       await queryClient.invalidateQueries({ queryKey: ['request', id] });
       await queryClient.invalidateQueries({ queryKey: ['requests'] });
-      toast.success('Request closed successfully!');
+      toast.success(t('requests.requestClosedSuccess'));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : 'Unable to confirm request');
+      toast.error(err instanceof ApiError ? err.message : t('errors.network'));
     },
   });
 
@@ -90,7 +93,7 @@ export function RequestDetailPage() {
       className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-      {back.label}
+      {t(back.labelKey)}
     </Link>
   );
 
@@ -98,7 +101,7 @@ export function RequestDetailPage() {
     return (
       <div className="space-y-6">
         {backLink}
-        <LoadingState label="Loading request…" />
+        <LoadingState label={t('common.loading')} />
       </div>
     );
   }
@@ -109,11 +112,11 @@ export function RequestDetailPage() {
       <div className="space-y-6">
         {backLink}
         <ErrorState
-          title={isNotFound ? 'Request not found' : 'Unable to load this request'}
+          title={isNotFound ? t('errors.network') : t('errors.network')}
           message={
             requestQuery.error instanceof ApiError
               ? requestQuery.error.message
-              : 'Check your connection and try again.'
+              : t('errors.network')
           }
           onRetry={isNotFound ? undefined : () => void requestQuery.refetch()}
         />
@@ -122,8 +125,8 @@ export function RequestDetailPage() {
   }
 
   const locationLabel = request.location
-    ? `${request.location.buildingName} · ${request.location.floor} · Room ${request.location.room}`
-    : 'Location not recorded';
+    ? `${request.location.buildingName} · ${request.location.floor} · ${request.location.room}`
+    : t('requests.notRecorded');
 
   return (
     <div className="space-y-6">
@@ -132,7 +135,7 @@ export function RequestDetailPage() {
       <PageHeader
         eyebrow={request.requestNumber}
         title={request.title}
-        description={`${request.category} · ${locationLabel}`}
+        description={`${enumLabel('maintenanceCategory', request.category)} · ${locationLabel}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={request.status} />
@@ -141,7 +144,7 @@ export function RequestDetailPage() {
             {canReview && (
               <Button onClick={() => setReviewOpen(true)}>
                 <ClipboardCheck className="me-1.5 h-4 w-4" aria-hidden="true" />
-                Review request
+                {t('requests.reviewRequest')}
               </Button>
             )}
 
@@ -156,7 +159,7 @@ export function RequestDetailPage() {
                 ) : (
                   <CheckCircle2 className="me-1.5 h-4 w-4" />
                 )}
-                Confirm Resolution
+                {t('requests.confirmResolution')}
               </Button>
             )}
 
@@ -167,7 +170,7 @@ export function RequestDetailPage() {
                 className="text-amber-600 border-amber-500/40 hover:bg-amber-500/10"
               >
                 <RotateCcw className="me-1.5 h-4 w-4" />
-                Reopen
+                {t('requests.reopenRequest')}
               </Button>
             )}
 
@@ -179,7 +182,7 @@ export function RequestDetailPage() {
                 {confirmMutation.isPending && (
                   <Loader2 className="me-1.5 h-4 w-4 animate-spin" />
                 )}
-                Close Request
+                {t('requests.closeRequest')}
               </Button>
             )}
           </div>
@@ -217,13 +220,14 @@ export function RequestDetailPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title={request.status === 'REOPENED' ? 'Close this request?' : 'Confirm the resolution?'}
+        title={request.status === 'REOPENED' ? t('requests.confirmCloseTitle') : t('requests.confirmResolutionTitle')}
         description={
           request.status === 'REOPENED'
-            ? 'Closing the request marks the work as finished. The requester will be notified and the request cannot be reopened afterwards.'
-            : 'Confirming closes the request, notifies the maintenance team, and cannot be undone.'
+            ? t('requests.confirmCloseDesc')
+            : t('requests.confirmResolutionDesc')
         }
-        confirmLabel={request.status === 'REOPENED' ? 'Close request' : 'Confirm resolution'}
+        confirmLabel={request.status === 'REOPENED' ? t('requests.closeRequest') : t('requests.confirmResolution')}
+        cancelLabel={t('common.cancel')}
         isLoading={confirmMutation.isPending}
         onConfirm={() => confirmMutation.mutate()}
       />

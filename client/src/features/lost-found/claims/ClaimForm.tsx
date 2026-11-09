@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -10,11 +11,12 @@ import { ImageUpload } from '@/components/shared/ImageUpload';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  claimFormSchema,
+  createClaimFormSchema,
   type ClaimFormValues,
 } from '@/features/lost-found/claims/claimFormSchema';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { LostFoundItem } from '@/types/lostFound';
 
@@ -34,16 +36,19 @@ export function ClaimForm({
   lostReports,
   defaultLinkedLostItemId,
 }: ClaimFormProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [images, setImages] = useState<File[]>([]);
+
+  const schema = useMemo(() => createClaimFormSchema(t), [t]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<ClaimFormValues>({
-    resolver: zodResolver(claimFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       itemId: foundItem?.id ?? '',
       claimDescription: '',
@@ -64,12 +69,12 @@ export function ClaimForm({
     onSuccess: ({ claim }) => {
       void queryClient.invalidateQueries({ queryKey: ['lost-found-claims'] });
       void queryClient.invalidateQueries({ queryKey: ['lost-found-item', claim.item?.id] });
-      toast.success(`Claim ${claim.claimNumber} submitted for officer review.`);
+      toast.success(t('claims.claimSubmittedSuccess'));
       navigate(`/lost-found/claims/${claim.id}`);
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : 'Unable to submit your claim.',
+        error instanceof ApiError ? error.message : t('errors.generic'),
       );
     },
   });
@@ -83,11 +88,11 @@ export function ClaimForm({
       {foundItem ? (
         <div className="rounded-lg border bg-muted/30 p-4">
           <p className="font-mono text-xs font-semibold text-primary">
-            {foundItem.reportNumber}
+            <span dir="ltr">{foundItem.reportNumber}</span>
           </p>
           <p className="mt-1 text-sm font-semibold text-foreground">{foundItem.itemTitle}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {foundItem.category} · Found {formatDate(foundItem.occurrenceDate)}
+            {enumLabel('lostFoundCategory', foundItem.category)} · {t('lostFound.foundOn')} {formatDate(foundItem.occurrenceDate)}
             {foundItem.location ? ` · ${foundItem.location.buildingName}` : ''}
           </p>
           <input type="hidden" {...register('itemId')} />
@@ -95,9 +100,9 @@ export function ClaimForm({
       ) : (
         <FormField
           id="claim-item"
-          label="Found item"
+          label={t('claims.foundItemDetails')}
           error={errors.itemId?.message}
-          hint="Choose the found report that belongs to you."
+          hint={t('claims.foundItemSelectPrompt')}
           required
         >
           <select
@@ -106,7 +111,7 @@ export function ClaimForm({
             aria-invalid={Boolean(errors.itemId)}
             {...register('itemId')}
           >
-            <option value="">Select a found item</option>
+            <option value="">{t('claims.foundItemSelectPrompt')}</option>
             {claimableItems.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.reportNumber} · {item.itemTitle}
@@ -118,16 +123,16 @@ export function ClaimForm({
 
       <FormField
         id="claim-description"
-        label="Why is this your item?"
+        label={t('claims.whyYours')}
         error={errors.claimDescription?.message}
-        hint="Tell the officer how the item was lost and what you remember about it."
+        hint={t('claims.whyYoursHint')}
         required
       >
         <Textarea
           id="claim-description"
           rows={4}
           maxLength={4000}
-          placeholder="I left my backpack in Lab 204 after the afternoon lecture…"
+          placeholder={t('claims.whyYoursPlaceholder')}
           aria-invalid={Boolean(errors.claimDescription)}
           {...register('claimDescription')}
         />
@@ -136,16 +141,16 @@ export function ClaimForm({
       <div className="rounded-lg border border-amber-300/70 bg-amber-50 px-3.5 py-3">
         <FormField
           id="claim-identifying-details"
-          label="Private identifying details"
+          label={t('claims.identifyingDetails')}
           error={errors.identifyingDetailsProvided?.message}
-          hint="Serial numbers, engravings, contents or hidden marks. Officers compare these with the private details on the found report; they are never shown publicly."
+          hint={t('claims.privateDetailsProvidedHint')}
           required
         >
           <Textarea
             id="claim-identifying-details"
             rows={3}
             maxLength={4000}
-            placeholder="There is a blue keychain inside the front pocket and my initials are written under the flap."
+            placeholder={t('claims.privateDetailsProvidedPlaceholder')}
             aria-invalid={Boolean(errors.identifyingDetailsProvided)}
             {...register('identifyingDetailsProvided')}
           />
@@ -154,12 +159,12 @@ export function ClaimForm({
 
       <FormField
         id="claim-linked-lost"
-        label="Linked lost report"
+        label={t('claims.linkedLostItem')}
         error={errors.linkedLostItemId?.message}
-        hint="Optional. Linking your lost report lets the officer update it when the item is returned."
+        hint={t('claims.linkedLostHint')}
       >
         <select id="claim-linked-lost" className={selectClass} {...register('linkedLostItemId')}>
-          <option value="">No linked lost report</option>
+          <option value="">{t('claims.noLinkedLostOption')}</option>
           {lostReports.map((item) => (
             <option key={item.id} value={item.id}>
               {item.reportNumber} · {item.itemTitle}
@@ -170,8 +175,8 @@ export function ClaimForm({
 
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-foreground">
-          Supporting photos{' '}
-          <span className="font-normal text-muted-foreground">(optional)</span>
+          {t('claims.supportingEvidence')}{' '}
+          <span className="font-normal text-muted-foreground">({t('common.optional')})</span>
         </legend>
         <ImageUpload files={images} onChange={setImages} maxFiles={3} />
       </fieldset>
@@ -179,8 +184,7 @@ export function ClaimForm({
       <div className="flex items-start gap-2.5 rounded-lg border border-teal-200 bg-teal-50/60 px-3.5 py-3 text-xs leading-relaxed text-teal-900">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
         <p>
-          A false claim is a conduct matter. Only submit a claim if you can prove the item is
-          yours.
+          {t('claims.falseClaimWarning')}
         </p>
       </div>
 
@@ -191,13 +195,13 @@ export function ClaimForm({
           onClick={() => navigate(-1)}
           disabled={createMutation.isPending}
         >
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={createMutation.isPending}>
           {createMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           ) : null}
-          Submit claim
+          {t('claims.submitClaim')}
         </Button>
       </div>
     </form>

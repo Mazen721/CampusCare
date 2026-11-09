@@ -7,59 +7,61 @@ import {
   TriangleAlert,
   Wrench,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { ManagerCharts } from '@/features/dashboard/ManagerCharts';
 import { InsightsPanel } from '@/features/ai/InsightsPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ManagerDashboard as ManagerDashboardData } from '@/types/dashboard';
 
-function formatHours(value: number | null): string {
-  return value === null ? '—' : `${value.toFixed(1)} h`;
-}
-
-function formatRating(value: number | null): string {
-  return value === null ? '—' : value.toFixed(1);
-}
-
 export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
+  const { t } = useTranslation();
   const { metrics } = data;
   const maxFeedback = Math.max(...metrics.feedback.distribution.map((entry) => entry.count), 1);
   const topBuildings = metrics.requestsByBuilding.slice(0, 5);
+
+  const formatHours = (value: number | null): string => {
+    return value === null ? '—' : t('dashboard.hoursShort', { hours: value.toFixed(1) });
+  };
+
+  const formatRating = (value: number | null): string => {
+    return value === null ? '—' : value.toFixed(1);
+  };
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <DashboardStatCard
-          label="Total requests"
+          label={t('dashboard.requests')}
           value={metrics.totalRequests}
           icon={ClipboardList}
-          hint="Created in the selected period"
+          hint={t('dashboard.period')}
         />
         <DashboardStatCard
-          label="Active work orders"
+          label={t('dashboard.activeWorkOrders')}
           value={metrics.activeWorkOrders}
           icon={Wrench}
-          hint="Assigned or in progress"
+          hint={t('workOrders.title')}
         />
         <DashboardStatCard
-          label="Overdue"
+          label={t('dashboard.overdue')}
           value={metrics.overdueWorkOrders}
           icon={TriangleAlert}
           tone={metrics.overdueWorkOrders > 0 ? 'danger' : 'success'}
-          hint="Past expected completion"
+          hint={t('common.overdue')}
         />
         <DashboardStatCard
-          label="Avg. resolution"
+          label={t('dashboard.avgResolution')}
           value={formatHours(metrics.averageResolutionHours)}
           icon={Timer}
-          hint="Start to completion"
+          hint={t('technicians.avgResolutionHours')}
         />
         <DashboardStatCard
-          label="Feedback rating"
+          label={t('dashboard.feedbackRating')}
           value={formatRating(metrics.feedback.averageRating)}
           icon={Star}
           tone="warning"
-          hint={`${metrics.feedback.total} response${metrics.feedback.total === 1 ? '' : 's'}`}
+          hint={`${metrics.feedback.total} ${t('feedback.totalReviews')}`}
         />
       </div>
 
@@ -70,15 +72,15 @@ export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Building2 className="h-4 w-4 text-primary" aria-hidden="true" />
-              Requests by building
+              {t('dashboard.requestsByBuilding')}
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              Where maintenance demand is concentrated in this period.
+              {t('dashboard.requestsByBuildingDesc')}
             </p>
           </CardHeader>
           <CardContent className="space-y-3 pt-2">
             {topBuildings.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No requests in this period.</p>
+              <p className="text-sm text-muted-foreground">{t('dashboard.noRequestsInPeriod')}</p>
             ) : (
               topBuildings.map((entry) => {
                 const percent = Math.round((entry.count / Math.max(metrics.totalRequests, 1)) * 100);
@@ -107,10 +109,10 @@ export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
               <MessageSquare className="h-4 w-4 text-primary" aria-hidden="true" />
-              Feedback distribution
+              {t('dashboard.feedbackDistribution')}
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              Service feedback received in this period.
+              {t('dashboard.feedbackDistributionDesc')}
             </p>
           </CardHeader>
           <CardContent className="space-y-2.5 pt-2">

@@ -1,5 +1,6 @@
 import { ArchiveX } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -14,6 +15,7 @@ interface CloseItemButtonProps {
 }
 
 export function CloseItemButton({ item }: CloseItemButtonProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -30,12 +32,12 @@ export function CloseItemButton({ item }: CloseItemButtonProps) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['lost-found-item', item.id] });
       await queryClient.invalidateQueries({ queryKey: ['lost-found-items'] });
-      toast.success('Report closed');
+      toast.success(t('lostFound.itemClosedSuccess'));
       setOpen(false);
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : 'Unable to close this report.',
+        error instanceof ApiError ? error.message : t('errors.generic'),
       );
     },
   });
@@ -51,19 +53,19 @@ export function CloseItemButton({ item }: CloseItemButtonProps) {
         onClick={() => setOpen(true)}
       >
         <ArchiveX className="h-4 w-4" aria-hidden="true" />
-        {isOfficer ? 'Close item' : 'Close report'}
+        {isOfficer ? t('lostFound.closeItem') : t('lostFound.closeReport')}
       </Button>
 
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}
-        title="Close this report?"
+        title={t('lostFound.closeConfirmTitle')}
         description={
           isOfficer
-            ? 'The item will be closed and removed from active matching and claim work. This cannot be undone.'
-            : 'Your lost report will be closed. This cannot be undone.'
+            ? t('lostFound.closeConfirmOfficer')
+            : t('lostFound.closeConfirmReporter')
         }
-        confirmLabel="Close report"
+        confirmLabel={t('lostFound.closeReport')}
         tone="destructive"
         isLoading={closeMutation.isPending}
         onConfirm={async () => {

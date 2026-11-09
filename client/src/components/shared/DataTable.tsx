@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { Button } from '@/components/ui/button';
@@ -68,28 +69,33 @@ export function DataTable<T>({
   onRetry,
   searchValue,
   onSearchChange,
-  searchPlaceholder = 'Search…',
+  searchPlaceholder,
   filters = [],
   page,
   limit,
   total,
   onPageChange,
   toolbar,
-  emptyTitle = 'Nothing here yet',
-  emptyDescription = 'Items will appear here once they are available.',
+  emptyTitle,
+  emptyDescription,
   emptyIcon,
   emptyAction,
   className,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const rangeStart = total === 0 ? 0 : (page - 1) * limit + 1;
   const rangeEnd = Math.min(page * limit, total);
   const hasFilters = Boolean(onSearchChange) || filters.length > 0 || Boolean(toolbar);
 
+  const effectiveSearchPlaceholder = searchPlaceholder ?? t('common.search');
+  const effectiveEmptyTitle = emptyTitle ?? t('common.none');
+  const effectiveEmptyDesc = emptyDescription ?? '';
+
   if (error) {
     return (
       <ErrorState
-        title="Unable to load this list"
+        title={t('errors.generic')}
         message={error}
         onRetry={onRetry}
         className={className}
@@ -109,14 +115,14 @@ export function DataTable<T>({
                   aria-hidden="true"
                 />
                 <label htmlFor="data-table-search" className="sr-only">
-                  Search
+                  {t('common.search')}
                 </label>
                 <input
                   id="data-table-search"
                   type="search"
                   value={searchValue ?? ''}
                   onChange={(event) => onSearchChange(event.target.value)}
-                  placeholder={searchPlaceholder}
+                  placeholder={effectiveSearchPlaceholder}
                   className="h-9 w-full rounded-md border border-input bg-card ps-9 pe-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 />
               </div>
@@ -147,7 +153,7 @@ export function DataTable<T>({
       ) : null}
 
       {isLoading ? (
-        <div className="space-y-3 p-4" aria-busy="true" aria-label="Loading table">
+        <div className="space-y-3 p-4" aria-busy="true" aria-label={t('common.loading')}>
           <Skeleton className="h-9 w-full" />
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-12 w-full" />
@@ -157,8 +163,8 @@ export function DataTable<T>({
       ) : data.length === 0 ? (
         <div className="p-4">
           <EmptyState
-            title={emptyTitle}
-            description={emptyDescription}
+            title={effectiveEmptyTitle}
+            description={effectiveEmptyDesc}
             icon={emptyIcon}
             action={emptyAction}
           />
@@ -190,32 +196,30 @@ export function DataTable<T>({
 
           <div className="flex flex-col gap-3 border-t bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
-              Showing <span className="font-medium text-foreground">{rangeStart}</span>–
-              <span className="font-medium text-foreground">{rangeEnd}</span> of{' '}
-              <span className="font-medium text-foreground">{total}</span>
+              {t('common.showingRange', { start: rangeStart, end: rangeEnd, total })}
             </p>
-            <nav className="flex items-center gap-2" aria-label="Table pagination">
+            <nav className="flex items-center gap-2" aria-label={t('common.actions')}>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onPageChange(page - 1)}
                 disabled={page <= 1}
-                aria-label="Previous page"
+                aria-label={t('common.previous')}
               >
                 <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-                Previous
+                {t('common.previous')}
               </Button>
               <span className="px-1 text-xs text-muted-foreground">
-                Page {page} of {totalPages}
+                {t('common.pageOf', { page, total: totalPages })}
               </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onPageChange(page + 1)}
                 disabled={page >= totalPages}
-                aria-label="Next page"
+                aria-label={t('common.next')}
               >
-                Next
+                {t('common.next')}
                 <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
               </Button>
             </nav>

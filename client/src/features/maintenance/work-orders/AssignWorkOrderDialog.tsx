@@ -1,5 +1,6 @@
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import type { WorkOrderRecord } from '@/types/workOrders';
 import type { TechnicianRecord } from '@/types/technicians';
 
@@ -30,6 +32,7 @@ export function AssignWorkOrderDialog({
   open,
   onOpenChange,
 }: AssignWorkOrderDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedTechId, setSelectedTechId] = useState<string>('');
   const [scheduledStart, setScheduledStart] = useState<string>('');
@@ -99,11 +102,7 @@ export function AssignWorkOrderDialog({
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
       await queryClient.invalidateQueries({ queryKey: ['work-order', workOrder?.id] });
       await queryClient.invalidateQueries({ queryKey: ['request'] });
-      toast.success(
-        workOrder?.assignedTechnician
-          ? 'Work order reassigned'
-          : 'Work order assigned',
-      );
+      toast.success(t('workOrders.workOrderAssignedSuccess'));
       onOpenChange(false);
     },
     onError: (err) => {
@@ -122,10 +121,13 @@ export function AssignWorkOrderDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {workOrder?.assignedTechnician ? 'Reassign Work Order' : 'Assign Work Order'}
+            {workOrder?.assignedTechnician
+              ? t('workOrders.reassignTechnicianTitle')
+              : t('workOrders.assignTechnicianTitle')}
           </DialogTitle>
           <DialogDescription>
-            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title} ({workOrder?.category})
+            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title}{' '}
+            ({workOrder ? enumLabel('maintenanceCategory', workOrder.category) : ''})
           </DialogDescription>
         </DialogHeader>
 
@@ -142,12 +144,12 @@ export function AssignWorkOrderDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormField
             id="assign-tech"
-            label="Select Technician"
-            hint="Matching specialists are listed first with their active workload."
+            label={t('workOrders.selectTechnician')}
+            hint={t('workOrders.selectTechHint')}
             required
           >
             {techLoading ? (
-              <div className="text-xs text-muted-foreground py-2">Loading technicians...</div>
+              <div className="text-xs text-muted-foreground py-2">{t('common.loading')}</div>
             ) : (
               <select
                 id="assign-tech"
@@ -159,18 +161,18 @@ export function AssignWorkOrderDialog({
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 required
               >
-                <option value="">-- Choose a technician --</option>
+                <option value="">{t('workOrders.selectTechnicianPrompt')}</option>
                 {technicians
-                  .filter((t: TechnicianRecord) => t.isActive !== false)
-                  .map((t: TechnicianRecord) => (
+                  .filter((tech: TechnicianRecord) => tech.isActive !== false)
+                  .map((tech: TechnicianRecord) => (
                     <option
-                      key={t.id}
-                      value={t.id}
-                      disabled={t.availability === 'OFF_DUTY'}
+                      key={tech.id}
+                      value={tech.id}
+                      disabled={tech.availability === 'OFF_DUTY'}
                     >
-                      {t.matchesCategory ? '⭐ ' : ''}
-                      {t.name} ({t.availability}) — {t.activeWorkOrderCount} active tasks
-                      {t.availability === 'OFF_DUTY' ? ' [OFF DUTY]' : ''}
+                      {tech.matchesCategory ? '⭐ ' : ''}
+                      {tech.name} ({enumLabel('availability', tech.availability)}) — {tech.activeWorkOrderCount}
+                      {tech.availability === 'OFF_DUTY' ? ' [OFF DUTY]' : ''}
                     </option>
                   ))}
               </select>
@@ -183,8 +185,10 @@ export function AssignWorkOrderDialog({
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <p className="text-xs font-medium">
-                  <bdi>{selectedTech.name}</bdi> does not specialize in{' '}
-                  <span className="font-bold underline">{workOrder?.category}</span>.
+                  {t('workOrders.nonSpecialistWarning', {
+                    name: selectedTech.name,
+                    category: workOrder ? enumLabel('maintenanceCategory', workOrder.category) : '',
+                  })}
                 </p>
               </div>
               <label className="flex items-center gap-2 cursor-pointer text-xs font-medium pt-1">
@@ -194,13 +198,13 @@ export function AssignWorkOrderDialog({
                   onChange={(e) => setConfirmedNonMatching(e.target.checked)}
                   className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                 />
-                Confirm assigning non-specialist technician
+                {t('workOrders.confirmNonSpecialist')}
               </label>
             </div>
           )}
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <FormField id="scheduled-start" label="Scheduled Start" required>
+            <FormField id="scheduled-start" label={t('workOrders.scheduledStart')} required>
               <Input
                 id="scheduled-start"
                 type="datetime-local"
@@ -210,7 +214,7 @@ export function AssignWorkOrderDialog({
               />
             </FormField>
 
-            <FormField id="expected-end" label="Expected Completion" required>
+            <FormField id="expected-end" label={t('workOrders.expectedCompletion')} required>
               <Input
                 id="expected-end"
                 type="datetime-local"
@@ -228,7 +232,7 @@ export function AssignWorkOrderDialog({
               onClick={() => onOpenChange(false)}
               disabled={assignMutation.isPending}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -241,7 +245,7 @@ export function AssignWorkOrderDialog({
               {assignMutation.isPending && (
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
-              {workOrder?.assignedTechnician ? 'Reassign' : 'Assign'}
+              {workOrder?.assignedTechnician ? t('workOrders.reassign') : t('workOrders.assign')}
             </Button>
           </DialogFooter>
         </form>

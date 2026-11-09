@@ -1,5 +1,6 @@
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export function CompleteWorkOrderDialog({
   open,
   onOpenChange,
 }: CompleteWorkOrderDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [resolutionDetails, setResolutionDetails] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function CompleteWorkOrderDialog({
     mutationFn: () => {
       if (!workOrder) throw new Error('No work order selected');
       if (resolutionDetails.trim().length < 5) {
-        throw new Error('Resolution details must be at least 5 characters');
+        throw new Error(t('workOrders.resolutionMinChars'));
       }
       return workOrdersApi.complete(workOrder.id, {
         resolutionDetails: resolutionDetails.trim(),
@@ -46,7 +48,7 @@ export function CompleteWorkOrderDialog({
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
       await queryClient.invalidateQueries({ queryKey: ['work-order', workOrder?.id] });
       await queryClient.invalidateQueries({ queryKey: ['request'] });
-      toast.success('Work order marked as completed! Requester has been notified.');
+      toast.success(t('workOrders.workOrderCompletedSuccess'));
       setResolutionDetails('');
       onOpenChange(false);
     },
@@ -61,7 +63,7 @@ export function CompleteWorkOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-emerald-600">
             <CheckCircle2 className="h-5 w-5" />
-            Complete Work Order
+            {t('workOrders.completeWork')}
           </DialogTitle>
           <DialogDescription>
             <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title}
@@ -87,13 +89,13 @@ export function CompleteWorkOrderDialog({
         >
           <FormField
             id="resolution-details"
-            label="Resolution Details"
-            hint="Describe what was repaired, replaced, or adjusted (required, min 5 characters)."
+            label={t('workOrders.resolutionDetails')}
+            hint={t('workOrders.resolutionPlaceholder')}
             required
           >
             <Textarea
               id="resolution-details"
-              placeholder="e.g. Replaced leaking valve, tested pressure to 50psi, cleaned area..."
+              placeholder={t('workOrders.resolutionPlaceholder')}
               value={resolutionDetails}
               onChange={(e) => setResolutionDetails(e.target.value)}
               rows={4}
@@ -108,7 +110,7 @@ export function CompleteWorkOrderDialog({
               onClick={() => onOpenChange(false)}
               disabled={completeMutation.isPending}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -120,7 +122,7 @@ export function CompleteWorkOrderDialog({
               {completeMutation.isPending && (
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
-              Complete Work Order
+              {t('workOrders.completeWork')}
             </Button>
           </DialogFooter>
         </form>

@@ -1,5 +1,6 @@
 import { ScrollText } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -9,11 +10,10 @@ import { Input } from '@/components/ui/input';
 import { activityLogsApi } from '@/features/activity-logs/activityLogsApi';
 import { usersApi } from '@/features/users/usersApi';
 import { ApiError } from '@/lib/api';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { ActivityLogRecord } from '@/types/activityLogs';
 import { ACTIVITY_ENTITY_TYPES } from '@/types/activityLogs';
-import { ROLE_SHORT_LABELS } from '@/types/auth';
 
 const PAGE_SIZE = 15;
 
@@ -26,6 +26,7 @@ function endOfDay(value: string): string | undefined {
 }
 
 export function ActivityLogsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [entityType, setEntityType] = useState('ALL');
   const [actorId, setActorId] = useState('ALL');
@@ -58,7 +59,7 @@ export function ActivityLogsPage() {
   const columns: Array<DataTableColumn<ActivityLogRecord>> = [
     {
       id: 'createdAt',
-      header: 'When',
+      header: t('activityLogs.timestamp'),
       className: 'whitespace-nowrap align-top',
       cell: (entry) => (
         <span className="text-xs text-muted-foreground">
@@ -68,13 +69,13 @@ export function ActivityLogsPage() {
     },
     {
       id: 'actor',
-      header: 'Actor',
+      header: t('activityLogs.actor'),
       cell: (entry) =>
         entry.actor ? (
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-foreground"><bdi>{entry.actor.name}</bdi></p>
             <p className="truncate text-xs text-muted-foreground">
-              {entry.actor.role ? ROLE_SHORT_LABELS[entry.actor.role] : 'Unknown role'}
+              {entry.actor.role ? enumLabel('role', entry.actor.role) : t('common.none')}
               {entry.actor.email ? (
                 <>
                   {' · '}
@@ -86,30 +87,30 @@ export function ActivityLogsPage() {
             </p>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Deleted user</span>
+          <span className="text-xs text-muted-foreground">{t('activityLogs.deletedUser')}</span>
         ),
     },
     {
       id: 'action',
-      header: 'Action',
+      header: t('activityLogs.action'),
       cell: (entry) => (
         <span className="font-mono text-xs font-medium text-foreground">
-          {humanizeEnum(entry.action)}
+          {enumLabel('action', entry.action)}
         </span>
       ),
     },
     {
       id: 'entity',
-      header: 'Entity',
+      header: t('activityLogs.entityType'),
       cell: (entry) => (
         <Badge variant="outline" className="whitespace-nowrap text-xs">
-          {humanizeEnum(entry.entityType)}
+          {enumLabel('entityType', entry.entityType)}
         </Badge>
       ),
     },
     {
       id: 'description',
-      header: 'Description',
+      header: t('activityLogs.description'),
       cell: (entry) => (
         <p className="max-w-[320px] text-xs leading-relaxed text-muted-foreground">
           {entry.description}
@@ -122,15 +123,15 @@ export function ActivityLogsPage() {
     logsQuery.error instanceof ApiError
       ? logsQuery.error.message
       : logsQuery.error
-        ? 'Unable to load activity logs right now.'
+        ? t('errors.generic')
         : null;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Audit trail"
-        title="Activity logs"
-        description="Every recorded action across users, maintenance, preventive plans and Lost & Found. Entries are immutable."
+        eyebrow={t('nav.activityLogs')}
+        title={t('activityLogs.title')}
+        description={t('activityLogs.subtitle')}
       />
 
       <DataTable
@@ -143,12 +144,12 @@ export function ActivityLogsPage() {
         filters={[
           {
             id: 'entity',
-            label: 'Entity type',
+            label: t('activityLogs.entityType'),
             value: entityType,
             options: [
-              { label: 'All entity types', value: 'ALL' },
+              { label: t('activityLogs.allEntities'), value: 'ALL' },
               ...ACTIVITY_ENTITY_TYPES.map((type) => ({
-                label: humanizeEnum(type),
+                label: enumLabel('entityType', type),
                 value: type,
               })),
             ],
@@ -159,12 +160,12 @@ export function ActivityLogsPage() {
           },
           {
             id: 'actor',
-            label: 'Actor',
+            label: t('activityLogs.actor'),
             value: actorId,
             options: [
-              { label: 'All actors', value: 'ALL' },
+              { label: t('common.all'), value: 'ALL' },
               ...actors.map((actor) => ({
-                label: `${actor.name} (${ROLE_SHORT_LABELS[actor.role]})`,
+                label: `${actor.name} (${enumLabel('role', actor.role)})`,
                 value: actor.id,
               })),
             ],
@@ -177,7 +178,7 @@ export function ActivityLogsPage() {
         toolbar={
           <>
             <label htmlFor="activity-from" className="text-xs font-medium text-muted-foreground">
-              From
+              {t('common.date')}
             </label>
             <Input
               id="activity-from"
@@ -190,9 +191,6 @@ export function ActivityLogsPage() {
               }}
               className="h-9 w-[150px]"
             />
-            <label htmlFor="activity-to" className="text-xs font-medium text-muted-foreground">
-              To
-            </label>
             <Input
               id="activity-to"
               type="date"
@@ -214,7 +212,7 @@ export function ActivityLogsPage() {
                   setPage(1);
                 }}
               >
-                Clear dates
+                {t('common.clearFilters')}
               </Button>
             ) : null}
           </>
@@ -223,8 +221,8 @@ export function ActivityLogsPage() {
         limit={PAGE_SIZE}
         total={total}
         onPageChange={setPage}
-        emptyTitle="No activity entries"
-        emptyDescription="No audit entries match the selected filters."
+        emptyTitle={t('activityLogs.noLogsFound')}
+        emptyDescription={t('activityLogs.noLogsFound')}
         emptyIcon={ScrollText}
       />
     </div>

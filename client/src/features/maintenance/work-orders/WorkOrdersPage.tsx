@@ -9,6 +9,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/Cancel
 import { CompleteWorkOrderDialog } from '@/features/maintenance/work-orders/CompleteWorkOrderDialog';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import { WORK_ORDER_STATUSES, type WorkOrderStatus } from '@/types/meta';
 import type { WorkOrderRecord } from '@/types/workOrders';
@@ -32,6 +34,7 @@ import type { WorkOrderRecord } from '@/types/workOrders';
 const PAGE_SIZE = 10;
 
 export function WorkOrdersPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -65,10 +68,10 @@ export function WorkOrdersPage() {
     onSuccess: async () => {
       setStartTarget(null);
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
-      toast.success('Work order marked as in progress');
+      toast.success(t('workOrders.workOrderStartedSuccess'));
     },
     onError: (err: unknown) => {
-      toast.error(err instanceof ApiError ? err.message : 'Unable to start work order');
+      toast.error(err instanceof ApiError ? err.message : t('errors.network'));
     },
   });
 
@@ -84,7 +87,7 @@ export function WorkOrdersPage() {
   const columns: Array<DataTableColumn<WorkOrderRecord>> = [
     {
       id: 'workOrder',
-      header: 'Work Order',
+      header: t('workOrders.title'),
       cell: (wo) => (
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
@@ -95,19 +98,21 @@ export function WorkOrdersPage() {
               <span dir="ltr">{wo.workOrderNumber}</span>
             </Link>
             <Badge variant="outline" className="text-[10px] py-0 px-1 font-normal">
-              {wo.sourceType}
+              {enumLabel('sourceType', wo.sourceType)}
             </Badge>
           </div>
           <p className="truncate text-xs font-medium text-foreground max-w-[240px]">
             {wo.title}
           </p>
-          <span className="text-[11px] text-muted-foreground">{wo.category}</span>
+          <span className="text-[11px] text-muted-foreground">
+            {enumLabel('maintenanceCategory', wo.category)}
+          </span>
         </div>
       ),
     },
     {
       id: 'priorityStatus',
-      header: 'Status & Priority',
+      header: t('workOrders.statusAndPriority'),
       cell: (wo) => (
         <div className="flex flex-col gap-1 items-start">
           <StatusBadge status={wo.status} />
@@ -117,14 +122,14 @@ export function WorkOrdersPage() {
     },
     {
       id: 'location',
-      header: 'Location',
+      header: t('common.location'),
       cell: (wo) => (
         <div className="text-xs text-muted-foreground">
           {wo.location ? (
             <>
               <p className="font-medium text-foreground">{wo.location.buildingName}</p>
               <p className="text-[11px]">
-                Floor {wo.location.floor} · Room {wo.location.room}
+                {wo.location.floor} · {wo.location.room}
               </p>
             </>
           ) : (
@@ -137,7 +142,7 @@ export function WorkOrdersPage() {
       ? [
           {
             id: 'technician',
-            header: 'Technician',
+            header: t('workOrders.technician'),
             cell: (wo: WorkOrderRecord) => (
               <div className="text-xs">
                 {wo.assignedTechnician ? (
@@ -145,7 +150,7 @@ export function WorkOrdersPage() {
                     <bdi>{wo.assignedTechnician.name}</bdi>
                   </span>
                 ) : (
-                  <span className="text-amber-600 italic">Unassigned</span>
+                  <span className="text-amber-600 italic">{t('workOrders.unassigned')}</span>
                 )}
               </div>
             ),
@@ -154,7 +159,7 @@ export function WorkOrdersPage() {
       : []),
     {
       id: 'schedule',
-      header: 'Due / Status',
+      header: t('workOrders.schedule'),
       cell: (wo) => {
         const overdue = isOverdue(wo);
         return (
@@ -165,9 +170,13 @@ export function WorkOrdersPage() {
                 <span>{formatDate(wo.expectedCompletion)}</span>
               </div>
             ) : (
-              <span className="text-muted-foreground">Unscheduled</span>
+              <span className="text-muted-foreground">{t('workOrders.unscheduled')}</span>
             )}
-            {overdue && <span className="text-[10px] text-destructive uppercase tracking-wider block">Overdue</span>}
+            {overdue && (
+              <span className="text-[10px] text-destructive uppercase tracking-wider block">
+                {t('workOrders.overdue')}
+              </span>
+            )}
           </div>
         );
       },
@@ -186,8 +195,8 @@ export function WorkOrdersPage() {
               onClick={() => setStartTarget(wo)}
               disabled={startMutation.isPending}
             >
-              <Play className="h-3.5 w-3.5 me-1" />
-              Start
+              <Play className="h-3.5 w-3.5 me-1 rtl:rotate-180" />
+              {t('workOrders.start')}
             </Button>
           )}
 
@@ -198,7 +207,7 @@ export function WorkOrdersPage() {
               onClick={() => setCompleteTarget(wo)}
             >
               <CheckCircle2 className="h-3.5 w-3.5 me-1" />
-              Complete
+              {t('workOrders.complete')}
             </Button>
           )}
 
@@ -211,7 +220,7 @@ export function WorkOrdersPage() {
               onClick={() => setAssignTarget(wo)}
             >
               <UserCheck className="h-3.5 w-3.5 me-1" />
-              {wo.status === 'ASSIGNED' ? 'Reassign' : 'Assign'}
+              {wo.status === 'ASSIGNED' ? t('workOrders.reassign') : t('workOrders.assign')}
             </Button>
           )}
 
@@ -223,7 +232,7 @@ export function WorkOrdersPage() {
               onClick={() => setCancelTarget(wo)}
             >
               <XCircle className="h-3.5 w-3.5 me-1" />
-              Cancel
+              {t('workOrders.cancel')}
             </Button>
           )}
 
@@ -234,7 +243,7 @@ export function WorkOrdersPage() {
             onClick={() => navigate(`/work-orders/${wo.id}`)}
           >
             <Eye className="h-3.5 w-3.5 me-1" />
-            View
+            {t('common.view')}
           </Button>
         </div>
       ),
@@ -244,11 +253,11 @@ export function WorkOrdersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={isTechnician ? 'My Work Orders' : 'Work Orders'}
+        title={isTechnician ? t('workOrders.myWorkOrders') : t('workOrders.title')}
         description={
           isTechnician
-            ? 'Track your assigned work orders, update task progress, and log resolutions.'
-            : 'Supervise maintenance execution, assign technicians, and track active work orders.'
+            ? t('workOrders.myWorkOrdersDescription')
+            : t('workOrders.allWorkOrdersDescription')
         }
       />
 
@@ -256,7 +265,7 @@ export function WorkOrdersPage() {
       <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Filter className="h-3.5 w-3.5" />
-          <span>Status:</span>
+          <span>{t('common.status')}:</span>
         </div>
         <select
           value={statusFilter}
@@ -266,16 +275,16 @@ export function WorkOrdersPage() {
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <option value="ALL">All Statuses</option>
+          <option value="ALL">{t('workOrders.allStatuses')}</option>
           {WORK_ORDER_STATUSES.map((status: WorkOrderStatus) => (
             <option key={status} value={status}>
-              {status.replace(/_/g, ' ')}
+              {enumLabel('status', status)}
             </option>
           ))}
         </select>
 
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground ms-3">
-          <span>Source:</span>
+          <span>{t('workOrders.sourceType')}:</span>
         </div>
         <select
           value={sourceFilter}
@@ -285,9 +294,9 @@ export function WorkOrdersPage() {
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <option value="ALL">All Sources</option>
-          <option value="REACTIVE">Reactive (Requests)</option>
-          <option value="PREVENTIVE">Preventive (Plans)</option>
+          <option value="ALL">{t('workOrders.allSources')}</option>
+          <option value="REACTIVE">{t('workOrders.reactiveOption')}</option>
+          <option value="PREVENTIVE">{t('workOrders.preventiveOption')}</option>
         </select>
       </div>
 
@@ -301,11 +310,11 @@ export function WorkOrdersPage() {
         total={total}
         onPageChange={setPage}
         emptyIcon={Wrench}
-        emptyTitle="No work orders found"
+        emptyTitle={t('workOrders.noWorkOrdersFound')}
         emptyDescription={
           isTechnician
-            ? 'You currently have no work orders matching this filter.'
-            : 'No work orders match the selected filters.'
+            ? t('workOrders.noWorkOrdersTech')
+            : t('workOrders.noWorkOrdersAll')
         }
       />
 
@@ -338,13 +347,14 @@ export function WorkOrdersPage() {
         onOpenChange={(open) => {
           if (!open && !startMutation.isPending) setStartTarget(null);
         }}
-        title="Start this work order?"
+        title={t('workOrders.confirmStartTitle')}
         description={
           startTarget
-            ? `Starting ${startTarget.workOrderNumber} notifies the manager and marks the work as in progress.`
-            : 'Starting this work order marks the work as in progress.'
+            ? t('workOrders.confirmStartDesc', { number: startTarget.workOrderNumber })
+            : t('workOrders.confirmStartDesc', { number: '' })
         }
-        confirmLabel="Start work"
+        confirmLabel={t('workOrders.startWork')}
+        cancelLabel={t('common.cancel')}
         isLoading={startMutation.isPending}
         onConfirm={() => {
           if (startTarget) startMutation.mutate(startTarget.id);

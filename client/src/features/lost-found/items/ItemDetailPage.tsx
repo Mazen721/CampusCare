@@ -9,6 +9,7 @@ import {
   Tag,
   UserRound,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -23,9 +24,11 @@ import { ItemGallery } from '@/features/lost-found/items/ItemGallery';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 
 export function ItemDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
 
@@ -48,9 +51,9 @@ export function ItemDetailPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-          Back to browse
+          {t('lostFound.backToBrowse')}
         </Link>
-        <LoadingState label="Loading item details…" />
+        <LoadingState label={t('common.loading')} />
       </div>
     );
   }
@@ -65,14 +68,14 @@ export function ItemDetailPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-          Back to browse
+          {t('lostFound.backToBrowse')}
         </Link>
         <ErrorState
-          title={notFound ? 'Report not found' : 'Unable to load this report'}
+          title={notFound ? t('errors.notFoundTitle') : t('errors.generic')}
           message={
             itemQuery.error instanceof ApiError
               ? itemQuery.error.message
-              : 'Check your connection and try again.'
+              : t('errors.network')
           }
           onRetry={notFound ? undefined : () => void itemQuery.refetch()}
         />
@@ -94,13 +97,13 @@ export function ItemDetailPage() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-        Back to browse
+        {t('lostFound.backToBrowse')}
       </Link>
 
       <PageHeader
-        eyebrow={item.reportNumber}
+        eyebrow={<span dir="ltr">{item.reportNumber}</span>}
         title={item.itemTitle}
-        description={`${item.category} · ${item.reportType === 'LOST' ? 'Lost report' : 'Found report'}`}
+        description={`${enumLabel('lostFoundCategory', item.category)} · ${item.reportType === 'LOST' ? t('lostFound.lostReport') : t('lostFound.foundReport')}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <ReportTypeBadge reportType={item.reportType} />
@@ -109,7 +112,7 @@ export function ItemDetailPage() {
               <Button asChild>
                 <Link to={`/lost-found/claims/new?itemId=${item.id}`}>
                   <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
-                  Submit claim
+                  {t('lostFound.submitClaim')}
                 </Link>
               </Button>
             ) : null}
@@ -122,7 +125,7 @@ export function ItemDetailPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Photos</CardTitle>
+              <CardTitle>{t('lostFound.images')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-5">
               <ItemGallery images={item.images} itemTitle={item.itemTitle} />
@@ -131,7 +134,7 @@ export function ItemDetailPage() {
 
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Public description</CardTitle>
+              <CardTitle>{t('lostFound.publicDescription')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5 pt-5">
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
@@ -142,28 +145,28 @@ export function ItemDetailPage() {
                 <div>
                   <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     <Tag className="h-3.5 w-3.5" aria-hidden="true" />
-                    Category
+                    {t('common.category')}
                   </dt>
-                  <dd className="mt-1 text-sm text-foreground">{item.category}</dd>
+                  <dd className="mt-1 text-sm text-foreground">{enumLabel('lostFoundCategory', item.category)}</dd>
                 </div>
                 <div>
                   <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     <Palette className="h-3.5 w-3.5" aria-hidden="true" />
-                    Colour
+                    {t('lostFound.color')}
                   </dt>
-                  <dd className="mt-1 text-sm text-foreground">{item.color || 'Not recorded'}</dd>
+                  <dd className="mt-1 text-sm text-foreground">{item.color || t('lostFound.notRecorded')}</dd>
                 </div>
                 <div>
                   <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                    Brand
+                    {t('lostFound.brand')}
                   </dt>
-                  <dd className="mt-1 text-sm text-foreground">{item.brand || 'Not recorded'}</dd>
+                  <dd className="mt-1 text-sm text-foreground">{item.brand || t('lostFound.notRecorded')}</dd>
                 </div>
                 <div>
                   <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                    {item.reportType === 'LOST' ? 'Lost on' : 'Found on'}
+                    {item.reportType === 'LOST' ? t('lostFound.lostOn') : t('lostFound.foundOn')}
                   </dt>
                   <dd className="mt-1 text-sm text-foreground">
                     {formatDate(item.occurrenceDate, { dateStyle: 'long' })}
@@ -179,7 +182,7 @@ export function ItemDetailPage() {
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2 text-base">
                 <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-                Location
+                {t('common.location')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-5 text-sm">
@@ -187,7 +190,7 @@ export function ItemDetailPage() {
                 <>
                   <p className="font-semibold text-foreground">{item.location.buildingName}</p>
                   <p className="text-muted-foreground">
-                    {item.location.floor} · Room {item.location.room}
+                    {item.location.floor} · {t('locations.room')} {item.location.room}
                   </p>
                 </>
               ) : null}
@@ -202,7 +205,7 @@ export function ItemDetailPage() {
               <CardHeader className="border-b border-amber-200/70">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <EyeOff className="h-4 w-4 text-amber-700" aria-hidden="true" />
-                  Private identification details
+                  {t('lostFound.privateDetails')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 pt-5">
@@ -210,7 +213,7 @@ export function ItemDetailPage() {
                   {item.privateIdentificationDetails}
                 </p>
                 <p className="text-[11px] leading-relaxed text-amber-800">
-                  Visible only to the reporter, Lost &amp; Found Officers and the Admin.
+                  {t('lostFound.privateDetailsNotice')}
                 </p>
               </CardContent>
             </Card>
@@ -221,7 +224,7 @@ export function ItemDetailPage() {
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <UserRound className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Reporter
+                  {t('common.reporter')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
@@ -245,12 +248,11 @@ export function ItemDetailPage() {
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Privacy protected
+                  {t('lostFound.privacyProtected')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-5 text-xs leading-relaxed text-muted-foreground">
-                Private identification details and reporter contact information are hidden from
-                this view. A Lost &amp; Found Officer can review them during a claim.
+                {t('lostFound.privacyProtectedDesc')}
               </CardContent>
             </Card>
           ) : null}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   addMonths,
   addWeeks,
@@ -26,6 +27,7 @@ import { ApiError } from '@/lib/api';
 import type { WorkOrderStatus } from '@/types/meta';
 
 export function CalendarPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [view, setView] = useState<CalendarView>('month');
   const [anchor, setAnchor] = useState(() => new Date());
@@ -76,7 +78,7 @@ export function CalendarPage() {
     calendarQuery.error instanceof ApiError
       ? calendarQuery.error.message
       : calendarQuery.error
-        ? 'Unable to load the schedule right now.'
+        ? t('errors.network')
         : null;
 
   const move = (direction: 'previous' | 'next') => {
@@ -91,12 +93,12 @@ export function CalendarPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Maintenance"
-        title={isTechnician ? 'My schedule' : 'Maintenance calendar'}
+        eyebrow={t('nav.maintenance')}
+        title={isTechnician ? t('nav.mySchedule') : t('calendar.title')}
         description={
           isTechnician
-            ? 'Your assigned work orders, positioned by their scheduled start and expected completion.'
-            : 'Every work order on one calendar, with overdue jobs highlighted in red.'
+            ? t('technicians.monitorStaff')
+            : t('calendar.subtitle')
         }
       />
 
@@ -116,18 +118,18 @@ export function CalendarPage() {
       />
 
       {calendarQuery.isLoading ? (
-        <LoadingState label="Loading the maintenance schedule…" />
+        <LoadingState label={t('common.loading')} />
       ) : errorMessage ? (
         <ErrorState
-          title="Unable to load the calendar"
+          title={t('errors.network')}
           message={errorMessage}
           onRetry={() => void calendarQuery.refetch()}
         />
       ) : workOrders.length === 0 ? (
         <EmptyState
           icon={CalendarDays}
-          title="No work orders in this range"
-          description="Try another week or month, or clear the technician and status filters."
+          title={t('calendar.noWorkOrdersInRange')}
+          description={t('calendar.noWorkOrdersInRangeDesc')}
         />
       ) : view === 'month' ? (
         <CalendarMonthView anchor={anchor} workOrders={workOrders} />
@@ -142,11 +144,11 @@ export function CalendarPage() {
       <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm border border-border bg-card" aria-hidden="true" />
-          Scheduled work
+          {t('calendar.scheduledWork')}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm border border-destructive/40 bg-destructive/10" aria-hidden="true" />
-          Overdue
+          {t('calendar.overdue')}
         </span>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { AlertTriangle, RotateCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -10,11 +11,14 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({
-  title = 'Something went wrong',
+  title,
   message,
   onRetry,
   className,
 }: ErrorStateProps) {
+  const { t } = useTranslation();
+  const effectiveTitle = title ?? t('errors.generic');
+
   return (
     <div
       role="alert"
@@ -27,13 +31,13 @@ export function ErrorState({
         <AlertTriangle className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-sm font-semibold text-foreground">{effectiveTitle}</p>
         <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">{message}</p>
       </div>
       {onRetry ? (
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />
-          Try again
+          {t('ai.retry')}
         </Button>
       ) : null}
     </div>

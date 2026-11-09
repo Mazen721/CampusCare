@@ -1,9 +1,10 @@
 import { BadgeCheck, Eye, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import { CLAIM_STATUSES, type ClaimRecord, type ClaimStatus } from '@/types/claims';
 
@@ -34,10 +35,12 @@ export function ClaimsTable({
   onPageChange,
   mode,
 }: ClaimsTableProps) {
+  const { t } = useTranslation();
+
   const columns: Array<DataTableColumn<ClaimRecord>> = [
     {
       id: 'claim',
-      header: 'Claim',
+      header: t('claims.claimNumber'),
       cell: (claim) => (
         <div className="min-w-0">
           <Link
@@ -47,14 +50,14 @@ export function ClaimsTable({
             <span dir="ltr">{claim.claimNumber}</span>
           </Link>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Submitted {formatDate(claim.createdAt)}
+            {formatDate(claim.createdAt)}
           </p>
         </div>
       ),
     },
     {
       id: 'item',
-      header: 'Found item',
+      header: t('claims.claimItem'),
       cell: (claim) =>
         claim.item ? (
           <div className="min-w-0">
@@ -62,22 +65,22 @@ export function ClaimsTable({
               {claim.item.itemTitle}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              <span dir="ltr">{claim.item.reportNumber}</span> · {claim.item.category}
+              <span dir="ltr">{claim.item.reportNumber}</span> · {enumLabel('lostFoundCategory', claim.item.category)}
             </p>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Unavailable</span>
+          <span className="text-xs text-muted-foreground">{t('common.none')}</span>
         ),
     },
     ...(mode === 'queue'
       ? [
           {
             id: 'claimant',
-            header: 'Claimant',
+            header: t('claims.claimant'),
             cell: (claim: ClaimRecord) => (
               <div className="min-w-0 text-xs">
                 <p className="font-medium text-foreground">
-                  <bdi>{claim.claimant?.name ?? 'Unknown'}</bdi>
+                  <bdi>{claim.claimant?.name ?? t('common.none')}</bdi>
                 </p>
                 <p className="text-muted-foreground">
                   {claim.claimant?.email ? <span dir="ltr">{claim.claimant.email}</span> : null}
@@ -89,19 +92,19 @@ export function ClaimsTable({
       : []),
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (claim) => <StatusBadge status={claim.status} />,
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (claim) => (
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/lost-found/claims/${claim.id}`}>
             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-            View
+            {t('common.details')}
           </Link>
         </Button>
       ),
@@ -119,12 +122,12 @@ export function ClaimsTable({
       filters={[
         {
           id: 'claim-status',
-          label: 'Status',
+          label: t('common.status'),
           value: status,
           options: [
-            { label: 'All statuses', value: 'ALL' },
+            { label: t('common.all'), value: 'ALL' },
             ...CLAIM_STATUSES.map((value) => ({
-              label: humanizeEnum(value),
+              label: enumLabel('status', value),
               value,
             })),
           ],
@@ -136,12 +139,8 @@ export function ClaimsTable({
       total={total}
       onPageChange={onPageChange}
       emptyIcon={mode === 'queue' ? ShieldCheck : BadgeCheck}
-      emptyTitle={mode === 'queue' ? 'No claims in the queue' : 'No claims yet'}
-      emptyDescription={
-        mode === 'queue'
-          ? 'Claims submitted by students and employees will appear here for verification.'
-          : 'Open a found report and submit a claim if you recognise your item.'
-      }
+      emptyTitle={t('claims.noClaimsFound')}
+      emptyDescription={t('claims.noClaimsFound')}
     />
   );
 }

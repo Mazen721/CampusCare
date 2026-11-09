@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import type {
   AuthResponse,
   ChangePasswordInput,
@@ -84,7 +85,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     });
   } catch {
     throw new ApiError(
-      'Unable to reach the CampusCare server. Check that the API is running and try again.',
+      i18n.t('errors.network'),
       0,
       'NETWORK_ERROR',
     );
@@ -109,7 +110,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     }
 
     throw new ApiError(
-      errorBody?.error?.message ?? `Request failed with status ${response.status}`,
+      errorBody?.error?.message ?? i18n.t('errors.requestFailed', { status: response.status }),
       response.status,
       errorBody?.error?.code ?? 'REQUEST_FAILED',
       errorBody?.error?.details,

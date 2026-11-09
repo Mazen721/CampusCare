@@ -1,18 +1,13 @@
 import { Clock3, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getTokenExpiry } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 
-function formatExpiry(expiry: Date): string {
-  return formatDate(expiry, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
-}
-
 export function SessionCard() {
+  const { t } = useTranslation();
   const expiry = getTokenExpiry();
 
   return (
@@ -20,11 +15,10 @@ export function SessionCard() {
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-          <CardTitle>Session &amp; security</CardTitle>
+          <CardTitle>{t('auth.sessionAndSecurity')}</CardTitle>
         </div>
         <CardDescription>
-          You are signed in with a secure staff session. It ends automatically when the token
-          expires.
+          {t('auth.sessionSecurityDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-6">
@@ -32,23 +26,24 @@ export function SessionCard() {
           <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Session expiry
+              {t('auth.sessionExpiry')}
             </p>
             <p className="mt-0.5 text-sm text-foreground">
-              {expiry ? formatExpiry(expiry) : 'Session expiry unavailable'}
+              {expiry
+                ? formatDate(expiry, { dateStyle: 'medium', timeStyle: 'short' })
+                : t('auth.sessionExpiryUnavailable')}
             </p>
           </div>
         </div>
 
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Use a password only you know. Accounts are issued by campus administration; there is no
-          self-registration.
+          {t('auth.passwordPolicyNotice')}
         </p>
 
         <Button variant="outline" className="w-full" asChild>
           <Link to="/profile">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Manage password
+            {t('auth.managePassword')}
           </Link>
         </Button>
       </CardContent>

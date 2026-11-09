@@ -1,11 +1,13 @@
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { matchesApi } from '@/features/lost-found/matches/matchesApi';
 import { ApiError } from '@/lib/api';
+import { enumLabel } from '@/lib/labels';
 import type { ItemMatch } from '@/types/matches';
 
 interface MatchActionsProps {
@@ -15,6 +17,7 @@ interface MatchActionsProps {
 type PendingAction = 'CONFIRM' | 'DISMISS' | null;
 
 export function MatchActions({ match }: MatchActionsProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
@@ -25,14 +28,14 @@ export function MatchActions({ match }: MatchActionsProps) {
       void queryClient.invalidateQueries({ queryKey: ['lost-found-matches'] });
       toast.success(
         action === 'CONFIRM'
-          ? 'Match confirmed. The lost reporter can now submit a claim.'
-          : 'Match suggestion dismissed.',
+          ? t('matches.matchConfirmedSuccess')
+          : t('matches.matchDismissedSuccess'),
       );
       setPendingAction(null);
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : 'Unable to review this match.',
+        error instanceof ApiError ? error.message : t('errors.generic'),
       );
     },
   });
@@ -40,7 +43,7 @@ export function MatchActions({ match }: MatchActionsProps) {
   if (match.status !== 'SUGGESTED') {
     return (
       <span className="text-xs text-muted-foreground">
-        {match.status === 'CONFIRMED' ? 'Confirmed' : 'Dismissed'}
+        {enumLabel('status', match.status)}
       </span>
     );
   }
@@ -55,7 +58,7 @@ export function MatchActions({ match }: MatchActionsProps) {
         disabled={reviewMutation.isPending}
       >
         <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
-        Dismiss
+        {t('matches.dismiss')}
       </Button>
       <Button
         type="button"
@@ -68,7 +71,7 @@ export function MatchActions({ match }: MatchActionsProps) {
         ) : (
           <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
         )}
-        Confirm
+        {t('matches.confirm')}
       </Button>
 
       <ConfirmDialog
@@ -76,13 +79,13 @@ export function MatchActions({ match }: MatchActionsProps) {
         onOpenChange={(open) => {
           if (!open) setPendingAction(null);
         }}
-        title={pendingAction === 'CONFIRM' ? 'Confirm this match?' : 'Dismiss this match?'}
+        title={pendingAction === 'CONFIRM' ? t('matches.confirmTitle') : t('matches.dismissTitle')}
         description={
           pendingAction === 'CONFIRM'
-            ? 'Both items will be marked as match confirmed and the lost reporter will be notified with a claim link.'
-            : 'The suggestion will be dismissed and will not be recreated by recalculation.'
+            ? t('matches.confirmDesc')
+            : t('matches.dismissDesc')
         }
-        confirmLabel={pendingAction === 'CONFIRM' ? 'Confirm match' : 'Dismiss match'}
+        confirmLabel={pendingAction === 'CONFIRM' ? t('matches.confirm') : t('matches.dismiss')}
         tone={pendingAction === 'CONFIRM' ? 'default' : 'destructive'}
         isLoading={reviewMutation.isPending}
         onConfirm={() => {

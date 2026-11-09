@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import type { ImageAsset } from '@/types/maintenance';
@@ -17,9 +18,11 @@ export function Lightbox({
   open,
   onOpenChange,
   initialIndex = 0,
-  title = 'Attachment',
+  title,
 }: LightboxProps) {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(initialIndex);
+  const effectiveTitle = title ?? t('common.preview');
 
   useEffect(() => {
     if (open) {
@@ -44,19 +47,19 @@ export function Lightbox({
           if (event.key === 'ArrowRight' && hasNext) setIndex(safeIndex + 1);
         }}
       >
-        <DialogTitle className="sr-only">{title} preview</DialogTitle>
+        <DialogTitle className="sr-only">{effectiveTitle}</DialogTitle>
         <DialogDescription className="sr-only">
-          Image {safeIndex + 1} of {images.length}. Use the arrow keys to move between images.
+          {t('common.pageOf', { page: safeIndex + 1, total: images.length })}
         </DialogDescription>
 
         <div className="flex items-center justify-between gap-3 border-b border-stone-800 px-4 py-3">
           <p className="text-xs font-medium text-stone-300" aria-live="polite">
-            {title} · {safeIndex + 1} of {images.length}
+            {effectiveTitle} · {safeIndex + 1} / {images.length}
           </p>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            aria-label="Close image preview"
+            aria-label={t('common.close')}
             className="rounded-full p-1.5 text-stone-300 transition-colors hover:bg-stone-800 hover:text-white focus-visible:ring-2 focus-visible:ring-white"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -67,7 +70,7 @@ export function Lightbox({
           {current ? (
             <img
               src={current.url}
-              alt={`${title} ${safeIndex + 1} of ${images.length}`}
+              alt={`${effectiveTitle} ${safeIndex + 1}`}
               className="max-h-[70vh] w-full object-contain"
             />
           ) : null}
@@ -83,7 +86,7 @@ export function Lightbox({
               disabled={!hasPrevious}
             >
               <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-              Previous
+              {t('common.previous')}
             </Button>
             <div className="flex items-center gap-1.5" aria-hidden="true">
               {images.map((image, dotIndex) => (
@@ -104,7 +107,7 @@ export function Lightbox({
               onClick={() => setIndex(safeIndex + 1)}
               disabled={!hasNext}
             >
-              Next
+              {t('common.next')}
               <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </Button>
           </div>

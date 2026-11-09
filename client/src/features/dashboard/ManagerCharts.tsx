@@ -11,7 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { REQUEST_STATUSES } from '@/types/meta';
 import type { ManagerMetrics } from '@/types/dashboard';
 
@@ -42,12 +42,12 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
   const { t } = useTranslation();
 
   const statusData = REQUEST_STATUSES.map((status) => ({
-    status: humanizeEnum(status),
+    status: enumLabel('status', status),
     count: metrics.requestsByStatus[status],
   }));
 
   const categoryData = metrics.requestsByCategory.slice(0, 6).map((entry) => ({
-    category: entry.category,
+    category: enumLabel('maintenanceCategory', entry.category),
     count: entry.count,
   }));
 
@@ -67,8 +67,8 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       <ChartCard
-        title="Requests by status"
-        description="Every request created in the selected period, grouped by lifecycle state."
+        title={t('dashboard.statusDistribution')}
+        description={t('requests.subtitle')}
       >
         <div dir="ltr">
           <ResponsiveContainer width="100%" height={230}>
@@ -87,12 +87,12 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
       </ChartCard>
 
       <ChartCard
-        title="Most reported categories"
-        description="The top categories in this period, useful for planning preventive work."
+        title={t('dashboard.requestsByCategory')}
+        description={t('requests.filterByCategory')}
       >
         {categoryData.length === 0 ? (
           <p className="flex h-[230px] items-center justify-center text-sm text-muted-foreground">
-            No requests in this period.
+            {t('requests.noRequestsFound')}
           </p>
         ) : (
           <div dir="ltr">
@@ -122,12 +122,12 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
       </ChartCard>
 
       <ChartCard
-        title="Technician workload"
-        description="Active and completed work orders for the busiest technicians."
+        title={t('dashboard.technicianWorkload')}
+        description={t('technicians.subtitle')}
       >
         {workloadData.length === 0 ? (
           <p className="flex h-[230px] items-center justify-center text-sm text-muted-foreground">
-            No technicians are active yet.
+            {t('technicians.noTechniciansFound')}
           </p>
         ) : (
           <div dir="ltr">

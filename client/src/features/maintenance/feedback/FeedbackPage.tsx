@@ -1,5 +1,6 @@
 import { Filter, MessageSquare, Star } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -14,6 +15,7 @@ import type { ServiceFeedbackRecord } from '@/types/feedback';
 const PAGE_SIZE = 10;
 
 export function FeedbackPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [technicianFilter, setTechnicianFilter] = useState<string>('ALL');
 
@@ -41,7 +43,7 @@ export function FeedbackPage() {
   const columns: Array<DataTableColumn<ServiceFeedbackRecord>> = [
     {
       id: 'request',
-      header: 'Request / WO',
+      header: t('requests.requestNumber'),
       cell: (fb) => (
         <div className="min-w-0">
           {fb.requestNumber ? (
@@ -64,7 +66,7 @@ export function FeedbackPage() {
               to={`/work-orders/${fb.workOrderId}`}
               className="text-[11px] text-muted-foreground hover:underline block"
             >
-              WO: <span dir="ltr">{fb.workOrderNumber}</span>
+              <span dir="ltr">{fb.workOrderNumber}</span>
             </Link>
           )}
         </div>
@@ -72,7 +74,7 @@ export function FeedbackPage() {
     },
     {
       id: 'technician',
-      header: 'Technician',
+      header: t('workOrders.technician'),
       cell: (fb) => (
         <div className="flex min-w-0 items-center gap-2">
           <Avatar className="h-7 w-7 shrink-0">
@@ -90,7 +92,7 @@ export function FeedbackPage() {
     },
     {
       id: 'rating',
-      header: 'Rating',
+      header: t('feedback.rating'),
       cell: (fb) => (
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -109,16 +111,16 @@ export function FeedbackPage() {
     },
     {
       id: 'comment',
-      header: 'Comment',
+      header: t('feedback.comment'),
       cell: (fb) => (
         <p className="text-xs text-muted-foreground line-clamp-2 max-w-[320px]">
-          {fb.comment ? `"${fb.comment}"` : <span className="italic">No written comment</span>}
+          {fb.comment ? `"${fb.comment}"` : <span className="italic">{t('feedback.noWrittenComment')}</span>}
         </p>
       ),
     },
     {
       id: 'requester',
-      header: 'Submitted By',
+      header: t('feedback.submittedFor'),
       cell: (fb) => (
         <div className="text-xs text-muted-foreground">
           <p className="font-medium text-foreground">
@@ -133,8 +135,8 @@ export function FeedbackPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Service Feedback"
-        description="Inspect customer ratings and feedback submitted after maintenance request resolution."
+        title={t('feedback.title')}
+        description={t('feedback.pageDescription')}
       />
 
       {/* Metrics Row */}
@@ -142,7 +144,7 @@ export function FeedbackPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Average Rating
+              {t('feedback.averageRating')}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
@@ -152,31 +154,31 @@ export function FeedbackPage() {
                 {overallAvg !== null && overallAvg !== undefined ? overallAvg.toFixed(1) : '—'}
               </span>
             </div>
-            <span className="text-xs text-muted-foreground self-end pb-1">out of 5.0</span>
+            <span className="text-xs text-muted-foreground self-end pb-1">{t('feedback.outOfFive')}</span>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Total Reviews
+              {t('feedback.totalReviews')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{total}</div>
-            <p className="text-xs text-muted-foreground mt-1">Submitted responses</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('feedback.submittedResponses')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Top Rated Technicians
+              {t('feedback.topRatedTechnicians')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {perTechnician.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No technician feedback yet</p>
+              <p className="text-xs text-muted-foreground">{t('feedback.noTechnicianFeedback')}</p>
             ) : (
               <div className="space-y-1.5 text-xs">
                 {perTechnician.slice(0, 2).map((stat) => (
@@ -200,7 +202,7 @@ export function FeedbackPage() {
       <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Filter className="h-3.5 w-3.5" />
-          <span>Filter by Technician:</span>
+          <span>{t('feedback.filterByTechnician')}</span>
         </div>
         <select
           value={technicianFilter}
@@ -210,7 +212,7 @@ export function FeedbackPage() {
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <option value="ALL">All Technicians</option>
+          <option value="ALL">{t('calendar.allTechnicians')}</option>
           {technicians.map((tech) => (
             <option key={tech.id} value={tech.id}>
               {tech.name}
@@ -230,8 +232,8 @@ export function FeedbackPage() {
         total={total}
         onPageChange={setPage}
         emptyIcon={MessageSquare}
-        emptyTitle="No feedback records"
-        emptyDescription="No feedback has been submitted for resolved requests yet."
+        emptyTitle={t('feedback.noFeedbackRecords')}
+        emptyDescription={t('feedback.noFeedbackDescription')}
       />
     </div>
   );

@@ -1,13 +1,7 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import type { InsightContent } from '@/types/insights';
-
-const SECTIONS: Array<{ key: keyof InsightContent; title: string }> = [
-  { key: 'observations', title: 'Observations' },
-  { key: 'repeatedPatterns', title: 'Repeated patterns' },
-  { key: 'operationalRisks', title: 'Operational risks' },
-  { key: 'preventiveRecommendations', title: 'Preventive recommendations' },
-];
 
 interface InsightSectionsProps {
   insights: InsightContent;
@@ -15,9 +9,18 @@ interface InsightSectionsProps {
 }
 
 export function InsightSections({ insights, compact = false }: InsightSectionsProps) {
+  const { t } = useTranslation();
+
+  const sections: Array<{ key: keyof InsightContent; title: string }> = [
+    { key: 'observations', title: t('ai.observations') },
+    { key: 'repeatedPatterns', title: t('ai.repeatedPatterns') },
+    { key: 'operationalRisks', title: t('ai.operationalRisks') },
+    { key: 'preventiveRecommendations', title: t('ai.preventiveRecommendations') },
+  ];
+
   return (
     <div className={compact ? 'space-y-4' : 'grid gap-4 sm:grid-cols-2'}>
-      {SECTIONS.map((section) => {
+      {sections.map((section) => {
         const items = insights[section.key];
 
         return (
@@ -58,16 +61,18 @@ export function InsightReadOnlyCard({
   insights,
   actions,
 }: InsightReadOnlyCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              AI-generated insight
+              {t('ai.insights')}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {period} · {rangeLabel} · generated {generatedAt}
+              {period} · {rangeLabel} · {generatedAt}
             </p>
           </div>
           {actions}

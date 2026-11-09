@@ -1,6 +1,7 @@
 import { Bell, BellRing, CheckCheck, ClipboardList, Loader2, PackageSearch, Wrench } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -38,6 +39,7 @@ interface NotificationRowProps {
 }
 
 function NotificationRow({ notification, onOpen }: NotificationRowProps) {
+  const { t } = useTranslation();
   const Icon = iconForType(notification.type);
   const destination = notification.linkUrl ?? '/dashboard';
 
@@ -71,7 +73,7 @@ function NotificationRow({ notification, onOpen }: NotificationRowProps) {
             {!notification.isRead ? (
               <span
                 className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                aria-label="Unread"
+                aria-label={t('notifications.unread')}
               />
             ) : null}
           </span>
@@ -88,6 +90,7 @@ function NotificationRow({ notification, onOpen }: NotificationRowProps) {
 }
 
 export function NotificationBell({ poll = true }: { poll?: boolean }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const notificationsQuery = useQuery({
@@ -105,10 +108,10 @@ export function NotificationBell({ poll = true }: { poll?: boolean }) {
   const markAllRead = useMutation({
     mutationFn: () => notificationsApi.markAllRead(),
     onSuccess: ({ updated }) => {
-      toast.success(updated > 0 ? 'All notifications marked as read' : 'No unread notifications');
+      toast.success(updated > 0 ? t('common.success') : t('notifications.allCaughtUp'));
       return queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
     },
-    onError: () => toast.error('Unable to mark notifications as read'),
+    onError: () => toast.error(t('errors.generic')),
   });
 
   const notifications = notificationsQuery.data?.data ?? [];
@@ -127,11 +130,7 @@ export function NotificationBell({ poll = true }: { poll?: boolean }) {
           variant="ghost"
           size="icon"
           className="relative"
-          aria-label={
-            unreadCount > 0
-              ? `Notifications, ${unreadCount} unread`
-              : 'Notifications, none unread'
-          }
+          aria-label={t('notifications.title')}
         >
           {unreadCount > 0 ? (
             <BellRing className="h-5 w-5" aria-hidden="true" />
@@ -148,10 +147,10 @@ export function NotificationBell({ poll = true }: { poll?: boolean }) {
       <DropdownMenuContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0">
         <div className="flex items-center justify-between gap-3 border-b px-3 py-2.5">
           <DropdownMenuLabel className="p-0 normal-case tracking-normal">
-            Notifications
+            {t('notifications.title')}
             {unreadCount > 0 ? (
               <span className="ms-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                {unreadCount} new
+                {unreadCount} {t('notifications.unread')}
               </span>
             ) : null}
           </DropdownMenuLabel>
@@ -167,27 +166,27 @@ export function NotificationBell({ poll = true }: { poll?: boolean }) {
             ) : (
               <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
             )}
-            Mark all read
+            {t('notifications.markAllAsRead')}
           </Button>
         </div>
 
         <div className="max-h-[22rem] overflow-y-auto">
           {notificationsQuery.isLoading ? (
-            <div className="space-y-2 p-3" aria-busy="true" aria-label="Loading notifications">
+            <div className="space-y-2 p-3" aria-busy="true" aria-label={t('common.loading')}>
               <Skeleton className="h-16 w-full" />
               <Skeleton className="h-16 w-full" />
               <Skeleton className="h-16 w-full" />
             </div>
           ) : notificationsQuery.isError ? (
             <div className="px-4 py-8 text-center">
-              <p className="text-sm font-medium text-foreground">Unable to load notifications</p>
+              <p className="text-sm font-medium text-foreground">{t('notifications.unableToLoad')}</p>
               <Button
                 variant="outline"
                 size="sm"
                 className="mt-3"
                 onClick={() => void notificationsQuery.refetch()}
               >
-                Try again
+                {t('ai.retry')}
               </Button>
             </div>
           ) : notifications.length === 0 ? (
@@ -195,9 +194,9 @@ export function NotificationBell({ poll = true }: { poll?: boolean }) {
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
                 <Bell className="h-5 w-5" aria-hidden="true" />
               </span>
-              <p className="text-sm font-medium text-foreground">You're all caught up</p>
+              <p className="text-sm font-medium text-foreground">{t('notifications.allCaughtUp')}</p>
               <p className="text-xs text-muted-foreground">
-                Updates about your requests and claims will appear here.
+                {t('notifications.noNotifications')}
               </p>
             </div>
           ) : (

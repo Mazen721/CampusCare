@@ -1,4 +1,5 @@
 import { ArrowLeft, BadgeCheck, PackageOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { LoadingState } from '@/components/shared/LoadingState';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ClaimForm } from '@/features/lost-found/claims/ClaimForm';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
+import { enumLabel } from '@/lib/labels';
 import type { ItemStatus, LostFoundItem } from '@/types/lostFound';
 
 const CLAIMABLE_STATUSES: readonly ItemStatus[] = [
@@ -23,6 +25,7 @@ function isClaimable(item: LostFoundItem): boolean {
 }
 
 export function SubmitClaimPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const itemId = searchParams.get('itemId') ?? '';
   const linkedLostItemId = searchParams.get('linkedLostItemId') ?? '';
@@ -60,21 +63,21 @@ export function SubmitClaimPage() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
-        Back to browse
+        {t('lostFound.backToBrowse')}
       </Link>
 
       <PageHeader
-        eyebrow="Lost & Found"
-        title="Submit a claim"
-        description="Prove the found item is yours. An officer compares your answers with the private details on the report before approving a handover."
+        eyebrow={t('lostFound.title')}
+        title={t('claims.submitTitle')}
+        description={t('claims.submitDescription')}
       />
 
-      {isLoading ? <LoadingState label="Preparing your claim…" /> : null}
+      {isLoading ? <LoadingState label={t('common.loading')} /> : null}
 
       {!isLoading && hasError ? (
         <ErrorState
-          title="Unable to prepare this claim"
-          message="Check your connection and try again."
+          title={t('errors.generic')}
+          message={t('errors.network')}
           onRetry={() => {
             void itemQuery.refetch();
             void claimableQuery.refetch();
@@ -85,17 +88,15 @@ export function SubmitClaimPage() {
 
       {!isLoading && !hasError && itemId && !selectedItem ? (
         <ErrorState
-          title="Found item not found"
-          message="This report may have been removed. Browse the found reports to choose another item."
+          title={t('errors.notFoundTitle')}
+          message={t('errors.notFoundDetailDesc')}
         />
       ) : null}
 
       {!isLoading && !hasError && selectedItem && !isClaimable(selectedItem) ? (
         <ErrorState
-          title="This item is not accepting claims"
-          message={`The item is currently ${selectedItem.status
-            .replaceAll('_', ' ')
-            .toLowerCase()}. Claims are only accepted before approval and handover.`}
+          title={t('errors.forbiddenTitle')}
+          message={`${t('common.status')}: ${enumLabel('status', selectedItem.status)}`}
         />
       ) : null}
 
@@ -104,7 +105,7 @@ export function SubmitClaimPage() {
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-base">
               <BadgeCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-              Claim details
+              {t('claims.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-5">
@@ -122,8 +123,8 @@ export function SubmitClaimPage() {
       {!isLoading && !hasError && !itemId && claimableItems.length === 0 ? (
         <EmptyState
           icon={PackageOpen}
-          title="No found items are accepting claims"
-          description="When someone reports a found item it will appear here, or open its report from the browse page."
+          title={t('claims.noClaimsFound')}
+          description={t('lostFound.noActiveAvailableDesc')}
         />
       ) : null}
 
@@ -132,7 +133,7 @@ export function SubmitClaimPage() {
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-base">
               <BadgeCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-              Claim details
+              {t('claims.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-5">

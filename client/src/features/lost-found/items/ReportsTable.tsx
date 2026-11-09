@@ -1,11 +1,12 @@
 import { Eye, Files } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import {
   ITEM_STATUSES,
@@ -56,10 +57,12 @@ export function ReportsTable({
   emptyAction,
   allowedStatuses = ITEM_STATUSES,
 }: ReportsTableProps) {
+  const { t } = useTranslation();
+
   const columns: Array<DataTableColumn<LostFoundItem>> = [
     {
       id: 'report',
-      header: 'Report',
+      header: t('lostFound.reportNumber'),
       cell: (item) => (
         <div className="min-w-0">
           <Link
@@ -71,25 +74,25 @@ export function ReportsTable({
           <p className="mt-0.5 max-w-[260px] truncate text-sm font-medium text-foreground">
             {item.itemTitle}
           </p>
-          <p className="text-[11px] text-muted-foreground">{item.category}</p>
+          <p className="text-[11px] text-muted-foreground">{enumLabel('lostFoundCategory', item.category)}</p>
         </div>
       ),
     },
     {
       id: 'type',
-      header: 'Type',
+      header: t('lostFound.filterByType'),
       cell: (item) => <ReportTypeBadge reportType={item.reportType} />,
     },
     {
       id: 'location',
-      header: 'Location',
+      header: t('common.location'),
       cell: (item) => (
         <div className="max-w-[230px] text-xs text-muted-foreground">
           {item.location ? (
             <>
               <p className="font-medium text-foreground">{item.location.buildingName}</p>
               <p>
-                {item.location.floor} · Room {item.location.room}
+                {item.location.floor} · {item.location.room}
               </p>
             </>
           ) : (
@@ -100,7 +103,7 @@ export function ReportsTable({
     },
     {
       id: 'occurred',
-      header: 'Occurred',
+      header: t('common.date'),
       cell: (item) => (
         <span className="whitespace-nowrap text-xs text-muted-foreground">
           {formatDate(item.occurrenceDate)}
@@ -109,19 +112,19 @@ export function ReportsTable({
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (item) => <StatusBadge status={item.status} />,
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (item) => (
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/lost-found/items/${item.id}`}>
             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-            View
+            {t('common.details')}
           </Link>
         </Button>
       ),
@@ -138,16 +141,16 @@ export function ReportsTable({
       onRetry={onRetry}
       searchValue={searchValue}
       onSearchChange={onSearchChange}
-      searchPlaceholder="Search report number, title or description…"
+      searchPlaceholder={t('lostFound.searchPlaceholder')}
       filters={[
         {
           id: 'report-type',
-          label: 'Report type',
+          label: t('lostFound.filterByType'),
           value: reportType,
           options: [
-            { label: 'All types', value: 'ALL' },
+            { label: t('lostFound.allTypes'), value: 'ALL' },
             ...REPORT_TYPES.map((type) => ({
-              label: humanizeEnum(type),
+              label: enumLabel('reportType', type),
               value: type,
             })),
           ],
@@ -155,12 +158,12 @@ export function ReportsTable({
         },
         {
           id: 'item-status',
-          label: 'Status',
+          label: t('common.status'),
           value: status,
           options: [
-            { label: 'All statuses', value: 'ALL' },
+            { label: t('lostFound.allStatuses'), value: 'ALL' },
             ...allowedStatuses.map((itemStatus) => ({
-              label: humanizeEnum(itemStatus),
+              label: enumLabel('status', itemStatus),
               value: itemStatus,
             })),
           ],

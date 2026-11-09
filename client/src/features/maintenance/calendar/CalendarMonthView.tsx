@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   eachDayOfInterval,
   endOfMonth,
@@ -22,6 +23,7 @@ interface CalendarMonthViewProps {
 }
 
 export function CalendarMonthView({ anchor, workOrders }: CalendarMonthViewProps) {
+  const { t } = useTranslation();
   const gridStart = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
   const gridEnd = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
@@ -85,7 +87,7 @@ export function CalendarMonthView({ anchor, workOrders }: CalendarMonthViewProps
                   ))}
                   {hiddenCount > 0 ? (
                     <p className="px-1 text-[10px] font-medium text-muted-foreground">
-                      +{hiddenCount} more
+                      {t('calendar.moreItems', { count: hiddenCount })}
                     </p>
                   ) : null}
                 </div>

@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { BrandMark } from '@/components/shared/BrandMark';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -9,6 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+  const { t } = useTranslation();
   const { user, isRestoring } = useAuth();
   const location = useLocation();
 
@@ -18,7 +20,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
         <BrandMark />
         <div role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
-          Restoring your session…
+          {t('auth.restoringSession')}
         </div>
       </main>
     );

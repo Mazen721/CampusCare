@@ -1,5 +1,6 @@
 import { Eye, Handshake } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,13 +9,14 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { HandoverDialog } from '@/features/lost-found/claims/HandoverDialog';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
-import { humanizeEnum } from '@/lib/labels';
+import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import { CLAIM_STATUSES, type ClaimRecord, type ClaimStatus } from '@/types/claims';
 
 const PAGE_SIZE = 10;
 
 export function HandoversPage() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'ALL' | ClaimStatus>('APPROVED');
   const [page, setPage] = useState(1);
   const [handoverClaim, setHandoverClaim] = useState<ClaimRecord | null>(null);
@@ -32,7 +34,7 @@ export function HandoversPage() {
   const columns: Array<DataTableColumn<ClaimRecord>> = [
     {
       id: 'claim',
-      header: 'Claim',
+      header: t('claims.claimNumber'),
       cell: (claim) => (
         <div className="min-w-0">
           <Link
@@ -42,18 +44,18 @@ export function HandoversPage() {
             <span dir="ltr">{claim.claimNumber}</span>
           </Link>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Updated {formatDate(claim.updatedAt)}
+            {formatDate(claim.updatedAt)}
           </p>
         </div>
       ),
     },
     {
       id: 'item',
-      header: 'Found item',
+      header: t('claims.claimItem'),
       cell: (claim) => (
         <div className="min-w-0">
           <p className="max-w-[240px] truncate text-sm font-medium text-foreground">
-            {claim.item?.itemTitle ?? 'Unavailable'}
+            {claim.item?.itemTitle ?? t('common.none')}
           </p>
           <p className="text-[11px] text-muted-foreground">
             {claim.item?.reportNumber ? <span dir="ltr">{claim.item.reportNumber}</span> : null}
@@ -63,11 +65,11 @@ export function HandoversPage() {
     },
     {
       id: 'claimant',
-      header: 'Claimant',
+      header: t('claims.claimant'),
       cell: (claim) => (
         <div className="min-w-0 text-xs">
           <p className="font-medium text-foreground">
-            <bdi>{claim.claimant?.name ?? 'Unknown'}</bdi>
+            <bdi>{claim.claimant?.name ?? t('common.none')}</bdi>
           </p>
           <p className="text-muted-foreground">
             {claim.claimant?.email ? <span dir="ltr">{claim.claimant.email}</span> : null}
@@ -77,12 +79,12 @@ export function HandoversPage() {
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('common.status'),
       cell: (claim) => <StatusBadge status={claim.status} />,
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('common.actions'),
       headerClassName: 'text-end',
       className: 'text-end',
       cell: (claim) => (
@@ -90,13 +92,13 @@ export function HandoversPage() {
           <Button variant="ghost" size="sm" asChild>
             <Link to={`/lost-found/claims/${claim.id}`}>
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-              View
+              {t('common.details')}
             </Link>
           </Button>
           {claim.status === 'APPROVED' ? (
             <Button size="sm" onClick={() => setHandoverClaim(claim)}>
               <Handshake className="h-3.5 w-3.5" aria-hidden="true" />
-              Handover
+              {t('claims.handoverItem')}
             </Button>
           ) : null}
         </div>
@@ -107,9 +109,9 @@ export function HandoversPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Lost & Found"
-        title="Handovers"
-        description="Approved claims waiting for the item to be physically collected. Recording a handover closes the claim and returns both linked reports."
+        eyebrow={t('nav.lostFound')}
+        title={t('nav.handovers')}
+        description={t('claims.subtitle')}
       />
 
       <DataTable
@@ -119,19 +121,19 @@ export function HandoversPage() {
         isLoading={claimsQuery.isLoading}
         error={
           claimsQuery.isError
-            ? 'Unable to load handovers. Check your connection and try again.'
+            ? t('errors.network')
             : null
         }
         onRetry={() => void claimsQuery.refetch()}
         filters={[
           {
             id: 'handover-status',
-            label: 'Status',
+            label: t('common.status'),
             value: status,
             options: [
-              { label: 'All statuses', value: 'ALL' },
+              { label: t('common.all'), value: 'ALL' },
               ...CLAIM_STATUSES.map((value) => ({
-                label: humanizeEnum(value),
+                label: enumLabel('status', value),
                 value,
               })),
             ],
@@ -146,14 +148,14 @@ export function HandoversPage() {
         total={claimsQuery.data?.total ?? 0}
         onPageChange={setPage}
         emptyIcon={Handshake}
-        emptyTitle="No handovers waiting"
-        emptyDescription="Claims appear here after an officer approves them for handover."
+        emptyTitle={t('claims.noClaimsFound')}
+        emptyDescription={t('claims.noClaimsFound')}
       />
 
       {handoverClaim ? (
         <HandoverDialog
           claim={handoverClaim}
-          open
+          open={Boolean(handoverClaim)}
           onOpenChange={(open) => {
             if (!open) setHandoverClaim(null);
           }}

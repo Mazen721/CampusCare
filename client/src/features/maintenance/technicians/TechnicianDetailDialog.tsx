@@ -6,6 +6,7 @@ import {
   Star,
   Wrench,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
+import { enumLabel } from '@/lib/labels';
 import { formatDate, getInitials } from '@/lib/utils';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -37,6 +39,7 @@ export function TechnicianDetailDialog({
   onOpenChange,
   onEdit,
 }: TechnicianDetailDialogProps) {
+  const { t } = useTranslation();
   const {
     data: technician,
     isLoading,
@@ -51,21 +54,21 @@ export function TechnicianDetailDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Technician Profile</DialogTitle>
+          <DialogTitle>{t('technicians.profileTitle')}</DialogTitle>
           <DialogDescription>
-            Live performance metrics, active work assignments, and specializations.
+            {t('technicians.profileDesc')}
           </DialogDescription>
         </DialogHeader>
 
         {isLoading && (
           <div className="py-12 text-center text-sm text-muted-foreground">
-            Loading technician metrics...
+            {t('common.loading')}
           </div>
         )}
 
         {error && (
           <div className="py-8 text-center text-sm text-destructive">
-            Failed to load technician details. Please try again.
+            {t('errors.network')}
           </div>
         )}
 
@@ -93,11 +96,7 @@ export function TechnicianDetailDialog({
                         : 'border-slate-500/40 bg-slate-50 text-slate-700'
                     }
                   >
-                    {technician.availability === 'AVAILABLE'
-                      ? 'Available'
-                      : technician.availability === 'BUSY'
-                      ? 'Busy'
-                      : 'Off Duty'}
+                    {enumLabel('availability', technician.availability)}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -121,7 +120,7 @@ export function TechnicianDetailDialog({
                   {technician.activeWorkOrderCount}
                 </div>
                 <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Active Tasks
+                  {t('technicians.activeWorkOrders')}
                 </div>
               </div>
 
@@ -133,7 +132,7 @@ export function TechnicianDetailDialog({
                   {technician.completedWorkOrderCount}
                 </div>
                 <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Completed
+                  {t('technicians.completedWorkOrders')}
                 </div>
               </div>
 
@@ -147,7 +146,7 @@ export function TechnicianDetailDialog({
                     : '—'}
                 </div>
                 <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Avg Rating
+                  {t('technicians.avgRating')}
                 </div>
               </div>
 
@@ -161,7 +160,7 @@ export function TechnicianDetailDialog({
                     : '—'}
                 </div>
                 <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Avg Resolution
+                  {t('technicians.avgResolutionHours')}
                 </div>
               </div>
             </div>
@@ -170,17 +169,17 @@ export function TechnicianDetailDialog({
             <div className="space-y-3">
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                  Specializations
+                  {t('technicians.specializations')}
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {(technician.specializations ?? []).length > 0 ? (
                     technician.specializations.map((spec: string) => (
                       <Badge key={spec} variant="secondary" className="text-xs">
-                        {spec}
+                        {enumLabel('maintenanceCategory', spec)}
                       </Badge>
                     ))
                   ) : (
-                    <span className="text-xs text-muted-foreground">General maintenance</span>
+                    <span className="text-xs text-muted-foreground">{t('technicians.generalMaintenance')}</span>
                   )}
                 </div>
               </div>
@@ -188,7 +187,7 @@ export function TechnicianDetailDialog({
               {(technician.skills ?? []).length > 0 && (
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                    Skills & Certifications
+                    {t('technicians.skills')}
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {technician.skills.map((skill: string) => (
@@ -207,11 +206,11 @@ export function TechnicianDetailDialog({
             {/* Active Tasks List */}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                Active Assignments ({technician.activeTasks.length})
+                {t('technicians.activeTasks')} ({technician.activeTasks.length})
               </h4>
               {technician.activeTasks.length === 0 ? (
                 <p className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-                  No active work orders currently assigned.
+                  {t('technicians.noActiveOrders')}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -232,7 +231,7 @@ export function TechnicianDetailDialog({
                         {task.location && (
                           <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                             <MapPin className="h-3 w-3" />
-                            {task.location.buildingName} • Floor {task.location.floor} • Room {task.location.room}
+                            {task.location.buildingName} • {task.location.floor} • {task.location.room}
                           </p>
                         )}
                       </div>
@@ -240,7 +239,7 @@ export function TechnicianDetailDialog({
                         <div className="shrink-0 text-end text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            Due {formatDate(task.expectedCompletion)}
+                            {t('technicians.dueOn', { date: formatDate(task.expectedCompletion) })}
                           </span>
                         </div>
                       )}
@@ -262,11 +261,11 @@ export function TechnicianDetailDialog({
                 onEdit();
               }}
             >
-              Edit Details
+              {t('common.edit')}
             </Button>
           )}
           <Button type="button" onClick={() => onOpenChange(false)}>
-            Close
+            {t('common.close')}
           </Button>
         </DialogFooter>
       </DialogContent>

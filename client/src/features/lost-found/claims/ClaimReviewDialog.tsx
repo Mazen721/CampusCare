@@ -1,5 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { FormField } from '@/components/shared/FormField';
@@ -17,30 +18,6 @@ import { claimsApi } from '@/features/lost-found/claims/claimsApi';
 import { ApiError } from '@/lib/api';
 import type { ClaimRecord, ClaimReviewAction } from '@/types/claims';
 
-const ACTION_COPY: Record<
-  ClaimReviewAction,
-  { title: string; description: string; confirmLabel: string }
-> = {
-  START_VERIFICATION: {
-    title: 'Start verification',
-    description:
-      'Compare the claimant’s answers with the private identification details on the found report. Add internal notes if another officer should follow up.',
-    confirmLabel: 'Start verification',
-  },
-  APPROVE: {
-    title: 'Approve this claim',
-    description:
-      'The found item becomes approved for handover and every other pending claim for the item is rejected automatically. The claimant is notified.',
-    confirmLabel: 'Approve claim',
-  },
-  REJECT: {
-    title: 'Reject this claim',
-    description:
-      'The claimant sees the rejection reason. The item returns to the queue when no other active claim remains.',
-    confirmLabel: 'Reject claim',
-  },
-};
-
 interface ClaimReviewDialogProps {
   claim: ClaimRecord;
   action: ClaimReviewAction | null;
@@ -52,6 +29,7 @@ export function ClaimReviewDialog({
   action,
   onOpenChange,
 }: ClaimReviewDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [notes, setNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
@@ -77,16 +55,16 @@ export function ClaimReviewDialog({
       void queryClient.invalidateQueries({ queryKey: ['lost-found-item', data.claim.item?.id] });
       toast.success(
         input === 'APPROVE'
-          ? `Claim ${claim.claimNumber} approved for handover.`
+          ? t('claims.approveAction')
           : input === 'REJECT'
-            ? `Claim ${claim.claimNumber} rejected.`
-            : `Verification started for ${claim.claimNumber}.`,
+            ? t('claims.rejectAction')
+            : t('claims.startVerificationAction'),
       );
       onOpenChange(false);
     },
     onError: (error) => {
       toast.error(
-        error instanceof ApiError ? error.message : 'Unable to review this claim.',
+        error instanceof ApiError ? error.message : t('errors.generic'),
       );
     },
   });
@@ -95,12 +73,28 @@ export function ClaimReviewDialog({
     return null;
   }
 
-  const copy = ACTION_COPY[action];
+  const copy = {
+    START_VERIFICATION: {
+      title: t('claims.verifyCopyTitle'),
+      description: t('claims.verifyCopyDesc'),
+      confirmLabel: t('claims.startVerificationAction'),
+    },
+    APPROVE: {
+      title: t('claims.approveCopyTitle'),
+      description: t('claims.approveCopyDesc'),
+      confirmLabel: t('claims.approveAction'),
+    },
+    REJECT: {
+      title: t('claims.rejectCopyTitle'),
+      description: t('claims.rejectCopyDesc'),
+      confirmLabel: t('claims.rejectAction'),
+    },
+  }[action];
 
   function submit(): void {
     if (!action) return;
     if (action === 'REJECT' && rejectionReason.trim().length < 3) {
-      setReasonError('Give the claimant a rejection reason of at least 3 characters');
+      setReasonError(t('validation.min3Chars'));
       return;
     }
     setReasonError(null);
@@ -121,9 +115,9 @@ export function ClaimReviewDialog({
         {action === 'REJECT' ? (
           <FormField
             id="claim-rejection-reason"
-            label="Rejection reason"
+            label={t('claims.rejectionReason')}
             error={reasonError ?? undefined}
-            hint="This is shared with the claimant."
+            hint={t('claims.rejectionPlaceholder')}
             required
           >
             <Textarea
@@ -132,7 +126,7 @@ export function ClaimReviewDialog({
               maxLength={1000}
               value={rejectionReason}
               onChange={(event) => setRejectionReason(event.target.value)}
-              placeholder="The identifying details do not match the private details on the found report."
+              placeholder={t('claims.rejectionPlaceholder')}
               aria-invalid={Boolean(reasonError)}
             />
           </FormField>
@@ -140,12 +134,8 @@ export function ClaimReviewDialog({
 
         <FormField
           id="claim-review-notes"
-          label={action === 'REJECT' ? 'Internal notes (optional)' : 'Internal notes'}
-          hint={
-            action === 'REJECT'
-              ? 'Only Lost & Found Officers can see internal notes.'
-              : 'Optional context for the next officer who reviews this claim.'
-          }
+          label={action === 'REJECT' ? `${t('claims.internalNotes')} (${t('common.optional')})` : t('claims.internalNotes')}
+          hint={t('claims.verificationNotes')}
         >
           <Textarea
             id="claim-review-notes"
@@ -153,7 +143,7 @@ export function ClaimReviewDialog({
             maxLength={4000}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            placeholder="Verified the hidden engraving against the photo on file…"
+            placeholder={t('claims.verificationNotes')}
           />
         </FormField>
 
@@ -164,7 +154,7 @@ export function ClaimReviewDialog({
             onClick={() => onOpenChange(false)}
             disabled={reviewMutation.isPending}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             type="button"

@@ -11,7 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ROLE_SHORT_LABELS } from '@/types/auth';
+import { enumLabel } from '@/lib/labels';
 import type { AdminDashboard } from '@/types/dashboard';
 
 const PRIMARY = 'hsl(var(--primary))';
@@ -52,24 +52,24 @@ export function AdminCharts({
   }));
 
   const roleData = analytics.usersByRole.map((item) => ({
-    role: ROLE_SHORT_LABELS[item.role] ?? item.role,
+    role: enumLabel('role', item.role),
     count: item.count,
   }));
 
   const moduleData = analytics.moduleVolume.map((item) => ({
-    module: item.module,
+    module: item.module === 'Maintenance' ? t('dashboard.maintenance') : item.module === 'Lost & Found' ? t('dashboard.lostFound') : item.module,
     count: item.count,
   }));
 
   return (
     <div className="grid gap-4 xl:grid-cols-3">
       <ChartCard
-        title="Activity by building"
-        description="Maintenance and Lost & Found demand across campus facilities."
+        title={t('dashboard.activityByBuilding')}
+        description={t('dashboard.activityByBuildingDesc')}
       >
         {buildingData.length === 0 ? (
           <p className="flex h-[230px] items-center justify-center text-sm text-muted-foreground">
-            No activity in this period.
+            {t('dashboard.noRequestsInPeriod')}
           </p>
         ) : (
           <div dir="ltr">
@@ -92,8 +92,8 @@ export function AdminCharts({
       </ChartCard>
 
       <ChartCard
-        title="Users by role"
-        description="Registered university accounts distributed across system roles."
+        title={t('dashboard.usersByRole')}
+        description={t('dashboard.usersByRoleDesc')}
       >
         <div dir="ltr">
           <ResponsiveContainer width="100%" height={230}>
@@ -121,8 +121,8 @@ export function AdminCharts({
       </ChartCard>
 
       <ChartCard
-        title="Cross-module activity"
-        description="Activity created across modules in the selected timeframe."
+        title={t('dashboard.crossModuleActivity')}
+        description={t('dashboard.crossModuleActivityDesc')}
       >
         <div dir="ltr">
           <ResponsiveContainer width="100%" height={230}>

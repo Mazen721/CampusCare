@@ -1,5 +1,6 @@
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export function CancelWorkOrderDialog({
   open,
   onOpenChange,
 }: CancelWorkOrderDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [reason, setReason] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function CancelWorkOrderDialog({
     mutationFn: () => {
       if (!workOrder) throw new Error('No work order selected');
       if (reason.trim().length < 3) {
-        throw new Error('Cancel reason must be at least 3 characters');
+        throw new Error(t('workOrders.cancelReasonMinChars'));
       }
       return workOrdersApi.cancel(workOrder.id, { reason: reason.trim() });
     },
@@ -44,7 +46,7 @@ export function CancelWorkOrderDialog({
       await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
       await queryClient.invalidateQueries({ queryKey: ['work-order', workOrder?.id] });
       await queryClient.invalidateQueries({ queryKey: ['request'] });
-      toast.success('Work order cancelled. Reactive request returned to review.');
+      toast.success(t('workOrders.workOrderCancelledSuccess'));
       setReason('');
       onOpenChange(false);
     },
@@ -59,15 +61,10 @@ export function CancelWorkOrderDialog({
         <DialogHeader>
           <DialogTitle className="text-destructive flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
-            Cancel Work Order
+            {t('workOrders.cancelWork')}
           </DialogTitle>
           <DialogDescription>
-            Cancelling <span dir="ltr">{workOrder?.workOrderNumber}</span> is a permanent action.
-            {workOrder?.sourceType === 'REACTIVE' && (
-              <span className="block mt-1 text-foreground font-medium">
-                The linked maintenance request will return to "Under Review" for manager re-approval.
-              </span>
-            )}
+            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title}
           </DialogDescription>
         </DialogHeader>
 
@@ -91,13 +88,13 @@ export function CancelWorkOrderDialog({
         >
           <FormField
             id="cancel-reason"
-            label="Cancellation Reason"
-            hint="Explain why this work order is being cancelled (required, min 3 characters)."
+            label={t('workOrders.cancelReason')}
+            hint={t('workOrders.cancelReasonPlaceholder')}
             required
           >
             <Textarea
               id="cancel-reason"
-              placeholder="e.g. Duplicate issue, contractor required, parts unavailable..."
+              placeholder={t('workOrders.cancelReasonPlaceholder')}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
@@ -112,7 +109,7 @@ export function CancelWorkOrderDialog({
               onClick={() => onOpenChange(false)}
               disabled={cancelMutation.isPending}
             >
-              Back
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -122,7 +119,7 @@ export function CancelWorkOrderDialog({
               {cancelMutation.isPending && (
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
               )}
-              Confirm Cancellation
+              {t('workOrders.cancelWork')}
             </Button>
           </DialogFooter>
         </form>
