@@ -210,6 +210,7 @@ describe('Day 4 — AI work order summary (US6)', () => {
     const response = await request(app)
       .post('/api/v1/ai/work-order-summary')
       .set('Authorization', bearer('MAINTENANCE_MANAGER'))
+      .set('Accept-Language', 'en')
       .send({ workOrderId })
       .expect(200);
 

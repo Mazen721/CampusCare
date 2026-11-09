@@ -5,6 +5,7 @@ export interface TechnicianActiveTask {
   id: string;
   workOrderNumber: string;
   title: string;
+  titleAr?: string;
   priority: string;
   status: string;
   category: string;
@@ -14,8 +15,11 @@ export interface TechnicianActiveTask {
   location?: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
   } | null;
 }
 
@@ -25,6 +29,7 @@ export interface TechnicianRecord {
   email: string;
   role: 'TECHNICIAN';
   department?: string;
+  departmentAr?: string;
   contactPhone?: string;
   isActive: boolean;
   specializations: MaintenanceCategory[];
@@ -47,6 +52,7 @@ export interface CreateTechnicianInput {
   email: string;
   password: string;
   department?: string;
+  departmentAr?: string;
   contactPhone?: string;
   specializations: MaintenanceCategory[];
   skills: string[];
@@ -59,6 +65,7 @@ export interface UpdateTechnicianInput {
   email?: string;
   password?: string;
   department?: string;
+  departmentAr?: string;
   contactPhone?: string;
   specializations?: MaintenanceCategory[];
   skills?: string[];

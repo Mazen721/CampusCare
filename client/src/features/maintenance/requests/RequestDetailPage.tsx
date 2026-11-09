@@ -23,6 +23,7 @@ import {
 import { RequestTimeline } from '@/features/maintenance/requests/RequestTimeline';
 import { ReviewRequestDialog } from '@/features/maintenance/requests/ReviewRequestDialog';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
+import { formatLocation, tr } from '@/i18n/localize';
 import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import type { RequestStatus } from '@/types/meta';
@@ -121,7 +122,7 @@ export function RequestDetailPage() {
   }
 
   const locationLabel = request.location
-    ? `${request.location.buildingName} · ${request.location.floor} · ${request.location.room}`
+    ? formatLocation(request.location)
     : t('requests.notRecorded');
 
   return (
@@ -130,7 +131,7 @@ export function RequestDetailPage() {
 
       <PageHeader
         eyebrow={request.requestNumber}
-        title={request.title}
+        title={tr(request, 'title')}
         description={`${enumLabel('maintenanceCategory', request.category)} · ${locationLabel}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">

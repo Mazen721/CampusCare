@@ -7,7 +7,8 @@ import {
 import { endOfWeek, startOfWeek } from 'date-fns';
 import { dateFnsLocale, fmt } from '@/lib/dateLocale';
 import { Button } from '@/components/ui/button';
-import { humanizeEnum } from '@/lib/labels';
+import { useTranslation } from 'react-i18next';
+import { enumLabel } from '@/lib/labels';
 import { WORK_ORDER_STATUSES, type WorkOrderStatus } from '@/types/meta';
 import type { TechnicianRecord } from '@/types/technicians';
 
@@ -42,6 +43,7 @@ export function CalendarToolbar({
   onStatusChange,
   onTechnicianChange,
 }: CalendarToolbarProps) {
+  const { t } = useTranslation();
   const locale = dateFnsLocale();
   const weekStart = startOfWeek(anchor, { weekStartsOn: 6, locale });
   const weekEnd = endOfWeek(anchor, { weekStartsOn: 6, locale });
@@ -67,7 +69,7 @@ export function CalendarToolbar({
                     : 'rounded px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground'
                 }
               >
-                {option === 'month' ? 'Month' : 'Week'}
+                {option === 'month' ? t('calendar.monthView') : t('calendar.weekView')}
               </button>
             ))}
           </div>
@@ -78,19 +80,19 @@ export function CalendarToolbar({
               variant="outline"
               size="icon"
               onClick={onPrevious}
-              aria-label={`Previous ${view}`}
+              aria-label={view === 'month' ? t('calendar.previousMonth') : t('calendar.previousWeek')}
             >
               <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={onToday}>
-              Today
+              {t('calendar.today')}
             </Button>
             <Button
               type="button"
               variant="outline"
               size="icon"
               onClick={onNext}
-              aria-label={`Next ${view}`}
+              aria-label={view === 'month' ? t('calendar.nextMonth') : t('calendar.nextWeek')}
             >
               <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </Button>
@@ -105,12 +107,12 @@ export function CalendarToolbar({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <ListFilter className="h-3.5 w-3.5" aria-hidden="true" />
-            Filters
+            {t('common.filters')}
           </div>
 
           {canFilterTechnicians ? (
             <label className="sr-only" htmlFor="calendar-technician">
-              Filter by technician
+              {t('calendar.filterTechnician')}
             </label>
           ) : null}
           {canFilterTechnicians ? (
@@ -120,7 +122,7 @@ export function CalendarToolbar({
               onChange={(event) => onTechnicianChange(event.target.value)}
               className="h-9 rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <option value="ALL">All technicians</option>
+              <option value="ALL">{t('calendar.allTechnicians')}</option>
               {technicians.map((technician) => (
                 <option key={technician.id} value={technician.id}>
                   {technician.name}
@@ -130,7 +132,7 @@ export function CalendarToolbar({
           ) : null}
 
           <label className="sr-only" htmlFor="calendar-status">
-            Filter by status
+            {t('calendar.filterStatus')}
           </label>
           <select
             id="calendar-status"
@@ -140,10 +142,10 @@ export function CalendarToolbar({
             }
             className="h-9 rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <option value="ALL">All statuses</option>
+            <option value="ALL">{t('calendar.allStatuses')}</option>
             {WORK_ORDER_STATUSES.map((option) => (
               <option key={option} value={option}>
-                {humanizeEnum(option)}
+                {enumLabel('status', option)}
               </option>
             ))}
           </select>

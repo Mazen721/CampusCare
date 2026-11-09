@@ -28,8 +28,11 @@ import type {
 interface PopulatedLocation {
   _id: Types.ObjectId;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
 }
 
 interface PopulatedTechnician {
@@ -58,14 +61,19 @@ interface PopulatedPreventivePlan
 export interface SerializedPreventivePlan {
   id: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   location: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
   } | null;
   assignedTechnician: {
     id: string;
@@ -86,7 +94,7 @@ export interface SerializedPreventivePlan {
 }
 
 const PLAN_POPULATION = [
-  { path: 'locationId', select: 'buildingName floor room' },
+  { path: 'locationId', select: 'buildingName buildingNameAr floor floorAr room roomAr' },
   { path: 'assignedTechnicianId', select: 'name availability' },
   { path: 'createdBy', select: 'name role' },
 ];
@@ -100,15 +108,20 @@ function serializePlan(plan: PopulatedPreventivePlan): SerializedPreventivePlan 
   return {
     id: plan._id.toString(),
     title: plan.title,
+    titleAr: plan.titleAr,
     description: plan.description,
+    descriptionAr: plan.descriptionAr,
     category: plan.category,
     priority: plan.priority,
     location: location
       ? {
           id: location._id.toString(),
           buildingName: location.buildingName,
+          buildingNameAr: location.buildingNameAr,
           floor: location.floor,
+          floorAr: location.floorAr,
           room: location.room,
+          roomAr: location.roomAr,
         }
       : null,
     assignedTechnician: technician
@@ -208,7 +221,9 @@ export async function createPreventivePlan(
 
   const plan = await PreventivePlan.create({
     title: input.title,
+    titleAr: input.titleAr,
     description: input.description,
+    descriptionAr: input.descriptionAr,
     category: input.category,
     priority: input.priority,
     locationId: input.locationId,
@@ -229,7 +244,7 @@ export async function createPreventivePlan(
     entityId: plan._id,
     description: `Created preventive plan ${plan.title} (${plan.recurrenceType})`,
     descriptionKey: 'preventivePlanCreated',
-    params: { title: plan.title, recurrence: plan.recurrenceType },
+    params: { title: { en: plan.title, ar: plan.titleAr }, recurrence: plan.recurrenceType },
     metadata: {
       category: plan.category,
       recurrenceType: plan.recurrenceType,
@@ -277,7 +292,9 @@ export async function updatePreventivePlan(
   }
 
   if (input.title !== undefined) plan.title = input.title;
+  if (input.titleAr !== undefined) plan.titleAr = input.titleAr;
   if (input.description !== undefined) plan.description = input.description;
+  if (input.descriptionAr !== undefined) plan.descriptionAr = input.descriptionAr;
   if (input.category !== undefined) plan.category = input.category;
   if (input.priority !== undefined) plan.priority = input.priority;
   if (input.recurrenceType !== undefined) plan.recurrenceType = input.recurrenceType;
@@ -394,7 +411,9 @@ export async function generateDueWorkOrders(
         preventivePlanId: plan._id,
         assignedTechnicianId: plan.assignedTechnicianId,
         title: plan.title,
+        titleAr: plan.titleAr,
         description: plan.description,
+        descriptionAr: plan.descriptionAr,
         category: plan.category,
         priority: plan.priority,
         locationId: plan.locationId,

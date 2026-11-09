@@ -2,6 +2,7 @@ import type { Types } from 'mongoose';
 import { ApiError } from '../../shared/utils/ApiError';
 import { paginate, parsePagination } from '../../shared/utils/paginate';
 import { Notification, type INotification } from '../../shared/models/Notification.model';
+import { applyNotificationLocalization } from '../../shared/utils/notificationLocalization';
 import type { ListNotificationsQuery } from './notification.validation';
 
 export interface SerializedNotification {
@@ -33,14 +34,16 @@ function serializeNotification(notification: {
   isRead: boolean;
   createdAt: Date;
 }): SerializedNotification {
+  const localized = applyNotificationLocalization(notification);
+
   return {
     id: notification._id.toString(),
-    type: notification.type,
-    title: notification.title,
-    message: notification.message,
-    titleKey: notification.titleKey,
-    messageKey: notification.messageKey,
-    params: notification.params,
+    type: localized.type ?? notification.type,
+    title: localized.title ?? notification.title,
+    message: localized.message ?? notification.message,
+    titleKey: localized.titleKey,
+    messageKey: localized.messageKey,
+    params: localized.params,
     relatedEntityType: notification.relatedEntityType,
     relatedEntityId: notification.relatedEntityId?.toString(),
     linkUrl: notification.linkUrl,
@@ -70,7 +73,8 @@ export async function listNotifications(
     Notification.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     Notification.countDocuments(filter),
     Notification.countDocuments({ userId, isRead: false }),
   ]);
@@ -89,7 +93,7 @@ export async function markNotificationRead(
     { _id: id, userId },
     { $set: { isRead: true } },
     { new: true },
-  );
+  ).lean();
 
   if (!notification) {
     throw ApiError.notFound('Notification not found', 'notificationNotFound');

@@ -11,13 +11,17 @@ export interface WorkOrderTechnician {
 export interface WorkOrderLocation {
   id: string;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType?: string;
 }
 
 export interface WorkOrderNote {
   note: string;
+  noteAr?: string;
   author: {
     id: string;
     name: string;
@@ -35,7 +39,9 @@ export interface WorkOrderRecord {
   preventivePlanId?: string;
   assignedTechnician?: WorkOrderTechnician | null;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   location: WorkOrderLocation | null;
@@ -50,7 +56,9 @@ export interface WorkOrderRecord {
   completedAt?: string;
   technicianNotes: WorkOrderNote[];
   resolutionDetails?: string;
+  resolutionDetailsAr?: string;
   cancelReason?: string;
+  cancelReasonAr?: string;
   createdAt: string;
   updatedAt: string;
 }

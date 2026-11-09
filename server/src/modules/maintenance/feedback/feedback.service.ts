@@ -22,6 +22,7 @@ export interface SerializedFeedback {
   maintenanceRequestId: string;
   requestNumber?: string;
   requestTitle?: string;
+  requestTitleAr?: string;
   workOrderId: string;
   workOrderNumber?: string;
   technician: {
@@ -37,6 +38,7 @@ export interface SerializedFeedback {
   };
   rating: number;
   comment?: string;
+  commentAr?: string;
   createdAt: Date;
 }
 
@@ -58,6 +60,7 @@ function serializeFeedback(doc: any): SerializedFeedback {
     maintenanceRequestId: req?._id ? req._id.toString() : doc.maintenanceRequestId.toString(),
     requestNumber: req?.requestNumber,
     requestTitle: req?.title,
+    requestTitleAr: req?.titleAr,
     workOrderId: wo?._id ? wo._id.toString() : doc.workOrderId.toString(),
     workOrderNumber: wo?.workOrderNumber,
     technician: {
@@ -73,6 +76,7 @@ function serializeFeedback(doc: any): SerializedFeedback {
     },
     rating: doc.rating,
     comment: doc.comment,
+    commentAr: doc.commentAr,
     createdAt: doc.createdAt,
   };
 }
@@ -173,7 +177,7 @@ export async function createFeedback(
   const populated = await ServiceFeedback.findById(feedback._id)
     .populate('technicianId', 'name email specializations')
     .populate('requesterId', 'name email')
-    .populate('maintenanceRequestId', 'requestNumber title')
+    .populate('maintenanceRequestId', 'requestNumber title titleAr')
     .populate('workOrderId', 'workOrderNumber')
     .lean();
 
@@ -208,7 +212,7 @@ export async function listFeedback(
     ServiceFeedback.find(filter)
       .populate('technicianId', 'name email specializations')
       .populate('requesterId', 'name email')
-      .populate('maintenanceRequestId', 'requestNumber title')
+      .populate('maintenanceRequestId', 'requestNumber title titleAr')
       .populate('workOrderId', 'workOrderNumber')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)

@@ -18,13 +18,18 @@ export interface ILostFoundItem {
   reportNumber: string;
   reportType: ReportType;
   itemTitle: string;
+  itemTitleAr?: string;
   description: string;
+  descriptionAr?: string;
   privateIdentificationDetails: string;
   category: LostFoundCategory;
   color?: string;
+  colorAr?: string;
   brand?: string;
+  brandAr?: string;
   locationId: Types.ObjectId;
   locationDetails: string;
+  locationDetailsAr?: string;
   occurrenceDate: Date;
   images: ImageAsset[];
   reporterId: Types.ObjectId;
@@ -38,7 +43,9 @@ const lostFoundItemSchema = new Schema<ILostFoundItem>(
     reportNumber: { type: String, required: true, trim: true },
     reportType: { type: String, required: true, enum: REPORT_TYPES },
     itemTitle: { type: String, required: true, trim: true, maxlength: 160 },
+    itemTitleAr: { type: String, trim: true, maxlength: 160 },
     description: { type: String, required: true, trim: true, maxlength: 4000 },
+    descriptionAr: { type: String, trim: true, maxlength: 4000 },
     privateIdentificationDetails: {
       type: String,
       required: true,
@@ -48,9 +55,12 @@ const lostFoundItemSchema = new Schema<ILostFoundItem>(
     },
     category: { type: String, required: true, enum: LOST_FOUND_CATEGORIES },
     color: { type: String, trim: true, maxlength: 60 },
+    colorAr: { type: String, trim: true, maxlength: 60 },
     brand: { type: String, trim: true, maxlength: 80 },
+    brandAr: { type: String, trim: true, maxlength: 80 },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true },
     locationDetails: { type: String, required: true, trim: true, maxlength: 500 },
+    locationDetailsAr: { type: String, trim: true, maxlength: 500 },
     occurrenceDate: { type: Date, required: true },
     images: {
       type: [imageSchema],

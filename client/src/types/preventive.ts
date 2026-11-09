@@ -13,14 +13,19 @@ export const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
 export interface PreventivePlanRecord {
   id: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   location: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
   } | null;
   assignedTechnician: {
     id: string;
@@ -42,7 +47,9 @@ export interface PreventivePlanRecord {
 
 export interface CreatePreventivePlanInput {
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   locationId: string;

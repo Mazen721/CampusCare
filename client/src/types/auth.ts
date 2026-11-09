@@ -32,6 +32,7 @@ export interface AuthUser {
   email: string;
   role: Role;
   department?: string;
+  departmentAr?: string;
   contactPhone?: string;
   isActive: boolean;
   specializations: string[];

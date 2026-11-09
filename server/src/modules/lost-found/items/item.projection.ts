@@ -9,8 +9,11 @@ import type { ImageAsset } from '../../../shared/schemas/image.schema';
 export interface PublicItemLocation {
   id: string;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType?: string;
 }
 
@@ -23,12 +26,17 @@ export interface PublicItem {
   reportNumber: string;
   reportType: ReportType;
   itemTitle: string;
+  itemTitleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: LostFoundCategory;
   color?: string;
+  colorAr?: string;
   brand?: string;
+  brandAr?: string;
   location: PublicItemLocation | null;
   locationDetails: string;
+  locationDetailsAr?: string;
   occurrenceDate: Date;
   images: ImageAsset[];
   status: ItemStatus;
@@ -37,8 +45,11 @@ export interface PublicItem {
 interface PopulatedLocation {
   _id: Types.ObjectId | string;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType?: string;
 }
 
@@ -47,12 +58,17 @@ export interface ProjectableItem {
   reportNumber: string;
   reportType: ReportType;
   itemTitle: string;
+  itemTitleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: LostFoundCategory;
   color?: string;
+  colorAr?: string;
   brand?: string;
+  brandAr?: string;
   locationId?: Types.ObjectId | string | PopulatedLocation | null;
   locationDetails: string;
+  locationDetailsAr?: string;
   occurrenceDate: Date;
   images?: ImageAsset[];
   status: ItemStatus;
@@ -78,8 +94,11 @@ export function toPublicItem(item: ProjectableItem): PublicItem {
     ? {
         id: item.locationId._id.toString(),
         buildingName: item.locationId.buildingName,
+        buildingNameAr: item.locationId.buildingNameAr,
         floor: item.locationId.floor,
+        floorAr: item.locationId.floorAr,
         room: item.locationId.room,
+        roomAr: item.locationId.roomAr,
         locationType: item.locationId.locationType,
       }
     : null;
@@ -89,12 +108,17 @@ export function toPublicItem(item: ProjectableItem): PublicItem {
     reportNumber: item.reportNumber,
     reportType: item.reportType,
     itemTitle: item.itemTitle,
+    itemTitleAr: item.itemTitleAr,
     description: item.description,
+    descriptionAr: item.descriptionAr,
     category: item.category,
     color: item.color,
+    colorAr: item.colorAr,
     brand: item.brand,
+    brandAr: item.brandAr,
     location,
     locationDetails: item.locationDetails,
+    locationDetailsAr: item.locationDetailsAr,
     occurrenceDate: item.occurrenceDate,
     images: (item.images ?? []).map((image) => ({
       url: image.url,

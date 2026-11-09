@@ -15,6 +15,7 @@ import {
   type ClaimFormValues,
 } from '@/features/lost-found/claims/claimFormSchema';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
+import { formatLocation, tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
@@ -88,10 +89,10 @@ export function ClaimForm({
           <p className="font-mono text-xs font-semibold text-primary">
             <span dir="ltr">{foundItem.reportNumber}</span>
           </p>
-          <p className="mt-1 text-sm font-semibold text-foreground">{foundItem.itemTitle}</p>
+          <p className="mt-1 text-sm font-semibold text-foreground">{tr(foundItem, 'itemTitle')}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {enumLabel('lostFoundCategory', foundItem.category)} · {t('lostFound.foundOn')} {formatDate(foundItem.occurrenceDate)}
-            {foundItem.location ? ` · ${foundItem.location.buildingName}` : ''}
+            {foundItem.location ? ` · ${formatLocation(foundItem.location)}` : ''}
           </p>
           <input type="hidden" {...register('itemId')} />
         </div>
@@ -112,7 +113,7 @@ export function ClaimForm({
             <option value="">{t('claims.foundItemSelectPrompt')}</option>
             {claimableItems.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.reportNumber} · {item.itemTitle}
+                {item.reportNumber} · {tr(item, 'itemTitle')}
               </option>
             ))}
           </select>
@@ -165,7 +166,7 @@ export function ClaimForm({
           <option value="">{t('claims.noLinkedLostOption')}</option>
           {lostReports.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.reportNumber} · {item.itemTitle}
+              {item.reportNumber} · {tr(item, 'itemTitle')}
             </option>
           ))}
         </select>

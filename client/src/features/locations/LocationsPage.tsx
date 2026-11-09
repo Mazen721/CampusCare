@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LocationFormDialog } from '@/features/locations/LocationFormDialog';
 import { locationsApi } from '@/features/locations/locationsApi';
+import { tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
@@ -61,9 +62,9 @@ export function LocationsPage() {
       header: t('locations.building'),
       cell: (location) => (
         <div className="min-w-0">
-          <p className="font-medium text-foreground">{location.buildingName}</p>
+          <p className="font-medium text-foreground">{tr(location, 'buildingName')}</p>
           <p className="truncate text-xs text-muted-foreground">
-            {location.description || `${location.floor} · ${t('locations.room')} ${location.room}`}
+            {tr(location, 'description') || `${tr(location, 'floor')} · ${t('locations.room')} ${tr(location, 'room')}`}
           </p>
         </div>
       ),
@@ -71,12 +72,12 @@ export function LocationsPage() {
     {
       id: 'floor',
       header: t('locations.floor'),
-      cell: (location) => <span className="text-sm text-foreground">{location.floor}</span>,
+      cell: (location) => <span className="text-sm text-foreground">{tr(location, 'floor')}</span>,
     },
     {
       id: 'room',
       header: t('locations.room'),
-      cell: (location) => <span className="text-sm text-foreground">{location.room}</span>,
+      cell: (location) => <span className="text-sm text-foreground">{tr(location, 'room')}</span>,
     },
     {
       id: 'type',
@@ -122,7 +123,7 @@ export function LocationsPage() {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            aria-label={`${t('common.edit')} ${location.buildingName}`}
+            aria-label={`${t('common.edit')} ${tr(location, 'buildingName')}`}
             onClick={() => {
               setEditing(location);
               setFormOpen(true);
@@ -135,7 +136,7 @@ export function LocationsPage() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-              aria-label={`${t('locations.deactivate')} ${location.buildingName}`}
+              aria-label={`${t('locations.deactivate')} ${tr(location, 'buildingName')}`}
               onClick={() => setDeactivating(location)}
             >
               <Power className="h-4 w-4" aria-hidden="true" />
@@ -228,9 +229,9 @@ export function LocationsPage() {
         description={
           deactivating
             ? t('locations.confirmDeactivateDesc', {
-                building: deactivating.buildingName,
-                floor: deactivating.floor,
-                room: deactivating.room,
+                building: tr(deactivating, 'buildingName'),
+                floor: tr(deactivating, 'floor'),
+                room: tr(deactivating, 'room'),
               })
             : ''
         }

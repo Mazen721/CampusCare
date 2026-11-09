@@ -117,6 +117,7 @@ export interface DemoAccount {
   email: string;
   name: string;
   department: string;
+  departmentAr?: string;
 }
 
 export const DEMO_ACCOUNTS: Record<Role, DemoAccount> = {
@@ -124,25 +125,30 @@ export const DEMO_ACCOUNTS: Record<Role, DemoAccount> = {
     email: 't.elshenawy@mansnu.edu.eg',
     name: 'Eng. Tarek El-Shenawy',
     department: 'Information Technology & Digital Transformation Unit',
+    departmentAr: 'وحدة تكنولوجيا المعلومات والتحول الرقمي',
   },
   MAINTENANCE_MANAGER: {
     email: 'm.elmetwally@mansnu.edu.eg',
     name: 'Eng. Mahmoud El-Metwally',
     department: 'Engineering Affairs & Maintenance Department',
+    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
   },
   TECHNICIAN: {
     email: 'h.elsayed@mansnu.edu.eg',
     name: 'Hassan El-Sayed',
     department: 'Engineering Affairs & Maintenance Department',
+    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
   },
   LOST_FOUND_OFFICER: {
     email: 'a.eldesouky@mansnu.edu.eg',
     name: 'Ahmed El-Desouky',
     department: 'University Security, Safety & Lost and Found Office',
+    departmentAr: 'مكتب أمن وسلامة الجامعة والمفقودات',
   },
   STUDENT_EMPLOYEE: {
     email: 'youssef.elashry@std.mansnu.edu.eg',
     name: 'Youssef El-Ashry',
     department: 'Faculty of Engineering (Mechatronics)',
+    departmentAr: 'كلية الهندسة (ميكاترونكس)',
   },
 };

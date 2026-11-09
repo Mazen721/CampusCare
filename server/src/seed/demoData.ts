@@ -22,7 +22,10 @@ import {
 import { LostFoundItem } from '../modules/lost-found/items/lostFoundItem.model';
 import { ItemMatch } from '../modules/lost-found/matches/itemMatch.model';
 import { ClaimRequest } from '../modules/lost-found/claims/claimRequest.model';
-import { AiInsightCache } from '../modules/ai/aiInsightCache.model';
+import {
+  AI_INSIGHTS_PROMPT_VERSION,
+  AiInsightCache,
+} from '../modules/ai/aiInsightCache.model';
 import { Notification } from '../shared/models/Notification.model';
 import { ActivityLog } from '../shared/models/ActivityLog.model';
 
@@ -45,11 +48,13 @@ const EXTRA_STUDENTS = [
     name: 'Sara Mahmoud',
     email: 'sara.mahmoud@std.mansnu.edu.eg',
     department: 'Faculty of Computers & Information',
+    departmentAr: 'كلية الحاسبات والمعلومات',
   },
   {
     name: 'Omar Khaled',
     email: 'omar.khaled@std.mansnu.edu.eg',
     department: 'Faculty of Medicine',
+    departmentAr: 'كلية الطب البشري',
   },
 ];
 
@@ -67,7 +72,9 @@ const EXTRA_STUDENT_EMAILS = EXTRA_STUDENTS.map((student) => student.email);
 interface RequestSpec {
   key: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   status: RequestStatus;
@@ -88,7 +95,9 @@ interface WorkOrderSpec {
   actualStart?: Date;
   completedAt?: Date;
   resolutionDetails?: string;
+  resolutionDetailsAr?: string;
   cancelReason?: string;
+  cancelReasonAr?: string;
   current?: boolean;
 }
 
@@ -96,15 +105,20 @@ interface ItemSpec {
   key: string;
   reportType: 'LOST' | 'FOUND';
   itemTitle: string;
+  itemTitleAr?: string;
   description: string;
+  descriptionAr?: string;
   privateIdentificationDetails: string;
   category: 'Electronics' | 'Phones' | 'Laptops' | 'Headphones' | 'Wallets' | 'Bags' | 'Keys' | 'Documents' | 'Accessories' | 'Books' | 'Clothing' | 'Other';
   color?: string;
+  colorAr?: string;
   brand?: string;
+  brandAr?: string;
   reporterEmail: string;
   building: 'Engineering' | 'Administration' | 'Medical' | 'Humanities';
   locationIndex: number;
   locationDetails: string;
+  locationDetailsAr?: string;
   occurrenceDaysAgo: number;
   status: 'OPEN' | 'MATCH_CONFIRMED' | 'CLAIM_UNDER_REVIEW' | 'APPROVED_FOR_HANDOVER' | 'RETURNED' | 'CLOSED';
 }
@@ -114,14 +128,18 @@ interface ClaimSpec {
   linkedLostKey?: string;
   claimantEmail: string;
   claimDescription: string;
+  claimDescriptionAr?: string;
   identifyingDetailsProvided: string;
   status: 'PENDING_REVIEW' | 'UNDER_VERIFICATION' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
   verificationNotes?: string;
+  verificationNotesAr?: string;
   rejectionReason?: string;
+  rejectionReasonAr?: string;
   reviewed: boolean;
   handover?: {
     receivedByName: string;
     notes?: string;
+    notesAr?: string;
     handedOverAt: Date;
   };
 }
@@ -196,6 +214,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
   const requestSpecs: RequestSpec[] = [
     {
       key: 'submitted-1',
+      titleAr: 'جهاز العرض لا يعمل في مدرج A',
+      descriptionAr:
+        'جهاز العرض المثبت في سقف مدرج A لا يعمل. يظل مؤشر جهاز التحكم أحمر وتُلقى المحاضرات حالياً باستخدام شاشة متنقلة.',
       title: 'Projector will not power on in Lecture Hall A',
       description:
         'The ceiling projector in Lecture Hall A does not power on. The remote indicator stays red and lectures are currently using a portable screen.',
@@ -209,6 +230,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'submitted-2',
+      titleAr: 'صنبور يسرب المياه في دورة مياه الطابق الأرضي',
+      descriptionAr:
+        'صنبور في دورة مياه الطابق الأرضي بالمجمع الطبي يستمر في التنقيط والحوض يمتلئ ببطء. تتجمع المياه حول الحوض.',
       title: 'Leaking faucet in ground-floor washroom',
       description:
         'A faucet in the medical complex ground-floor washroom keeps dripping and the sink is filling slowly. Water is pooling around the basin.',
@@ -222,6 +246,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'submitted-3',
+      titleAr: 'شبكة الواي فاي تنقطع باستمرار في قاعة القراءة بالمكتبة',
+      descriptionAr:
+        'تنقطع الشبكة اللاسلكية كل بضع دقائق في قاعة القراءة بالمكتبة المركزية. لا يستطيع الطلاب البقاء على اتصال أثناء الامتحانات الإلكترونية.',
       title: 'Wi-Fi drops repeatedly in the library reading room',
       description:
         'The wireless network disconnects every few minutes in the central library reading room. Students cannot stay connected during online exams.',
@@ -235,6 +262,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'submitted-4',
+      titleAr: 'كرسي مكسور في قاعة ندوات كلية العلوم الإنسانية',
+      descriptionAr:
+        'أحد كراسي قاعة الندوات به كسر في المقعد ويهتز عند الجلوس عليه. ينبغي إزالته قبل المحاضرة القادمة.',
       title: 'Broken chair in the humanities seminar room',
       description:
         'One of the seminar chairs has a cracked seat and rocks when used. It should be removed before the next class.',
@@ -248,6 +278,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'under-review-1',
+      titleAr: 'مكيف الهواء يصدر صوت احتكاك مرتفعاً',
+      descriptionAr:
+        'وحدة التكييف في معمل حاسب كلية الهندسة تصدر صوتاً مرتفعاً وتهتز بشدة عند بدء التشغيل.',
       title: 'Air conditioner making a loud grinding noise',
       description:
         'The air conditioning unit in the engineering computer lab makes a loud grinding noise and vibrates strongly when it starts.',
@@ -262,6 +295,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'under-review-2',
+      titleAr: 'أضواء الممر تومض بالقرب من العيادات الطبية',
+      descriptionAr:
+        'أضواء السقف في ممر المجمع الطبي تومض باستمرار في المساء. المشكلة تؤثر على الممر المؤدي للعيادات.',
       title: 'Corridor lights flicker near the medical clinics',
       description:
         'The ceiling lights in the medical complex corridor flicker constantly in the evening. The issue affects the walkway outside the clinics.',
@@ -276,6 +312,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'under-review-3',
+      titleAr: 'حاسوب معمل التدريس لا يقلع',
+      descriptionAr:
+        'يتوقف جهاز المحاضر في معمل الحاسب 2 عند شعار الشركة المصنعة. تعذر إجراء الجلسة العملية لشبكات الحاسب المقررة.',
       title: 'Teaching lab PC fails to boot',
       description:
         'The instructor workstation in Computer Lab 2 stops at the manufacturer logo. The lab cannot run the scheduled networking practical.',
@@ -290,6 +329,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'approved-pending',
+      titleAr: 'مبرد المياه يسرب في بهو المكتبة',
+      descriptionAr:
+        'مبرد المياه بالقرب من بهو المكتبة يسرب من الأسفل وتم إيقاف تشغيله. الأرضية لا تزال مبللة.',
       title: 'Water dispenser leaking in the library lobby',
       description:
         'The water dispenser near the library lobby leaks from the bottom and has been switched off. The floor remains wet.',
@@ -304,6 +346,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'approved-assigned',
+      titleAr: 'كابل جهاز العرض يحتاج إلى استبدال في مدرج B',
+      descriptionAr:
+        'كابل HDMI الخاص بجهاز عرض قاعة المحاضرات تالف عند طرف التوصيل وتتقطع الصورة عند تحريك الكابل.',
       title: 'Projector cable needs replacement in Lecture Hall B',
       description:
         'The HDMI cable to the lecture hall projector is damaged at the connector and the image cuts out when the cable moves.',
@@ -318,6 +363,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'approved-assigned-2',
+      titleAr: 'قفل الباب عالق في قاعة ندوات المجمع الطبي',
+      descriptionAr:
+        'قفل باب قاعة الندوات يعلق مع وجود المفتاح بداخله ولا يمكن قفل القاعة بإحكام بعد المحاضرات.',
       title: 'Door lock jammed in the medical seminar room',
       description:
         'The seminar room door lock jams with the key inside and the room cannot be locked securely after lectures.',
@@ -332,6 +380,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'rejected-1',
+      titleAr: 'استبدال شاشة كمبيوتر محمول شخصي',
+      descriptionAr:
+        'تصدعت شاشة حاسوبي المحمول الشخصي وأرغب في استبدالها من قبل وحدة تكنولوجيا المعلومات قبل عرض مشروعي النهائي.',
       title: 'Personal laptop screen replacement',
       description:
         'My personal laptop screen cracked and I would like the IT unit to replace it before my final project presentation.',
@@ -347,6 +398,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'rejected-2',
+      titleAr: 'إعادة طلاء جدار مكتب شؤون الطلاب',
+      descriptionAr:
+        'الجدار خلف مكتب شؤون الطلاب به خدش بسيط وسيبدو أفضل بطلاء جديد.',
       title: 'Repaint the student affairs office wall',
       description:
         'The wall behind the student affairs counter has a small scuff and would look better with a fresh coat of paint.',
@@ -361,6 +415,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'in-progress',
+      titleAr: 'عطل في تبريد غرفة الخوادم',
+      descriptionAr:
+        'حرارة غرفة الخوادم الرئيسية ترتفع بشدة ووحدة التبريد الاحتياطية لا تعمل تلقائياً. درجة حرارة الغرفة تجاوزت الحد الآمن.',
       title: 'Server room cooling failure',
       description:
         'The primary server room is overheating and the backup cooling unit is not starting automatically. Room temperature is above the safe threshold.',
@@ -375,6 +432,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'in-progress-overdue',
+      titleAr: 'استبدال محول الشبكة (Switch) في الطابق الثاني',
+      descriptionAr:
+        'محول شبكة الطابق الثاني يفصل جميع الاتصالات في أوقات الذروة. تم تسليم الوحدة البديلة وتحتاج إلى التركيب.',
       title: 'Network switch replacement on the second floor',
       description:
         'The second-floor network switch drops all connections during peak hours. A replacement unit has been delivered and needs installation.',
@@ -389,6 +449,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'in-progress-2',
+      titleAr: 'حوض المعمل المكسور يسرب تحت المنضدة',
+      descriptionAr:
+        'الحوض في المعمل الطبي يسرب تحت المنضدة وتتعرض الخزانة للتلف بسبب المياه. تم عزل إمدادات المياه.',
       title: 'Broken lab sink leaking under the bench',
       description:
         'The sink in the medical lab leaks under the bench and the cabinet is becoming water damaged. The water supply has been isolated.',
@@ -403,6 +466,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'completed-1',
+      titleAr: 'صيانة تكييف الهواء في مدرج C',
+      descriptionAr:
+        'تكييف قاعة المحاضرات لم يكن يبرد بفاعلية أثناء محاضرات بعد الظهر. طُلبت صيانة كاملة.',
       title: 'Air conditioning servicing in Lecture Hall C',
       description:
         'The lecture hall air conditioning was not cooling effectively during afternoon lectures. A full service was requested.',
@@ -417,6 +483,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'completed-2',
+      titleAr: 'استبدال مقبس كهرباء تالف في معمل هندسة 3',
+      descriptionAr:
+        'مقبس الكهرباء بجانب طاولة المعمل يصدر شرراً عند إدخال القابس. تم فصل الدائرة فوراً.',
       title: 'Replace faulty power outlet in Engineering Lab 3',
       description:
         'The power outlet beside the lab bench sparks when a plug is inserted. The circuit was isolated immediately.',
@@ -431,6 +500,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'completed-3',
+      titleAr: 'إصلاح مكاتب تالفة في قاعة دراسة العلوم الإنسانية',
+      descriptionAr:
+        'ثلاثة مكاتب دراسية بها أسطح مفكوكة وبراغي بارزة. طُلب من الطلاب تجنب الغرفة لحين إصلاحها.',
       title: 'Repair damaged desks in the humanities study room',
       description:
         'Three study desks have loose tops and protruding screws. Students have been asked to avoid the room until repaired.',
@@ -445,6 +517,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'closed-1',
+      titleAr: 'استبدال لمبة جهاز عرض المعمل',
+      descriptionAr:
+        'جهاز العرض في معمل الحاسب 1 يُظهر صورة باهتة ويحتاج المصباح للاستبدال قبل الامتحانات العملية.',
       title: 'Lab projector bulb replacement',
       description:
         'The projector in Computer Lab 1 produced a dim image and the bulb needed replacement before the practical exams.',
@@ -459,6 +534,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'closed-2',
+      titleAr: 'تسريب أنبوب دورة المياه في المجمع الطبي',
+      descriptionAr:
+        'وصلة أنبوب تحت حوض دورة المياه تسرب باستمرار وتسببت في غمر بلاط الأرضية.',
       title: 'Restroom pipe leak in the medical complex',
       description:
         'A pipe joint under the restroom sink leaked continuously and soaked the floor tiles.',
@@ -473,6 +551,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'closed-3',
+      titleAr: 'استبدال فلاتر التكييف المركزي في المكتبة',
+      descriptionAr:
+        'وحدة معالجة الهواء بالمكتبة كانت تنشر الغبار وكانت الفلاتر مستحقة للاستبدال.',
       title: 'HVAC filter replacement in the library',
       description:
         'The library air handling unit was circulating dust and the filters were due for replacement.',
@@ -487,6 +568,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'closed-4',
+      titleAr: 'معايرة السبورة الذكية في قاعة الندوات 2',
+      descriptionAr:
+        'موضع اللمس في السبورة الذكية كان مزاحاً عن الصورة المعروضة، مما جعل الكتابة غير قابلة للاستخدام.',
       title: 'Smart board calibration in Seminar Room 2',
       description:
         'The smart board touch position was offset from the projected image, making annotations unusable.',
@@ -501,6 +585,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'reopened-1',
+      titleAr: 'ضوء السقف لا يزال يومض بعد الإصلاح',
+      descriptionAr:
+        'ضوء السقف خارج معمل هندسة 2 تم إصلاحه الأسبوع الماضي لكنه لا يزال يومض وينطفئ تماماً في بعض الأحيان.',
       title: 'Ceiling light still flickering after repair',
       description:
         'The ceiling light outside Engineering Lab 2 was repaired last week but still flickers and occasionally turns off completely.',
@@ -516,6 +603,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'reopened-2',
+      titleAr: 'الحوض لا يزال مسدوداً بعد زيارة الصيانة',
+      descriptionAr:
+        'حوض المعمل الطبي يصرف ببطء شديد مجدداً بعد الزيارة السابقة. تتجمع المياه عند فتح الصنبور لأكثر من دقيقة.',
       title: 'Sink still blocked after maintenance visit',
       description:
         'The medical lab sink drains very slowly again after the previous visit. Water backs up when the tap runs for more than a minute.',
@@ -541,7 +631,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       requestNumber: `MR-${2001 + index}`,
       requesterId: userId(spec.requesterEmail),
       title: spec.title,
+      titleAr: spec.titleAr,
       description: spec.description,
+      descriptionAr: spec.descriptionAr,
       category: spec.category,
       priority: spec.priority,
       locationId: locationId(spec.building, spec.locationIndex),
@@ -621,6 +713,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(24), 4),
       completedAt: daysAgo(23),
       resolutionDetails: 'Replaced the compressor contactor and cleaned the coils.',
+      resolutionDetailsAr: 'تم استبدال ملامس الضاغط وتنظيف الملفات.',
       current: true,
     },
     {
@@ -632,6 +725,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(28), 4),
       completedAt: daysAgo(27),
       resolutionDetails: 'Replaced the outlet and verified the circuit under load.',
+      resolutionDetailsAr: 'تم استبدال المقبس واختبار الدائرة تحت الحمل.',
       current: true,
     },
     {
@@ -643,6 +737,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(32), 4),
       completedAt: daysAgo(31),
       resolutionDetails: 'Tightened the desk frames and replaced the damaged screws.',
+      resolutionDetailsAr: 'تم إحكام تثبيت هياكل المكاتب واستبدال البراغي التالفة.',
       current: true,
     },
     {
@@ -654,6 +749,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(38), 4),
       completedAt: daysAgo(37),
       resolutionDetails: 'Replaced the projector bulb and reset the lamp timer.',
+      resolutionDetailsAr: 'تم استبدال لمبة جهاز العرض وإعادة ضبط مؤقت المصباح.',
       current: true,
     },
     {
@@ -665,6 +761,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(43), 4),
       completedAt: daysAgo(42),
       resolutionDetails: 'Replaced the pipe joint and sealed the fitting.',
+      resolutionDetailsAr: 'تم استبدال وصلة الأنبوب وإحكام إغلاق التركيب.',
       current: true,
     },
     {
@@ -676,6 +773,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(52), 4),
       completedAt: daysAgo(51),
       resolutionDetails: 'Replaced both air filters and cleaned the housing.',
+      resolutionDetailsAr: 'تم استبدال كلا فلترَي الهواء وتنظيف المبيت.',
       current: true,
     },
     {
@@ -687,6 +785,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(61), 4),
       completedAt: daysAgo(60),
       resolutionDetails: 'Recalibrated the touch overlay and updated the driver.',
+      resolutionDetailsAr: 'تمت إعادة معايرة طبقة اللمس وتحديث برنامج التشغيل.',
       current: true,
     },
     {
@@ -696,6 +795,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       scheduledStart: daysAgo(18),
       expectedCompletion: daysAgo(17),
       cancelReason: 'Reopened by the requester after the fault returned.',
+      cancelReasonAr: 'أُعيد فتحه بواسطة مقدم الطلب بعد تكرار العطل.',
     },
     {
       requestKey: 'reopened-1',
@@ -713,6 +813,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       actualStart: addHours(daysAgo(25), 4),
       completedAt: daysAgo(24),
       resolutionDetails: 'Cleared the trap and tested the drain.',
+      resolutionDetailsAr: 'تم تنظيف مجرى الصرف واختبار التصريف.',
     },
     {
       requestKey: 'reopened-2',
@@ -738,7 +839,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
         ? userId(spec.technicianEmail)
         : undefined,
       title: request.title,
+      titleAr: request.titleAr,
       description: request.description,
+      descriptionAr: request.descriptionAr,
       category: request.category,
       priority: request.priority,
       locationId: request.locationId,
@@ -749,7 +852,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       completedAt: spec.completedAt,
       technicianNotes: [],
       resolutionDetails: spec.resolutionDetails,
+      resolutionDetailsAr: spec.resolutionDetailsAr,
       cancelReason: spec.cancelReason,
+      cancelReasonAr: spec.cancelReasonAr,
       createdAt: spec.scheduledStart,
       updatedAt: spec.completedAt ?? spec.actualStart ?? spec.scheduledStart,
     };
@@ -777,21 +882,25 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       requestKey: 'closed-1',
       rating: 5,
       comment: 'The projector was fixed the same day and the lab was ready for exams.',
+      commentAr: 'تم إصلاح جهاز العرض في نفس اليوم وكان المعمل جاهزاً للامتحانات.',
     },
     {
       requestKey: 'closed-2',
       rating: 4,
       comment: 'The leak stopped, although the floor took a while to dry.',
+      commentAr: 'توقف التسريب، على الرغم من أن الأرضية استغرقت بعض الوقت لتجف.',
     },
     {
       requestKey: 'closed-3',
       rating: 5,
       comment: 'The library air feels much cleaner after the filter replacement.',
+      commentAr: 'الهواء في المكتبة أنقى بكثير بعد استبدال الفلاتر.',
     },
     {
       requestKey: 'closed-4',
       rating: 3,
       comment: 'Calibration helped, but the touch screen is still slightly offset at the edges.',
+      commentAr: 'ساعدت المعايرة، لكن شاشة اللمس ما زالت مزاحة قليلاً عند الحواف.',
     },
   ];
 
@@ -810,6 +919,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       requesterId: request.requesterId,
       rating: spec.rating,
       comment: spec.comment,
+      commentAr: spec.commentAr,
       createdAt: addHours(workOrder.completedAt ?? now, 20),
     };
   });
@@ -827,8 +937,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       _id: duePlanId,
       title: 'Weekly HVAC filter inspection',
+      titleAr: 'فحص فلاتر التكييف الأسبوعي',
       description:
         'Inspect and clean the air handling unit filters in the central library and record the pressure drop.',
+      descriptionAr:
+        'فحص وتنظيف فلاتر وحدة معالجة الهواء في المكتبة المركزية وتسجيل فرق الضغط.',
       category: 'Air Conditioning',
       priority: 'MEDIUM',
       locationId: locationId('Administration', 0),
@@ -845,8 +958,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       _id: futurePlanId,
       title: 'Monthly emergency lighting test',
+      titleAr: 'اختبار إضاءة الطوارئ الشهري',
       description:
         'Test all emergency lights and exit signs in the engineering complex and replace failed batteries.',
+      descriptionAr:
+        'اختبار جميع كشافات الطوارئ ولوحات الخروج في مجمع الهندسة واستبدال البطاريات التالفة.',
       category: 'Electrical',
       priority: 'HIGH',
       locationId: locationId('Engineering', 1),
@@ -863,8 +979,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       _id: inactivePlanId,
       title: 'Quarterly water tank cleaning',
+      titleAr: 'تنظيف خزانات المياه ربع السنوي',
       description:
         'Drain, clean and disinfect the reserve water tanks in the medical complex.',
+      descriptionAr:
+        'تصريف وتنظيف وتطهير خزانات المياه الاحتياطية في المجمع الطبي.',
       category: 'Plumbing',
       priority: 'CRITICAL',
       locationId: locationId('Medical', 0),
@@ -891,7 +1010,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     preventivePlanId: inactivePlanId,
     assignedTechnicianId: technicianIds[1]!,
     title: 'Quarterly water tank cleaning',
+    titleAr: 'تنظيف خزانات المياه ربع السنوي',
     description: planDocs[2]!.description,
+    descriptionAr: planDocs[2]!.descriptionAr,
     category: planDocs[2]!.category,
     priority: planDocs[2]!.priority,
     locationId: planDocs[2]!.locationId,
@@ -902,6 +1023,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     completedAt: addHours(daysAgo(8), 7),
     technicianNotes: [],
     resolutionDetails: 'Tanks drained, scrubbed and disinfected; water quality checked.',
+    resolutionDetailsAr: 'تم تصريف الخزانات وفركها وتطهيرها؛ وفحص جودة المياه.',
     createdAt: daysAgo(8),
     updatedAt: addHours(daysAgo(8), 7),
   };
@@ -914,6 +1036,12 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
   const itemSpecs: ItemSpec[] = [
     {
       key: 'lost-backpack',
+      itemTitleAr: 'حقيبة ظهر North Face سوداء',
+      descriptionAr:
+        'فُقدت بالقرب من معمل الهندسة بعد محاضرة بعد الظهر. الحقيبة بها ميدالية مفاتيح زرقاء داخل الجيب الأمامي.',
+      colorAr: 'أسود',
+      brandAr: 'North Face',
+      locationDetailsAr: 'مقعد خارج معمل 204',
       reportType: 'LOST',
       itemTitle: 'Black North Face backpack',
       description:
@@ -932,6 +1060,12 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-backpack',
+      itemTitleAr: 'حقيبة ظهر North Face سوداء',
+      descriptionAr:
+        'عُثر عليها بالقرب من معمل الهندسة وبداخل الجيب الأمامي ميدالية مفاتيح زرقاء ومذكرات ميكاترونكس.',
+      colorAr: 'أسود',
+      brandAr: 'North Face',
+      locationDetailsAr: 'مكتب استقبال معمل 204',
       reportType: 'FOUND',
       itemTitle: 'Black North Face backpack',
       description:
@@ -950,6 +1084,12 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-bottle',
+      itemTitleAr: 'زجاجة ماء زرقاء من الفولاذ المقاوم للصدأ',
+      descriptionAr:
+        'فقدت زجاجة ماء زرقاء من الفولاذ مع غطاء به صدمة في مكان ما بين الكافتيريا والمكتبة.',
+      colorAr: 'أزرق',
+      brandAr: 'Thermos',
+      locationDetailsAr: 'منطقة جلوس الكافتيريا',
       reportType: 'LOST',
       itemTitle: 'Blue stainless water bottle',
       description:
@@ -967,6 +1107,12 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-bottle',
+      itemTitleAr: 'زجاجة ماء زرقاء من الفولاذ المقاوم للصدأ',
+      descriptionAr:
+        'عُثر على زجاجة ماء زرقاء من الفولاذ مع غطاء به صدمة على طاولة دراسة بالمكتبة.',
+      colorAr: 'أزرق',
+      brandAr: 'Thermos',
+      locationDetailsAr: 'طاولة دراسة بالطابق الثاني بالمكتبة',
       reportType: 'FOUND',
       itemTitle: 'Blue stainless water bottle',
       description:
@@ -984,6 +1130,12 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-phone',
+      itemTitleAr: 'آيفون 13 فضي',
+      descriptionAr:
+        'فقدت هاتف iPhone 13 فضياً في جراب شفاف بالقرب من مدخل المجمع الطبي. شاشة القفل تعرض صورة قطة.',
+      colorAr: 'فضي',
+      brandAr: 'Apple',
+      locationDetailsAr: 'درج المدخل الرئيسي',
       reportType: 'LOST',
       itemTitle: 'Silver iPhone 13',
       description:
@@ -1002,6 +1154,12 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-phone',
+      itemTitleAr: 'آيفون 13 فضي',
+      descriptionAr:
+        'عُثر على هاتف iPhone 13 فضي في جراب شفاف عند مدخل المجمع الطبي. الهاتف مغلق.',
+      colorAr: 'فضي',
+      brandAr: 'Apple',
+      locationDetailsAr: 'مكتب الأمن عند المدخل الرئيسي',
       reportType: 'FOUND',
       itemTitle: 'Silver iPhone 13',
       description:
@@ -1020,6 +1178,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-keys',
+      itemTitleAr: 'مجموعة مفاتيح بميدالية حمراء',
+      descriptionAr:
+        'فقدت مجموعة من ثلاثة مفاتيح بميدالية بلاستيكية حمراء بالقرب من مبنى العلوم الإنسانية.',
+      colorAr: 'فضي',
+      locationDetailsAr: 'البوابة الرئيسية لمبنى العلوم الإنسانية',
       reportType: 'LOST',
       itemTitle: 'Bunch of keys with a red tag',
       description:
@@ -1037,6 +1200,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-keys',
+      itemTitleAr: 'مجموعة مفاتيح بميدالية حمراء',
+      descriptionAr:
+        'عُثر على مجموعة من ثلاثة مفاتيح بميدالية بلاستيكية حمراء عند بوابة مبنى العلوم الإنسانية.',
+      colorAr: 'فضي',
+      locationDetailsAr: 'مكتب الأمن',
       reportType: 'FOUND',
       itemTitle: 'Bunch of keys with a red tag',
       description:
@@ -1054,6 +1222,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-umbrella',
+      itemTitleAr: 'مظلة كحلية',
+      descriptionAr:
+        'فقدت مظلة كحلية بمقبض خشبي في بهو المكتبة.',
+      colorAr: 'كحلي',
+      locationDetailsAr: 'بهو المكتبة',
       reportType: 'LOST',
       itemTitle: 'Navy blue umbrella',
       description:
@@ -1070,6 +1243,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-umbrella',
+      itemTitleAr: 'مظلة كحلية',
+      descriptionAr:
+        'عُثر على مظلة كحلية بمقبض خشبي بالقرب من مدخل المكتبة.',
+      colorAr: 'كحلي',
+      locationDetailsAr: 'مدخل المكتبة',
       reportType: 'FOUND',
       itemTitle: 'Navy blue umbrella',
       description:
@@ -1086,6 +1264,10 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-id',
+      itemTitleAr: 'بطاقة هوية جامعية',
+      descriptionAr:
+        'فقدت بطاقة هوية طالب في حافظة شفافة في مكان ما بمبنى العلوم الإنسانية.',
+      locationDetailsAr: 'ممر قاعات المحاضرات',
       reportType: 'LOST',
       itemTitle: 'Student ID card',
       description:
@@ -1102,6 +1284,10 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-id',
+      itemTitleAr: 'بطاقة هوية جامعية',
+      descriptionAr:
+        'عُثر على بطاقة هوية طالب في حافظة شفافة على أرضية ممر العلوم الإنسانية.',
+      locationDetailsAr: 'استقبال كلية العلوم الإنسانية',
       reportType: 'FOUND',
       itemTitle: 'Student ID card',
       description:
@@ -1118,6 +1304,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-hoodie',
+      itemTitleAr: 'سترة جامعية رمادية (Hoodie)',
+      descriptionAr:
+        'تركت سترة جامعية رمادية في قاعة استذكار الهندسة. بها بقعة حبر صغيرة على الكم.',
+      colorAr: 'رمادي',
+      locationDetailsAr: 'قاعة استذكار 2',
       reportType: 'LOST',
       itemTitle: 'Grey university hoodie',
       description:
@@ -1134,6 +1325,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-hoodie',
+      itemTitleAr: 'سترة جامعية رمادية (Hoodie)',
+      descriptionAr:
+        'عُثر على سترة جامعية رمادية على كرسي في قاعة استذكار الهندسة.',
+      colorAr: 'رمادي',
+      locationDetailsAr: 'قاعة استذكار 2',
       reportType: 'FOUND',
       itemTitle: 'Grey university hoodie',
       description:
@@ -1150,6 +1346,10 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-textbook',
+      itemTitleAr: 'كتاب هياكل البيانات',
+      descriptionAr:
+        'فقدت كتاب هياكل البيانات في المكتبة. اسم عمر خالد مكتوب داخل الغلاف.',
+      locationDetailsAr: 'قاعة القراءة بالمكتبة',
       reportType: 'LOST',
       itemTitle: 'Data structures textbook',
       description:
@@ -1165,6 +1365,10 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-textbook',
+      itemTitleAr: 'كتاب هياكل البيانات',
+      descriptionAr:
+        'عُثر على كتاب هياكل البيانات متروكاً على مكتب في المكتبة بعد وقت الإغلاق.',
+      locationDetailsAr: 'قاعة القراءة بالمكتبة',
       reportType: 'FOUND',
       itemTitle: 'Data structures textbook',
       description:
@@ -1180,6 +1384,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'lost-usb',
+      itemTitleAr: 'ذاكرة فلاش 32 جيجابايت USB',
+      descriptionAr:
+        'فقدت ذاكرة فلاش USB سوداء بغطاء أحمر بالقرب من طابعات معمل الحاسب.',
+      colorAr: 'أسود',
+      locationDetailsAr: 'منطقة طابعات معمل الحاسب',
       reportType: 'LOST',
       itemTitle: '32 GB USB drive',
       description:
@@ -1196,6 +1405,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       key: 'found-usb',
+      itemTitleAr: 'ذاكرة فلاش 32 جيجابايت USB',
+      descriptionAr:
+        'عُثر على ذاكرة فلاش USB سوداء بغطاء أحمر بجوار طابعات معمل الحاسب.',
+      colorAr: 'أسود',
+      locationDetailsAr: 'منطقة طابعات معمل الحاسب',
       reportType: 'FOUND',
       itemTitle: '32 GB USB drive',
       description:
@@ -1217,13 +1431,18 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     reportNumber: `LF-${2001 + index}`,
     reportType: spec.reportType,
     itemTitle: spec.itemTitle,
+    itemTitleAr: spec.itemTitleAr,
     description: spec.description,
+    descriptionAr: spec.descriptionAr,
     privateIdentificationDetails: spec.privateIdentificationDetails,
     category: spec.category,
     color: spec.color,
+    colorAr: spec.colorAr,
     brand: spec.brand,
+    brandAr: spec.brandAr,
     locationId: locationId(spec.building, spec.locationIndex),
     locationDetails: spec.locationDetails,
+    locationDetailsAr: spec.locationDetailsAr,
     occurrenceDate: daysAgo(spec.occurrenceDaysAgo, 12),
     images: [],
     reporterId: userId(spec.reporterEmail),
@@ -1272,6 +1491,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
   const claimSpecs: ClaimSpec[] = [
     {
       itemKey: 'found-backpack',
+      claimDescriptionAr:
+        'هذه حقيبتي. تركتها على المقعد خارج معمل 204 وأدركت فقدانها بعد المحاضرة.',
+      verificationNotesAr: 'تمت مطابقة الحروف الأولى وميدالية المفاتيح مع التفاصيل الخاصة في بلاغ العثور.',
       linkedLostKey: 'lost-backpack',
       claimantEmail: DEMO_STUDENT_EMAIL,
       claimDescription:
@@ -1284,6 +1506,8 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       itemKey: 'found-phone',
+      claimDescriptionAr:
+        'فقدت هاتف iPhone فضي بالقرب من المدخل الطبي. به جراب شفاف وصورة قطتي على شاشة القفل.',
       linkedLostKey: 'lost-phone',
       claimantEmail: EXTRA_STUDENT_EMAILS[1]!,
       claimDescription:
@@ -1295,6 +1519,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       itemKey: 'found-id',
+      claimDescriptionAr:
+        'هذه بطاقة هويتي الجامعية. سقطت من ملفي في مكان ما بممر العلوم الإنسانية.',
+      verificationNotesAr: 'تمت مطابقة الصورة ورقم الطالب الجامعي.',
       claimantEmail: EXTRA_STUDENT_EMAILS[0]!,
       claimDescription:
         'This is my student ID card. It slipped out of my folder somewhere in the humanities corridor.',
@@ -1306,6 +1533,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       itemKey: 'found-keys',
+      claimDescriptionAr:
+        'هذه مفاتيحي. فقدتها عند بوابة العلوم الإنسانية والميدالية الحمراء عليها الحروف الأولى من اسمي.',
+      verificationNotesAr: 'تطابقت المفاتيح مع الوصف واستلمها المالك.',
       linkedLostKey: 'lost-keys',
       claimantEmail: EXTRA_STUDENT_EMAILS[0]!,
       claimDescription:
@@ -1317,11 +1547,16 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       handover: {
         receivedByName: 'Sara Mahmoud',
         notes: 'Student ID checked and signed at the security office.',
+        notesAr: 'تم التحقق من البطاقة الجامعية والتوقيع في مكتب الأمن.',
         handedOverAt: daysAgo(2, 15),
       },
     },
     {
       itemKey: 'found-umbrella',
+      claimDescriptionAr:
+        'أعتقد أن هذه المظلة ملكي. فقدت مظلة كحلية في مكان ما حول المكتبة الأسبوع الماضي.',
+      rejectionReasonAr:
+        'لم تتطابق التفاصيل التعريفية المقدمة مع التفاصيل الخاصة في بلاغ العثور.',
       linkedLostKey: 'lost-umbrella',
       claimantEmail: EXTRA_STUDENT_EMAILS[1]!,
       claimDescription:
@@ -1343,14 +1578,24 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       : undefined,
     claimantId: userId(spec.claimantEmail),
     claimDescription: spec.claimDescription,
+    claimDescriptionAr: spec.claimDescriptionAr,
     identifyingDetailsProvided: spec.identifyingDetailsProvided,
     supportingEvidence: [],
     status: spec.status,
     verificationNotes: spec.verificationNotes,
+    verificationNotesAr: spec.verificationNotesAr,
     rejectionReason: spec.rejectionReason,
+    rejectionReasonAr: spec.rejectionReasonAr,
     reviewedBy: spec.reviewed ? officerId : undefined,
     reviewedAt: spec.reviewed ? daysAgo(3) : undefined,
-    handover: spec.handover,
+    handover: spec.handover
+      ? {
+          receivedByName: spec.handover.receivedByName,
+          notes: spec.handover.notes,
+          notesAr: spec.handover.notesAr,
+          handedOverAt: spec.handover.handedOverAt,
+        }
+      : undefined,
     createdAt: daysAgo(5, 10 + index),
     updatedAt: daysAgo(2, 12),
   }));
@@ -1365,7 +1610,10 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       userId: demoStudentId,
       type: 'REQUEST_APPROVED',
       title: 'Maintenance request approved',
-      message: 'MR-2008 was approved and a work order has been created.',
+      message: 'MR-2008 was approved. Work order WO-2001 has been created.',
+      titleKey: 'requestApproved',
+      messageKey: 'requestApprovedMsg',
+      params: { code: 'MR-2008', workOrderCode: 'WO-2001' },
       relatedEntityType: 'MaintenanceRequest',
       relatedEntityId: requestByKey.get('approved-pending')!._id,
       linkUrl: '/maintenance/requests',
@@ -1376,7 +1624,10 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       userId: demoStudentId,
       type: 'WORK_ORDER_COMPLETED',
       title: 'Work order completed',
-      message: 'WO-2007 was completed. Please confirm the repair from your request.',
+      message: 'Work order WO-2007 was completed. Please review and confirm resolution.',
+      titleKey: 'requestCompleted',
+      messageKey: 'requestCompletedMsg',
+      params: { workOrderCode: 'WO-2007' },
       relatedEntityType: 'WorkOrder',
       relatedEntityId: workOrderDocs[6]!._id,
       linkUrl: '/maintenance/requests',
@@ -1386,8 +1637,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       userId: demoStudentId,
       type: 'CLAIM_APPROVED',
-      title: 'Claim approved for handover',
-      message: 'Your claim CLM-2003 was approved. Visit the Lost & Found office to collect the item.',
+      title: 'Claim approved',
+      message: 'Your claim CLM-2003 was approved. Contact the Lost & Found Office to arrange the handover.',
+      titleKey: 'claimApproved',
+      messageKey: 'claimApprovedMsg',
+      params: { code: 'CLM-2003' },
       relatedEntityType: 'ClaimRequest',
       relatedEntityId: claimDocs[2]!._id,
       linkUrl: '/lost-found/claims',
@@ -1397,8 +1651,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       userId: demoStudentId,
       type: 'REQUEST_REOPENED',
-      title: 'Request reopened',
-      message: 'MR-2023 was reopened and a new work order is waiting for assignment.',
+      title: 'Work order reopened',
+      message: 'Request MR-2023 was reopened: Fault returned. Work order WO-2015 is back in your assigned queue.',
+      titleKey: 'workOrderReopened',
+      messageKey: 'workOrderReopenedMsg',
+      params: { code: 'MR-2023', workOrderCode: 'WO-2015', reason: { en: 'Fault returned', ar: 'تكرار العطل' } },
       relatedEntityType: 'MaintenanceRequest',
       relatedEntityId: requestByKey.get('reopened-1')!._id,
       linkUrl: '/maintenance/requests',
@@ -1409,7 +1666,25 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       userId: managerId,
       type: 'REQUEST_SUBMITTED',
       title: 'New maintenance request',
-      message: 'A new HIGH priority request was submitted for the engineering complex.',
+      message: 'MR-2001 · Projector will not power on in Lecture Hall A · Engineering Building, Ground Floor, Room Hall A',
+      titleKey: 'newRequestSubmitted',
+      messageKey: 'newRequestSubmittedMsg',
+      params: {
+        code: 'MR-2001',
+        title: {
+          en: 'Projector will not power on in Lecture Hall A',
+          ar: 'جهاز العرض لا يعمل في مدرج A',
+        },
+        building: {
+          en: 'Engineering Building',
+          ar: 'مبنى كلية الهندسة',
+        },
+        floor: {
+          en: 'Ground Floor',
+          ar: 'الطابق الأرضي',
+        },
+        room: 'Hall A',
+      },
       relatedEntityType: 'MaintenanceRequest',
       relatedEntityId: requestByKey.get('submitted-1')!._id,
       linkUrl: '/maintenance/requests/queue',
@@ -1421,6 +1696,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       type: 'WORK_ORDER_OVERDUE',
       title: 'Work order overdue',
       message: 'WO-2005 has passed its expected completion date.',
+      titleKey: 'workOrderOverdue',
+      messageKey: 'workOrderOverdueMsg',
+      params: { code: 'WO-2005' },
       relatedEntityType: 'WorkOrder',
       relatedEntityId: workOrderDocs[4]!._id,
       linkUrl: '/maintenance/work-orders',
@@ -1430,8 +1708,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       userId: officerId,
       type: 'CLAIM_PENDING',
-      title: 'New claim awaiting review',
-      message: 'CLM-2002 was submitted for a found phone.',
+      title: 'New claim submitted',
+      message: 'Claim CLM-2002 was submitted for found item LF-2006.',
+      titleKey: 'claimSubmitted',
+      messageKey: 'claimSubmittedMsg',
+      params: { code: 'CLM-2002', itemCode: 'LF-2006' },
       relatedEntityType: 'ClaimRequest',
       relatedEntityId: claimDocs[1]!._id,
       linkUrl: '/lost-found/claims',
@@ -1441,8 +1722,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       userId: officerId,
       type: 'MATCH_SUGGESTED',
-      title: 'New possible match',
-      message: 'A STRONG match was suggested between a lost phone and a found phone.',
+      title: 'Possible match confirmed',
+      message: 'A found item matching your lost report LF-2005 was confirmed. Submit a claim to verify ownership.',
+      titleKey: 'matchConfirmed',
+      messageKey: 'matchConfirmedMsg',
+      params: { code: 'LF-2005' },
       relatedEntityType: 'ItemMatch',
       relatedEntityId: matchDocs[2]!._id,
       linkUrl: '/lost-found/matches',
@@ -1452,8 +1736,11 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     {
       userId: technicianIds[0]!,
       type: 'WORK_ORDER_ASSIGNED',
-      title: 'New work order assigned',
-      message: 'WO-2002 is assigned to you and scheduled for tomorrow.',
+      title: 'Work order assigned',
+      message: 'You have been assigned work order WO-2002.',
+      titleKey: 'workOrderAssigned',
+      messageKey: 'workOrderAssignedMsg',
+      params: { code: 'WO-2002' },
       relatedEntityType: 'WorkOrder',
       relatedEntityId: workOrderDocs[1]!._id,
       linkUrl: '/maintenance/work-orders',
@@ -1470,7 +1757,13 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'USER_CREATED',
       entityType: 'User',
       entityId: userId(EXTRA_STUDENT_EMAILS[0]!),
-      description: 'Created student account for Sara Mahmoud',
+      description: 'Created Student/Employee account Sara Mahmoud (sara.mahmoud@std.mansnu.edu.eg)',
+      descriptionKey: 'userCreated',
+      params: {
+        role: { en: 'Student/Employee', ar: 'طالب / موظف' },
+        name: 'Sara Mahmoud',
+        email: EXTRA_STUDENT_EMAILS[0]!,
+      },
       metadata: { role: 'STUDENT_EMPLOYEE' },
       createdAt: daysAgo(12),
     },
@@ -1480,6 +1773,8 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       entityType: 'MaintenanceRequest',
       entityId: requestByKey.get('approved-assigned')!._id,
       description: 'Approved maintenance request MR-2009 and created work order WO-2002',
+      descriptionKey: 'requestApproved',
+      params: { code: 'MR-2009', workOrderCode: 'WO-2002' },
       metadata: { workOrderNumber: 'WO-2002' },
       createdAt: daysAgo(10),
     },
@@ -1489,6 +1784,8 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       entityType: 'WorkOrder',
       entityId: workOrderDocs[1]!._id,
       description: 'Assigned work order WO-2002 to Hassan El-Sayed',
+      descriptionKey: 'workOrderAssigned',
+      params: { code: 'WO-2002', name: 'Hassan El-Sayed' },
       metadata: { technician: 'Hassan El-Sayed' },
       createdAt: daysAgo(9),
     },
@@ -1497,7 +1794,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'WORK_ORDER_STARTED',
       entityType: 'WorkOrder',
       entityId: workOrderDocs[5]!._id,
-      description: 'Started work order WO-2006',
+      description: 'Technician started work order WO-2006',
+      descriptionKey: 'workOrderStarted',
+      params: { code: 'WO-2006' },
       metadata: { status: 'IN_PROGRESS' },
       createdAt: daysAgo(2),
     },
@@ -1506,7 +1805,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'WORK_ORDER_COMPLETED',
       entityType: 'WorkOrder',
       entityId: workOrderDocs[7]!._id,
-      description: 'Completed work order WO-2008 and recorded resolution details',
+      description: 'Technician completed work order WO-2008',
+      descriptionKey: 'workOrderCompleted',
+      params: { code: 'WO-2008' },
       metadata: { status: 'COMPLETED' },
       createdAt: daysAgo(27),
     },
@@ -1515,7 +1816,15 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'PREVENTIVE_PLAN_CREATED',
       entityType: 'PreventivePlan',
       entityId: duePlanId,
-      description: 'Created preventive plan Weekly HVAC filter inspection',
+      description: 'Created preventive plan Weekly HVAC filter inspection (Weekly)',
+      descriptionKey: 'preventivePlanCreated',
+      params: {
+        title: {
+          en: 'Weekly HVAC filter inspection',
+          ar: 'فحص فلاتر التكييف الأسبوعي',
+        },
+        recurrence: { en: 'Weekly', ar: 'أسبوعياً' },
+      },
       metadata: { recurrenceType: 'WEEKLY' },
       createdAt: daysAgo(16),
     },
@@ -1524,7 +1833,15 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'PREVENTIVE_WORK_ORDER_GENERATED',
       entityType: 'WorkOrder',
       entityId: preventiveWorkOrder._id,
-      description: 'Generated preventive work order from the quarterly tank cleaning plan',
+      description: 'Generated preventive work order WO-2018 from plan Quarterly water tank cleaning',
+      descriptionKey: 'preventiveWorkOrderGenerated',
+      params: {
+        code: 'WO-2018',
+        title: {
+          en: 'Quarterly water tank cleaning',
+          ar: 'تنظيف خزانات المياه ربع السنوي',
+        },
+      },
       metadata: { schedule: 'quarterly' },
       createdAt: daysAgo(8),
     },
@@ -1533,7 +1850,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'MATCH_CONFIRMED',
       entityType: 'ItemMatch',
       entityId: matchDocs[0]!._id,
-      description: 'Confirmed the STRONG match for the black North Face backpack',
+      description: 'Confirmed match between LF-2001 and LF-2002',
+      descriptionKey: 'matchConfirmed',
+      params: { lostCode: 'LF-2001', foundCode: 'LF-2002' },
       metadata: { score: 94, level: 'STRONG' },
       createdAt: daysAgo(7),
     },
@@ -1542,7 +1861,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'CLAIM_APPROVED',
       entityType: 'ClaimRequest',
       entityId: claimDocs[2]!._id,
-      description: 'Approved claim CLM-2003 after verifying the student ID card',
+      description: 'Approved claim CLM-2003 for LF-2012',
+      descriptionKey: 'claimApproved',
+      params: { code: 'CLM-2003', itemCode: 'LF-2012' },
       metadata: { status: 'APPROVED' },
       createdAt: daysAgo(3),
     },
@@ -1551,7 +1872,9 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'HANDOVER_COMPLETED',
       entityType: 'ClaimRequest',
       entityId: claimDocs[3]!._id,
-      description: 'Recorded handover for claim CLM-2004',
+      description: 'Recorded handover for claim CLM-2004 to Sara Mahmoud',
+      descriptionKey: 'handoverCompleted',
+      params: { code: 'CLM-2004', name: 'Sara Mahmoud' },
       metadata: { receivedByName: 'Sara Mahmoud' },
       createdAt: daysAgo(2),
     },
@@ -1560,7 +1883,19 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'LOCATION_UPDATED',
       entityType: 'Location',
       entityId: locationId('Administration', 0),
-      description: 'Updated the description of a library room',
+      description: 'Updated location Administration & Central Library Building, Ground Floor, Room 101',
+      descriptionKey: 'locationUpdated',
+      params: {
+        building: {
+          en: 'Administration & Central Library Building',
+          ar: 'مبنى الإدارة والمكتبة المركزية',
+        },
+        floor: {
+          en: 'Ground Floor',
+          ar: 'الطابق الأرضي',
+        },
+        room: '101',
+      },
       metadata: { building: 'Administration & Central Library Building' },
       createdAt: daysAgo(1),
     },
@@ -1569,7 +1904,12 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       action: 'REQUEST_REOPENED',
       entityType: 'MaintenanceRequest',
       entityId: requestByKey.get('reopened-1')!._id,
-      description: 'Reopened request MR-2023 and created a replacement work order',
+      description: 'Reopened request MR-2023: Fault returned',
+      descriptionKey: 'requestReopened',
+      params: {
+        code: 'MR-2023',
+        reason: { en: 'Fault returned', ar: 'تكرار العطل' },
+      },
       metadata: { reopenCount: 1 },
       createdAt: hoursAgo(18),
     },
@@ -1580,14 +1920,15 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
   // ---------------------------------------------------------------------------
   // Cached AI insight (read-only on the admin dashboard)
   // ---------------------------------------------------------------------------
-  const insightCache = {
+  const sharedInsightBase = {
     period: '7d' as const,
+    promptVersion: AI_INSIGHTS_PROMPT_VERSION,
     generatedAt: daysAgo(1, 7),
     rangeStart: daysAgo(8, 7),
     rangeEnd: daysAgo(1, 7),
     stats: {
       period: '7d',
-      requests: { total: 6, previousTotal: 5, changePercent: 20 },
+      requests: { total: 6, previousTotal: 5, changePercent: 20, openBacklog: 5 },
       workOrders: { active: 5, completed: 1, overdue: 1, averageResolutionHours: 8.4 },
       topCategories: [
         { category: 'Hardware', count: 2 },
@@ -1595,30 +1936,57 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
         { category: 'Electrical', count: 1 },
       ],
     },
-    insights: {
-      observations: [
-        'Hardware and plumbing issues account for most requests in this period.',
-        'One work order is past its expected completion date.',
-      ],
-      repeatedPatterns: [
-        'Engineering complex requests cluster around laboratory equipment.',
-        'Library and administration areas report recurring climate-control issues.',
-      ],
-      operationalRisks: [
-        'The overdue network switch replacement may affect connectivity during peak hours.',
-        'Server room cooling remains the highest operational risk.',
-      ],
-      preventiveRecommendations: [
-        'Bring forward the HVAC filter inspection for the library.',
-        'Schedule a network hardware health check before the next exam period.',
-      ],
-    },
     model: 'gemini-2.5-flash',
     createdAt: daysAgo(1, 7),
     updatedAt: daysAgo(1, 7),
   };
 
-  await AiInsightCache.insertMany([insightCache]);
+  await AiInsightCache.insertMany([
+    {
+      ...sharedInsightBase,
+      lang: 'ar' as const,
+      insights: {
+        observations: [
+          'تشكل مشكلات العتاد والسباكة غالبية الطلبات خلال هذه الفترة.',
+          'تجاوز أمر العمل WO-2005 تاريخ إكماله المتوقع في مجمع الهندسة.',
+        ],
+        repeatedPatterns: [
+          'تتكرر طلبات مجمع الهندسة حول تجهيزات المختبرات وشبكات المعامل.',
+          'تسجل مباني المكتبة والإدارة بلاغات متكررة بشأن أنظمة التكييف.',
+        ],
+        operationalRisks: [
+          'تأخر استبدال محول الشبكة في WO-2005 لدى كريم الطنطاوي قد يسبب انقطاع الاتصال خلال أوقات الذروة.',
+          'تبريد غرفة الخوادم يمثل أعلى خطر تشغيلي حالياً.',
+        ],
+        preventiveRecommendations: [
+          'تقديم موعد فحص فلاتر التكييف في المكتبة بإشراف إبراهيم عبد الفتاح.',
+          'جدولة فحص دوري لمعدات الشبكة قبل بدء الامتحانات.',
+        ],
+      },
+    },
+    {
+      ...sharedInsightBase,
+      lang: 'en' as const,
+      insights: {
+        observations: [
+          'Hardware and plumbing issues account for most requests in this period.',
+          'Work order WO-2005 is past its expected completion date in the Engineering complex.',
+        ],
+        repeatedPatterns: [
+          'Engineering complex requests cluster around laboratory equipment and lab networking.',
+          'Library and administration areas report recurring climate-control issues.',
+        ],
+        operationalRisks: [
+          'Overdue network switch replacement WO-2005 assigned to Karim El-Tantawy may affect connectivity during peak hours.',
+          'Server room cooling remains the highest operational risk.',
+        ],
+        preventiveRecommendations: [
+          'Bring forward the HVAC filter inspection for the library with Ibrahim Abdel-Fattah.',
+          'Schedule a network hardware health check before the next exam period.',
+        ],
+      },
+    },
+  ]);
 
   return {
     requests: requestDocs.length,

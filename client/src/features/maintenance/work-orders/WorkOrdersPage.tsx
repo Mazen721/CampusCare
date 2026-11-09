@@ -25,6 +25,7 @@ import { AssignWorkOrderDialog } from '@/features/maintenance/work-orders/Assign
 import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/CancelWorkOrderDialog';
 import { CompleteWorkOrderDialog } from '@/features/maintenance/work-orders/CompleteWorkOrderDialog';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
+import { formatLocation, tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
@@ -102,7 +103,7 @@ export function WorkOrdersPage() {
             </Badge>
           </div>
           <p className="truncate text-xs font-medium text-foreground max-w-[240px]">
-            {wo.title}
+            {tr(wo, 'title')}
           </p>
           <span className="text-[11px] text-muted-foreground">
             {enumLabel('maintenanceCategory', wo.category)}
@@ -126,12 +127,7 @@ export function WorkOrdersPage() {
       cell: (wo) => (
         <div className="text-xs text-muted-foreground">
           {wo.location ? (
-            <>
-              <p className="font-medium text-foreground">{wo.location.buildingName}</p>
-              <p className="text-[11px]">
-                {wo.location.floor} · {wo.location.room}
-              </p>
-            </>
+            <p className="font-medium text-foreground">{formatLocation(wo.location)}</p>
           ) : (
             '—'
           )}

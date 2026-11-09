@@ -9,6 +9,7 @@ export interface CreateUserInput {
   password: string;
   role: AuthUser['role'];
   department?: string;
+  departmentAr?: string;
   contactPhone?: string;
   specializations?: MaintenanceCategory[];
   skills?: string[];

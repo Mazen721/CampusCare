@@ -9,6 +9,7 @@ import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { feedbackApi } from '@/features/maintenance/feedback/feedbackApi';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
+import { tr } from '@/i18n/localize';
 import { formatDate, getInitials } from '@/lib/utils';
 import type { ServiceFeedbackRecord } from '@/types/feedback';
 
@@ -56,9 +57,9 @@ export function FeedbackPage() {
           ) : (
             <span className="font-mono text-xs text-muted-foreground">—</span>
           )}
-          {fb.requestTitle && (
+          {tr(fb, 'requestTitle') && (
             <p className="truncate text-xs font-medium text-foreground max-w-[200px]">
-              {fb.requestTitle}
+              {tr(fb, 'requestTitle')}
             </p>
           )}
           {fb.workOrderNumber && (
@@ -114,7 +115,7 @@ export function FeedbackPage() {
       header: t('feedback.comment'),
       cell: (fb) => (
         <p className="text-xs text-muted-foreground line-clamp-2 max-w-[320px]">
-          {fb.comment ? `"${fb.comment}"` : <span className="italic">{t('feedback.noWrittenComment')}</span>}
+          {tr(fb, 'comment') ? `"${tr(fb, 'comment')}"` : <span className="italic">{t('feedback.noWrittenComment')}</span>}
         </p>
       ),
     },

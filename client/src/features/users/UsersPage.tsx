@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { useAuth } from '@/features/auth/AuthContext';
 import { UserFormDialog } from '@/features/users/UserFormDialog';
 import { usersApi } from '@/features/users/usersApi';
+import { tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
@@ -98,7 +99,7 @@ export function UsersPage() {
       header: t('users.department'),
       cell: (user) => (
         <span className="line-clamp-2 text-sm text-muted-foreground">
-          {user.department || '—'}
+          {tr(user, 'department') || '—'}
         </span>
       ),
     },

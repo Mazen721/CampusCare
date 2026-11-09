@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { PreventivePlanFormDialog } from '@/features/maintenance/preventive/PreventivePlanFormDialog';
 import { preventiveApi } from '@/features/maintenance/preventive/preventiveApi';
 import { useAuth } from '@/features/auth/AuthContext';
+import { tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
@@ -68,7 +69,7 @@ export function PreventivePlansPage() {
     onSuccess: async (response, plan) => {
       await queryClient.invalidateQueries({ queryKey: ['preventive-plans'] });
       toast.success(
-        `${response.plan.title} ${plan.isActive ? t('common.inactive') : t('common.active')}`,
+        `${tr(response.plan, 'title')} ${plan.isActive ? t('common.inactive') : t('common.active')}`,
       );
       setStatusPlan(null);
     },
@@ -86,7 +87,7 @@ export function PreventivePlansPage() {
       header: t('preventive.planTitle'),
       cell: (plan) => (
         <div className="min-w-0 max-w-[280px]">
-          <p className="truncate text-sm font-medium text-foreground">{plan.title}</p>
+          <p className="truncate text-sm font-medium text-foreground">{tr(plan, 'title')}</p>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <Badge variant="outline" className="text-[10px]">
               {enumLabel('maintenanceCategory', plan.category)}
@@ -127,9 +128,9 @@ export function PreventivePlansPage() {
       cell: (plan) =>
         plan.location ? (
           <div className="text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">{plan.location.buildingName}</p>
+            <p className="font-medium text-foreground">{tr(plan.location, 'buildingName')}</p>
             <p>
-              {plan.location.floor} · {plan.location.room}
+              {tr(plan.location, 'floor')} · {tr(plan.location, 'room')}
             </p>
           </div>
         ) : (
@@ -187,7 +188,7 @@ export function PreventivePlansPage() {
           <Button
             variant="ghost"
             size="sm"
-            aria-label={`${t('common.edit')} ${plan.title}`}
+            aria-label={`${t('common.edit')} ${tr(plan, 'title')}`}
             onClick={() => {
               setEditingPlan(plan);
               setFormOpen(true);
@@ -198,7 +199,7 @@ export function PreventivePlansPage() {
           <Button
             variant="ghost"
             size="sm"
-            aria-label={`${plan.isActive ? t('common.inactive') : t('common.active')} ${plan.title}`}
+            aria-label={`${plan.isActive ? t('common.inactive') : t('common.active')} ${tr(plan, 'title')}`}
             onClick={() => setStatusPlan(plan)}
           >
             <Power className="h-4 w-4" aria-hidden="true" />
@@ -283,11 +284,7 @@ export function PreventivePlansPage() {
         open={Boolean(statusPlan)}
         onOpenChange={(open) => !open && setStatusPlan(null)}
         title={statusPlan?.isActive ? t('common.inactive') : t('common.active')}
-        description={
-          statusPlan?.isActive
-            ? `"${statusPlan.title}"`
-            : `"${statusPlan?.title ?? ''}"`
-        }
+        description={statusPlan ? `"${tr(statusPlan, 'title')}"` : ''}
         confirmLabel={statusPlan?.isActive ? t('common.inactive') : t('common.active')}
         cancelLabel={t('common.cancel')}
         tone={statusPlan?.isActive ? 'destructive' : 'default'}

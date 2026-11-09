@@ -23,6 +23,7 @@ import { CloseItemButton } from '@/features/lost-found/items/CloseItemButton';
 import { ItemGallery } from '@/features/lost-found/items/ItemGallery';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
+import { formatLocation, tr } from '@/i18n/localize';
 import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
@@ -100,7 +101,7 @@ export function ItemDetailPage() {
 
       <PageHeader
         eyebrow={<span dir="ltr">{item.reportNumber}</span>}
-        title={item.itemTitle}
+        title={tr(item, 'itemTitle')}
         description={`${enumLabel('lostFoundCategory', item.category)} · ${item.reportType === 'LOST' ? t('lostFound.lostReport') : t('lostFound.foundReport')}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -126,7 +127,7 @@ export function ItemDetailPage() {
               <CardTitle>{t('lostFound.images')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-5">
-              <ItemGallery images={item.images} itemTitle={item.itemTitle} />
+              <ItemGallery images={item.images} itemTitle={tr(item, 'itemTitle')} />
             </CardContent>
           </Card>
 
@@ -136,7 +137,7 @@ export function ItemDetailPage() {
             </CardHeader>
             <CardContent className="space-y-5 pt-5">
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                {item.description}
+                {tr(item, 'description')}
               </p>
 
               <dl className="grid gap-4 border-t pt-5 sm:grid-cols-2">
@@ -152,14 +153,14 @@ export function ItemDetailPage() {
                     <Palette className="h-3.5 w-3.5" aria-hidden="true" />
                     {t('lostFound.color')}
                   </dt>
-                  <dd className="mt-1 text-sm text-foreground">{item.color || t('lostFound.notRecorded')}</dd>
+                  <dd className="mt-1 text-sm text-foreground">{tr(item, 'color') || t('lostFound.notRecorded')}</dd>
                 </div>
                 <div>
                   <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                     {t('lostFound.brand')}
                   </dt>
-                  <dd className="mt-1 text-sm text-foreground">{item.brand || t('lostFound.notRecorded')}</dd>
+                  <dd className="mt-1 text-sm text-foreground">{tr(item, 'brand') || t('lostFound.notRecorded')}</dd>
                 </div>
                 <div>
                   <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -185,16 +186,13 @@ export function ItemDetailPage() {
             </CardHeader>
             <CardContent className="space-y-2 pt-5 text-sm">
               {item.location ? (
-                <>
-                  <p className="font-semibold text-foreground">{item.location.buildingName}</p>
-                  <p className="text-muted-foreground">
-                    {item.location.floor} · {t('locations.room')} {item.location.room}
-                  </p>
-                </>
+                <p className="font-semibold text-foreground">{formatLocation(item.location)}</p>
               ) : null}
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                {item.locationDetails}
-              </p>
+              {tr(item, 'locationDetails') ? (
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {tr(item, 'locationDetails')}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -234,8 +232,8 @@ export function ItemDetailPage() {
                     <span dir="ltr">{item.reporter.email}</span>
                   </p>
                 ) : null}
-                {item.reporter.department ? (
-                  <p className="text-xs text-muted-foreground">{item.reporter.department}</p>
+                {tr(item.reporter, 'department') ? (
+                  <p className="text-xs text-muted-foreground">{tr(item.reporter, 'department')}</p>
                 ) : null}
               </CardContent>
             </Card>

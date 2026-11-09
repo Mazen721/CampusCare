@@ -21,7 +21,10 @@ import type { AppNotification } from '@/types/notifications';
 
 const NOTIFICATIONS_QUERY_KEY = ['notifications', 'bell'] as const;
 
-function iconForType(type: string): LucideIcon {
+function iconForType(type?: string): LucideIcon {
+  if (!type) {
+    return Bell;
+  }
   if (type.includes('CLAIM') || type.includes('ITEM') || type.includes('MATCH')) {
     return PackageSearch;
   }

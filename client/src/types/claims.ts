@@ -21,6 +21,7 @@ export interface ClaimPerson {
   name: string;
   email?: string;
   department?: string;
+  departmentAr?: string;
   role?: Role;
 }
 
@@ -34,6 +35,7 @@ export interface ClaimHandover {
   receivedByName?: string;
   handedOverBy: { id: string; name: string } | null;
   notes?: string;
+  notesAr?: string;
   handedOverAt?: string;
 }
 
@@ -45,10 +47,13 @@ export interface ClaimRecord {
   linkedLostItem: LostFoundItem | null;
   claimant: ClaimPerson | null;
   claimDescription: string;
+  claimDescriptionAr?: string;
   identifyingDetailsProvided: string;
   supportingEvidence: ImageAsset[];
   verificationNotes?: string;
+  verificationNotesAr?: string;
   rejectionReason?: string;
+  rejectionReasonAr?: string;
   reviewedBy: ClaimReviewer | null;
   reviewedAt?: string;
   handover?: ClaimHandover;

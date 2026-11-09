@@ -9,14 +9,18 @@ export interface CalendarTechnician {
 export interface CalendarLocation {
   id: string;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
 }
 
 export interface CalendarWorkOrder {
   id: string;
   workOrderNumber: string;
   title: string;
+  titleAr?: string;
   status: WorkOrderStatus;
   sourceType: 'REACTIVE' | 'PREVENTIVE';
   priority: Priority;

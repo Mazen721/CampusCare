@@ -13,6 +13,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
+import { formatLocation, tr } from '@/i18n/localize';
 import { RequestAttachments } from '@/features/maintenance/requests/RequestAttachments';
 import type { MaintenanceRequestRecord } from '@/types/maintenance';
 
@@ -30,7 +31,7 @@ export function RequestDescriptionCard({ request }: SectionProps) {
       </CardHeader>
       <CardContent className="space-y-5 pt-5">
         <p className="whitespace-pre-line text-sm leading-7 text-foreground">
-          {request.description}
+          {tr(request, 'description')}
         </p>
 
         {request.equipmentDescription ? (
@@ -42,7 +43,7 @@ export function RequestDescriptionCard({ request }: SectionProps) {
           </div>
         ) : null}
 
-        <RequestAttachments attachments={request.attachments} title={request.title} />
+        <RequestAttachments attachments={request.attachments} title={tr(request, 'title')} />
       </CardContent>
     </Card>
   );
@@ -198,11 +199,7 @@ export function RequestMetaCard({ request }: SectionProps) {
             </p>
             {request.location ? (
               <p className="mt-0.5 text-foreground">
-                {request.location.buildingName}
-                <br />
-                <span className="text-muted-foreground">
-                  {request.location.floor} · {request.location.room}
-                </span>
+                {formatLocation(request.location)}
               </p>
             ) : (
               <p className="mt-0.5 text-muted-foreground">{t('requests.notRecorded')}</p>
@@ -219,8 +216,8 @@ export function RequestMetaCard({ request }: SectionProps) {
             <p className="mt-0.5 text-foreground">
               {request.requester?.name ? <bdi>{request.requester.name}</bdi> : '—'}
             </p>
-            {request.requester?.department ? (
-              <p className="text-xs text-muted-foreground">{request.requester.department}</p>
+            {tr(request.requester, 'department') ? (
+              <p className="text-xs text-muted-foreground">{tr(request.requester, 'department')}</p>
             ) : null}
           </div>
         </div>

@@ -10,7 +10,9 @@ import {
 
 export interface IPreventivePlan {
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   locationId: Types.ObjectId;
@@ -30,7 +32,9 @@ export interface IPreventivePlan {
 const preventivePlanSchema = new Schema<IPreventivePlan>(
   {
     title: { type: String, required: true, trim: true, maxlength: 160 },
+    titleAr: { type: String, trim: true, maxlength: 160 },
     description: { type: String, required: true, trim: true, maxlength: 4000 },
+    descriptionAr: { type: String, trim: true, maxlength: 4000 },
     category: { type: String, required: true, enum: MAINTENANCE_CATEGORIES },
     priority: { type: String, required: true, enum: PRIORITIES },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true },

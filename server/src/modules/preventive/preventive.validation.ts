@@ -18,11 +18,23 @@ const planFields = {
     .trim()
     .min(3, 'Title must be at least 3 characters')
     .max(160, 'Title must be 160 characters or fewer'),
+  titleAr: z
+    .string()
+    .trim()
+    .max(160, 'Title (Arabic) must be 160 characters or fewer')
+    .optional()
+    .transform((v) => (v === '' ? undefined : v)),
   description: z
     .string()
     .trim()
     .min(10, 'Describe the plan in at least 10 characters')
     .max(4000, 'Description must be 4000 characters or fewer'),
+  descriptionAr: z
+    .string()
+    .trim()
+    .max(4000, 'Description (Arabic) must be 4000 characters or fewer')
+    .optional()
+    .transform((v) => (v === '' ? undefined : v)),
   category: z.enum(MAINTENANCE_CATEGORIES),
   priority: z.enum(PRIORITIES),
   locationId: objectId,

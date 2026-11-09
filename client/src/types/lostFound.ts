@@ -45,8 +45,11 @@ export const ARCHIVED_ITEM_STATUSES = [
 export interface LostFoundLocation {
   id: string;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType?: string;
 }
 
@@ -55,6 +58,7 @@ export interface LostFoundReporter {
   name: string;
   email?: string;
   department?: string;
+  departmentAr?: string;
   role?: Role;
 }
 
@@ -63,12 +67,17 @@ export interface LostFoundItem {
   reportNumber: string;
   reportType: ReportType;
   itemTitle: string;
+  itemTitleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: LostFoundCategory;
   color?: string;
+  colorAr?: string;
   brand?: string;
+  brandAr?: string;
   location: LostFoundLocation | null;
   locationDetails: string;
+  locationDetailsAr?: string;
   occurrenceDate: string;
   images: ImageAsset[];
   status: ItemStatus;

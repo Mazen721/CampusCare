@@ -39,6 +39,7 @@ export const createUserSchema = z.object({
   password,
   role: z.enum(ROLES),
   department: optionalText(120),
+  departmentAr: optionalText(120),
   contactPhone: optionalText(40),
   ...technicianFields,
 });
@@ -49,6 +50,7 @@ export const updateUserSchema = z
     email,
     role: z.enum(ROLES),
     department: optionalText(120),
+    departmentAr: optionalText(120),
     contactPhone: optionalText(40),
     ...technicianFields,
   })

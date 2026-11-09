@@ -15,6 +15,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { TechnicianCharts } from '@/features/dashboard/TechnicianCharts';
+import { formatLocation, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate, formatNumber } from '@/lib/utils';
 import type { TechnicianDashboard as TechnicianDashboardData } from '@/types/dashboard';
@@ -104,7 +105,7 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
                           to={`/work-orders/${workOrder.id}`}
                           className="font-medium text-foreground hover:text-primary hover:underline"
                         >
-                          {workOrder.title}
+                          {tr(workOrder, 'title')}
                         </Link>
                         {workOrder.overdue ? (
                           <span className="rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-800">
@@ -115,7 +116,7 @@ export function TechnicianDashboard({ data }: { data: TechnicianDashboardData })
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         <span dir="ltr">{workOrder.workOrderNumber}</span> · {enumLabel('maintenanceCategory', workOrder.category)}
                         {workOrder.location
-                          ? ` · ${workOrder.location.buildingName}, ${workOrder.location.floor}, ${t('locations.room')} ${workOrder.location.room}`
+                          ? ` · ${formatLocation(workOrder.location)}`
                           : ''}
                       </p>
                     </div>

@@ -6,6 +6,7 @@ import { getNavigation } from '@/components/shared/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/AuthContext';
+import { tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { cn, getInitials } from '@/lib/utils';
 
@@ -114,7 +115,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
             </p>
             <p className="truncate text-[11px] text-sidebar-muted">
               {enumLabel('role', user.role)}
-              {user.department ? ` · ${user.department}` : ''}
+              {tr(user, 'department') ? ` · ${tr(user, 'department')}` : ''}
             </p>
           </div>
           <Button

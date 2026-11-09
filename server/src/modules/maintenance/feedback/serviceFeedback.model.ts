@@ -7,6 +7,7 @@ export interface IServiceFeedback {
   requesterId: Types.ObjectId;
   rating: number;
   comment?: string;
+  commentAr?: string;
   createdAt: Date;
 }
 
@@ -22,6 +23,7 @@ const serviceFeedbackSchema = new Schema<IServiceFeedback>(
     requesterId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, trim: true, maxlength: 500 },
+    commentAr: { type: String, trim: true, maxlength: 500 },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

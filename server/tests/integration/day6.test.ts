@@ -655,7 +655,8 @@ describe('Day 6 — AI maintenance insights (T063)', () => {
     expect(withCache.body.available).toBe(true);
     expect(withCache.body.message).toBeUndefined();
     expect(withCache.body.stats.requests.total).toBeGreaterThan(0);
-    expect(withCache.body.stats.technicians[0].label).toBe('Technician A');
+    expect(withCache.body.stats.technicians[0].name).toBeTruthy();
+    expect(withCache.body.stats.technicians[0].label).toBeUndefined();
     expect(withCache.body.insights).toBeTruthy();
     expect(withCache.body.generatedAt).toBeTruthy();
     expect(withCache.body.rangeStart).toBeTruthy();
@@ -722,8 +723,8 @@ describe('Day 6 — AI maintenance insights (T063)', () => {
     expect(generated.insights).toEqual(firstContent);
     expect(generated.generatedAt).toBeInstanceOf(Date);
     expect(calls).toBe(1);
-    expect(capturedPrompt).toContain('Technician A');
-    expect(capturedPrompt).not.toContain('Hassan');
+    expect(capturedPrompt).toContain('Hassan El-Sayed');
+    expect(capturedPrompt).toContain('overdueDetails');
 
     const cachedDoc = await AiInsightCache.findOne({ period: '7d' }).lean();
     expect(cachedDoc).not.toBeNull();

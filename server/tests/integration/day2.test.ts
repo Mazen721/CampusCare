@@ -129,6 +129,7 @@ describe('Day 2 locations', () => {
       .set('Authorization', bearer('SUPER_ADMIN'))
       .send({
         buildingName: 'Innovation & Robotics Center',
+        buildingNameAr: 'مركز الابتكار والروبوتات',
         floor: 'Ground Floor',
         room: 'R01',
         locationType: 'LAB',
@@ -144,6 +145,7 @@ describe('Day 2 locations', () => {
       .set('Authorization', bearer('SUPER_ADMIN'))
       .send({
         buildingName: 'Innovation & Robotics Center',
+        buildingNameAr: 'مركز الابتكار والروبوتات',
         floor: 'Ground Floor',
         room: 'R01',
         locationType: 'LAB',

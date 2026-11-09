@@ -33,6 +33,7 @@ interface PopulatedReporter {
   name: string;
   email?: string;
   department?: string;
+  departmentAr?: string;
   role?: Role;
 }
 
@@ -50,6 +51,7 @@ export interface SerializedItem extends PublicItem {
     name: string;
     email?: string;
     department?: string;
+    departmentAr?: string;
     role?: Role;
   } | null;
   createdAt?: Date;
@@ -58,12 +60,12 @@ export interface SerializedItem extends PublicItem {
 
 const LOCATION_POPULATION = {
   path: 'locationId',
-  select: 'buildingName floor room locationType',
+  select: 'buildingName buildingNameAr floor floorAr room roomAr locationType',
 };
 
 const REPORTER_POPULATION = {
   path: 'reporterId',
-  select: 'name email department role',
+  select: 'name email department departmentAr role',
 };
 
 export const BROWSE_ACTIVE_STATUSES: ItemStatus[] = [
@@ -104,6 +106,7 @@ function serializeItem(item: PopulatedItem, includePrivate: boolean): Serialized
           name: item.reporterId.name,
           email: item.reporterId.email,
           department: item.reporterId.department,
+          departmentAr: item.reporterId.departmentAr,
           role: item.reporterId.role,
         }
       : null;
@@ -237,8 +240,9 @@ export async function listItems(
   if (query.locationId) filter.locationId = query.locationId;
 
   if (query.building) {
+    const buildingPattern = new RegExp(escapeRegExp(query.building), 'i');
     const locationIds = await Location.find({
-      buildingName: new RegExp(escapeRegExp(query.building), 'i'),
+      $or: [{ buildingName: buildingPattern }, { buildingNameAr: buildingPattern }],
     }).distinct('_id');
     filter.locationId = { $in: locationIds };
   }
@@ -256,7 +260,9 @@ export async function listItems(
     filter.$or = [
       { reportNumber: pattern },
       { itemTitle: pattern },
+      { itemTitleAr: pattern },
       { description: pattern },
+      { descriptionAr: pattern },
     ];
   }
 
@@ -369,16 +375,31 @@ export async function updateItem(
     await requireActiveLocation(input.locationId);
   }
 
-  if (input.itemTitle !== undefined) item.itemTitle = input.itemTitle;
-  if (input.description !== undefined) item.description = input.description;
+  if (input.itemTitle !== undefined) {
+    item.itemTitle = input.itemTitle;
+    item.itemTitleAr = undefined;
+  }
+  if (input.description !== undefined) {
+    item.description = input.description;
+    item.descriptionAr = undefined;
+  }
   if (input.privateIdentificationDetails !== undefined) {
     item.privateIdentificationDetails = input.privateIdentificationDetails;
   }
   if (input.category !== undefined) item.category = input.category;
-  if ('color' in input) item.color = input.color;
-  if ('brand' in input) item.brand = input.brand;
+  if ('color' in input) {
+    item.color = input.color;
+    item.colorAr = undefined;
+  }
+  if ('brand' in input) {
+    item.brand = input.brand;
+    item.brandAr = undefined;
+  }
   if (input.locationId !== undefined) item.locationId = new Types.ObjectId(input.locationId);
-  if (input.locationDetails !== undefined) item.locationDetails = input.locationDetails;
+  if (input.locationDetails !== undefined) {
+    item.locationDetails = input.locationDetails;
+    item.locationDetailsAr = undefined;
+  }
   if (input.occurrenceDate !== undefined) item.occurrenceDate = input.occurrenceDate;
 
   await item.save();

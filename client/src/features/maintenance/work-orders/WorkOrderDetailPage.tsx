@@ -33,6 +33,7 @@ import { AssignWorkOrderDialog } from '@/features/maintenance/work-orders/Assign
 import { CancelWorkOrderDialog } from '@/features/maintenance/work-orders/CancelWorkOrderDialog';
 import { CompleteWorkOrderDialog } from '@/features/maintenance/work-orders/CompleteWorkOrderDialog';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
+import { formatLocation, tr } from '@/i18n/localize';
 import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate, getInitials } from '@/lib/utils';
@@ -142,7 +143,7 @@ export function WorkOrderDetailPage() {
 
       <PageHeader
         eyebrow={workOrder.workOrderNumber}
-        title={workOrder.title}
+        title={tr(workOrder, 'title')}
         description={`${enumLabel('maintenanceCategory', workOrder.category)} · ${enumLabel('sourceType', workOrder.sourceType)}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -229,7 +230,7 @@ export function WorkOrderDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
-                {workOrder.description}
+                {tr(workOrder, 'description')}
               </p>
             </CardContent>
           </Card>
@@ -286,7 +287,7 @@ export function WorkOrderDetailPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-foreground whitespace-pre-wrap">
-                  {workOrder.resolutionDetails || t('workOrders.noResolutionDetails')}
+                  {tr(workOrder, 'resolutionDetails') || t('workOrders.noResolutionDetails')}
                 </p>
               </CardContent>
             </Card>
@@ -303,7 +304,7 @@ export function WorkOrderDetailPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-foreground">
-                  {workOrder.cancelReason || t('workOrders.cancelledByManager')}
+                  {tr(workOrder, 'cancelReason') || t('workOrders.cancelledByManager')}
                 </p>
               </CardContent>
             </Card>
@@ -348,7 +349,7 @@ export function WorkOrderDetailPage() {
                         <span>{formatDate(n.createdAt)}</span>
                       </div>
                       <p className="text-xs text-foreground whitespace-pre-wrap">
-                        {n.note}
+                        {tr(n, 'note')}
                       </p>
                     </div>
                   ))}
@@ -466,10 +467,7 @@ export function WorkOrderDetailPage() {
               {workOrder.location ? (
                 <>
                   <p className="font-semibold text-foreground text-sm">
-                    {workOrder.location.buildingName}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {workOrder.location.floor} · {workOrder.location.room}
+                    {formatLocation(workOrder.location)}
                   </p>
                   {workOrder.location.locationType && (
                     <Badge variant="secondary" className="text-[10px]">

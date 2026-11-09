@@ -15,8 +15,14 @@ export interface AiSummary {
   generatedAt: Date;
 }
 
+export interface AiSummaries {
+  en?: AiSummary;
+  ar?: AiSummary;
+}
+
 export interface TechnicianNote {
   note: string;
+  noteAr?: string;
   authorId: Types.ObjectId;
   createdAt: Date;
   isSystem: boolean;
@@ -29,19 +35,25 @@ export interface IWorkOrder {
   preventivePlanId?: Types.ObjectId;
   assignedTechnicianId?: Types.ObjectId;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   locationId: Types.ObjectId;
   status: WorkOrderStatus;
+  /** @deprecated Kept for backward compatibility with documents written before Phase 7. */
   aiSummary?: AiSummary;
+  aiSummaries?: AiSummaries;
   scheduledStart?: Date;
   expectedCompletion?: Date;
   actualStart?: Date;
   completedAt?: Date;
   technicianNotes: TechnicianNote[];
   resolutionDetails?: string;
+  resolutionDetailsAr?: string;
   cancelReason?: string;
+  cancelReasonAr?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,9 +66,18 @@ const aiSummarySchema = new Schema<AiSummary>(
   { _id: false },
 );
 
+const aiSummariesSchema = new Schema<AiSummaries>(
+  {
+    en: { type: aiSummarySchema },
+    ar: { type: aiSummarySchema },
+  },
+  { _id: false },
+);
+
 const technicianNoteSchema = new Schema<TechnicianNote>(
   {
     note: { type: String, required: true, trim: true, maxlength: 2000 },
+    noteAr: { type: String, trim: true, maxlength: 2000 },
     authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     createdAt: { type: Date, default: Date.now },
     isSystem: { type: Boolean, default: false },
@@ -72,7 +93,9 @@ const workOrderSchema = new Schema<IWorkOrder>(
     preventivePlanId: { type: Schema.Types.ObjectId, ref: 'PreventivePlan' },
     assignedTechnicianId: { type: Schema.Types.ObjectId, ref: 'User' },
     title: { type: String, required: true, trim: true, maxlength: 160 },
+    titleAr: { type: String, trim: true, maxlength: 160 },
     description: { type: String, required: true, trim: true, maxlength: 4000 },
+    descriptionAr: { type: String, trim: true, maxlength: 4000 },
     category: { type: String, required: true, enum: MAINTENANCE_CATEGORIES },
     priority: { type: String, required: true, enum: PRIORITIES },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true },
@@ -83,13 +106,16 @@ const workOrderSchema = new Schema<IWorkOrder>(
       default: 'PENDING_ASSIGNMENT',
     },
     aiSummary: { type: aiSummarySchema },
+    aiSummaries: { type: aiSummariesSchema },
     scheduledStart: { type: Date },
     expectedCompletion: { type: Date },
     actualStart: { type: Date },
     completedAt: { type: Date },
     technicianNotes: { type: [technicianNoteSchema], default: [] },
     resolutionDetails: { type: String, trim: true, maxlength: 4000 },
+    resolutionDetailsAr: { type: String, trim: true, maxlength: 4000 },
     cancelReason: { type: String, trim: true, maxlength: 1000 },
+    cancelReasonAr: { type: String, trim: true, maxlength: 1000 },
   },
   { timestamps: true, versionKey: false },
 );

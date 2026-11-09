@@ -24,6 +24,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
+import { useTranslation } from 'react-i18next';
+import { enumLabel } from '@/lib/labels';
+import { formatLocation } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { useMeta } from '@/lib/useMeta';
 import {
@@ -57,6 +60,7 @@ const requestSchema = z.object({
 type RequestValues = z.infer<typeof requestSchema>;
 
 export function NewRequestPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [images, setImages] = useState<File[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -97,22 +101,22 @@ export function NewRequestPage() {
         equipmentDescription: values.equipmentDescription || undefined,
         images,
       });
-      toast.success(`Request ${result.request.requestNumber} submitted`);
+      toast.success(t('requests.requestCreatedSuccess'));
       navigate(`/maintenance/requests/${result.request.id}`);
     } catch (error) {
-      setServerError(getErrorMessage(error, 'Unable to submit this request right now. Please try again.'));
+      setServerError(getErrorMessage(error));
     }
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Maintenance"
-        title="Report an issue"
-        description="Tell us what is wrong and where. A maintenance manager will review the request and, if approved, create a work order."
+        eyebrow={t('nav.maintenance')}
+        title={t('requests.newRequest')}
+        description={t('requests.newRequestSubtitle')}
         actions={
           <Button asChild variant="outline">
-            <Link to="/maintenance/requests">Cancel</Link>
+            <Link to="/maintenance/requests">{t('common.cancel')}</Link>
           </Button>
         }
       />
@@ -120,9 +124,9 @@ export function NewRequestPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Card>
           <CardHeader className="border-b">
-            <CardTitle>Issue details</CardTitle>
+            <CardTitle>{t('requests.issueDetails')}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Clear details help the maintenance team triage and resolve the issue faster.
+              {t('requests.issueDetailsHint')}
             </p>
           </CardHeader>
           <CardContent className="pt-6">
@@ -139,14 +143,14 @@ export function NewRequestPage() {
 
               <FormField
                 id="request-title"
-                label="Title"
+                label={t('requests.itemTitle')}
                 error={errors.title?.message}
-                hint="A short summary, for example: Air conditioner leaking in Lab 204."
+                hint={t('requests.titleHint')}
                 required
               >
                 <Input
                   id="request-title"
-                  placeholder="Air conditioner leaking in Lab 204"
+                  placeholder={t('requests.titlePlaceholder')}
                   maxLength={160}
                   aria-invalid={Boolean(errors.title)}
                   {...register('title')}
@@ -155,14 +159,14 @@ export function NewRequestPage() {
 
               <FormField
                 id="request-description"
-                label="Description"
+                label={t('requests.description')}
                 error={errors.description?.message}
-                hint={`${description.length}/4000 characters. Include when the issue started and anything you already tried.`}
+                hint={t('requests.descHint', { count: description.length })}
                 required
               >
                 <Textarea
                   id="request-description"
-                  placeholder="The unit has been dripping since this morning. Water is pooling near the power outlet…"
+                  placeholder={t('requests.descPlaceholder')}
                   rows={6}
                   maxLength={4000}
                   aria-invalid={Boolean(errors.description)}
@@ -173,7 +177,7 @@ export function NewRequestPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   id="request-category"
-                  label="Category"
+                  label={t('requests.category')}
                   error={errors.category?.message}
                   required
                 >
@@ -185,7 +189,7 @@ export function NewRequestPage() {
                   >
                     {categories.map((category) => (
                       <option key={category} value={category}>
-                        {category}
+                        {enumLabel('maintenanceCategory', category)}
                       </option>
                     ))}
                   </select>
@@ -193,9 +197,8 @@ export function NewRequestPage() {
 
                 <FormField
                   id="request-priority"
-                  label="Priority"
+                  label={t('requests.priority')}
                   error={errors.priority?.message}
-                  hint="Use Critical only when there is immediate danger or major disruption."
                   required
                 >
                   <select
@@ -206,7 +209,7 @@ export function NewRequestPage() {
                   >
                     {priorities.map((priority) => (
                       <option key={priority} value={priority}>
-                        {priority.charAt(0) + priority.slice(1).toLowerCase()}
+                        {enumLabel('priority', priority)}
                       </option>
                     ))}
                   </select>
@@ -215,12 +218,12 @@ export function NewRequestPage() {
 
               <FormField
                 id="request-location"
-                label="Location"
+                label={t('requests.location')}
                 error={errors.locationId?.message}
                 hint={
                   locationsQuery.isError
-                    ? 'Locations could not be loaded. Use the retry button below.'
-                    : 'Only active campus locations are available.'
+                    ? t('requests.locationsLoadError')
+                    : undefined
                 }
                 required
               >
@@ -233,14 +236,14 @@ export function NewRequestPage() {
                 >
                   <option value="">
                     {locationsQuery.isLoading
-                      ? 'Loading locations…'
+                      ? t('common.loading')
                       : categoriesAvailable
-                        ? 'Select a building, floor and room'
-                        : 'No active locations available'}
+                        ? t('requests.selectLocation')
+                        : t('requests.noLocationsConfigured')}
                   </option>
                   {(locationsQuery.data?.data ?? []).map((location) => (
                     <option key={location.id} value={location.id}>
-                      {location.buildingName} · {location.floor} · Room {location.room}
+                      {formatLocation(location)}
                     </option>
                   ))}
                 </select>
@@ -249,7 +252,7 @@ export function NewRequestPage() {
               {locationsQuery.isError ? (
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-3.5 py-3">
                   <p className="text-xs leading-relaxed text-destructive">
-                    Unable to load locations. Check your connection and try again.
+                    {t('requests.locationsLoadError')}
                   </p>
                   <Button
                     type="button"
@@ -257,7 +260,7 @@ export function NewRequestPage() {
                     size="sm"
                     onClick={() => void locationsQuery.refetch()}
                   >
-                    Retry
+                    {t('errors.retry')}
                   </Button>
                 </div>
               ) : null}
@@ -266,21 +269,19 @@ export function NewRequestPage() {
                 <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-relaxed text-amber-900">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                   <p>
-                    No active locations are configured. Ask an administrator to add a campus
-                    location before submitting a request.
+                    {t('requests.noLocationsConfigured')}
                   </p>
                 </div>
               ) : null}
 
               <FormField
                 id="request-equipment"
-                label="Equipment involved"
+                label={t('requests.equipmentDescription')}
                 error={errors.equipmentDescription?.message}
-                hint="Optional. Brand, model or asset label, if relevant."
               >
                 <Input
                   id="request-equipment"
-                  placeholder="Split unit, model MSZ-GE35"
+                  placeholder={t('requests.equipmentPlaceholder')}
                   maxLength={1000}
                   aria-invalid={Boolean(errors.equipmentDescription)}
                   {...register('equipmentDescription')}
@@ -289,20 +290,20 @@ export function NewRequestPage() {
 
               <fieldset>
                 <legend className="mb-2 text-sm font-medium text-foreground">
-                  Photos <span className="font-normal text-muted-foreground">(optional)</span>
+                  {t('requests.photos')} <span className="font-normal text-muted-foreground">{t('common.optional')}</span>
                 </legend>
                 <ImageUpload files={images} onChange={setImages} maxFiles={3} />
               </fieldset>
 
               <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:justify-end">
                 <Button asChild variant="outline">
-                  <Link to="/maintenance/requests">Cancel</Link>
+                  <Link to="/maintenance/requests">{t('common.cancel')}</Link>
                 </Button>
                 <Button type="submit" disabled={isSubmitting || !categoriesAvailable}>
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   ) : null}
-                  Submit request
+                  {t('requests.submitRequest')}
                   {!isSubmitting ? (
                     <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                   ) : null}
@@ -315,7 +316,7 @@ export function NewRequestPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>What happens next</CardTitle>
+              <CardTitle>{t('requests.whatHappensNext')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-5">
               <ol className="space-y-4">
@@ -324,10 +325,9 @@ export function NewRequestPage() {
                     <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-foreground">Manager review</p>
+                    <p className="text-sm font-medium text-foreground">{t('requests.managerReview')}</p>
                     <p className="text-xs leading-relaxed text-muted-foreground">
-                      The maintenance manager checks the request, may ask for details, then approves
-                      or rejects it with a reason.
+                      {t('requests.managerReviewDesc')}
                     </p>
                   </div>
                 </li>
@@ -336,10 +336,9 @@ export function NewRequestPage() {
                     <Wrench className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-foreground">Work order & technician</p>
+                    <p className="text-sm font-medium text-foreground">{t('requests.workOrderTechnician')}</p>
                     <p className="text-xs leading-relaxed text-muted-foreground">
-                      Approval creates one work order. A technician is assigned and the repair is
-                      tracked through completion.
+                      {t('requests.workOrderTechnicianDesc')}
                     </p>
                   </div>
                 </li>
@@ -348,10 +347,9 @@ export function NewRequestPage() {
                     <BellRing className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-foreground">Stay informed</p>
+                    <p className="text-sm font-medium text-foreground">{t('requests.stayInformed')}</p>
                     <p className="text-xs leading-relaxed text-muted-foreground">
-                      Notifications keep you updated. You can confirm the fix or reopen the request
-                      if the issue returns.
+                      {t('requests.stayInformedDesc')}
                     </p>
                   </div>
                 </li>
@@ -361,20 +359,20 @@ export function NewRequestPage() {
 
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Good to include</CardTitle>
+              <CardTitle>{t('requests.goodToInclude')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-5">
               <div className="flex items-start gap-2.5 text-xs leading-relaxed text-muted-foreground">
                 <Camera className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                <p>Up to three photos of the issue, taken in good light.</p>
+                <p>{t('requests.tipPhotos')}</p>
               </div>
               <div className="flex items-start gap-2.5 text-xs leading-relaxed text-muted-foreground">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                <p>The exact building, floor and room so the technician can find it.</p>
+                <p>{t('requests.tipLocation')}</p>
               </div>
               <div className="flex items-start gap-2.5 text-xs leading-relaxed text-muted-foreground">
                 <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                <p>Whether the issue is blocking classes, labs or shared facilities.</p>
+                <p>{t('requests.tipImpact')}</p>
               </div>
             </CardContent>
           </Card>

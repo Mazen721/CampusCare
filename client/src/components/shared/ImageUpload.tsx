@@ -126,7 +126,7 @@ export function ImageUpload({
             {t('common.upload')}
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            JPEG, PNG, WebP · max {maxFiles} · 5 MB
+            {t('common.uploadSpecs', { max: maxFiles })}
           </p>
           <Button
             type="button"

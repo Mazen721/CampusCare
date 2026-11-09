@@ -28,14 +28,18 @@ interface PopulatedUserRef {
   name: string;
   email?: string;
   department?: string;
+  departmentAr?: string;
   role?: Role;
 }
 
 interface PopulatedLocationRef {
   _id: Types.ObjectId;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType: string;
 }
 
@@ -90,7 +94,9 @@ export interface SerializedRequest {
   id: string;
   requestNumber: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: IMaintenanceRequest['category'];
   priority: IMaintenanceRequest['priority'];
   status: RequestStatus;
@@ -99,8 +105,11 @@ export interface SerializedRequest {
   location: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
     locationType: string;
   } | null;
   requester: {
@@ -108,6 +117,7 @@ export interface SerializedRequest {
     name: string;
     email?: string;
     department?: string;
+    departmentAr?: string;
     role?: Role;
   } | null;
   reviewedBy: {
@@ -124,8 +134,8 @@ export interface SerializedRequest {
 }
 
 const REQUEST_POPULATION = [
-  { path: 'requesterId', select: 'name email department role' },
-  { path: 'locationId', select: 'buildingName floor room locationType' },
+  { path: 'requesterId', select: 'name email department departmentAr role' },
+  { path: 'locationId', select: 'buildingName buildingNameAr floor floorAr room roomAr locationType' },
   { path: 'reviewedBy', select: 'name role' },
   {
     path: 'currentWorkOrderId',
@@ -177,7 +187,9 @@ export function serializeRequest(request: RequestWithRefs): SerializedRequest {
     id: request._id.toString(),
     requestNumber: request.requestNumber,
     title: request.title,
+    titleAr: request.titleAr,
     description: request.description,
+    descriptionAr: request.descriptionAr,
     category: request.category,
     priority: request.priority,
     status: request.status,
@@ -187,8 +199,11 @@ export function serializeRequest(request: RequestWithRefs): SerializedRequest {
       ? {
           id: location._id.toString(),
           buildingName: location.buildingName,
+          buildingNameAr: location.buildingNameAr,
           floor: location.floor,
+          floorAr: location.floorAr,
           room: location.room,
+          roomAr: location.roomAr,
           locationType: location.locationType,
         }
       : null,
@@ -198,6 +213,7 @@ export function serializeRequest(request: RequestWithRefs): SerializedRequest {
           name: requester.name,
           email: requester.email,
           department: requester.department,
+          departmentAr: requester.departmentAr,
           role: requester.role,
         }
       : null,
@@ -247,7 +263,7 @@ export async function createRequest(
   const location = await Location.findOne({
     _id: input.locationId,
     isActive: true,
-  }).select('buildingName floor room');
+  }).select('buildingName buildingNameAr floor floorAr room roomAr');
 
   if (!location) {
     throw ApiError.badRequest('Select an active campus location', 'activeLocationRequired');
@@ -286,9 +302,9 @@ export async function createRequest(
       params: {
         code: request.requestNumber,
         title: request.title,
-        building: { en: location.buildingName },
-        floor: { en: location.floor },
-        room: { en: location.room },
+        building: { en: location.buildingName, ar: location.buildingNameAr },
+        floor: { en: location.floor, ar: location.floorAr },
+        room: { en: location.room, ar: location.roomAr },
       },
       relatedEntityType: 'MaintenanceRequest',
       relatedEntityId: request._id,
@@ -340,7 +356,9 @@ export async function listRequests(
     filter.$or = [
       { requestNumber: pattern },
       { title: pattern },
+      { titleAr: pattern },
       { description: pattern },
+      { descriptionAr: pattern },
     ];
   }
 
@@ -470,7 +488,9 @@ export async function reviewRequest(
             sourceType: 'REACTIVE',
             maintenanceRequestId: request._id,
             title: request.title,
+            titleAr: request.titleAr,
             description: request.description,
+            descriptionAr: request.descriptionAr,
             category: request.category,
             priority: request.priority,
             locationId: request.locationId,

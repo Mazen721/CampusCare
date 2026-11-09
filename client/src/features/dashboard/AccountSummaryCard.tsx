@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { enumLabel } from '@/lib/labels';
 import { formatDate, getInitials } from '@/lib/utils';
+import { tr } from '@/i18n/localize';
 import type { AuthUser } from '@/types/auth';
 
 interface AccountSummaryCardProps {
@@ -70,7 +71,7 @@ export function AccountSummaryCard({ user }: AccountSummaryCardProps) {
           <DetailRow
             icon={Building2}
             label={t('auth.department')}
-            value={user.department?.trim() || t('auth.notAssigned')}
+            value={tr(user, 'department') || t('auth.notAssigned')}
           />
           <DetailRow
             icon={Phone}

@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { pickLang } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import type { AdminDashboard } from '@/types/dashboard';
 
@@ -46,7 +47,7 @@ export function AdminCharts({
   const { t } = useTranslation();
 
   const buildingData = analytics.activityByBuilding.map((item) => ({
-    building: item.building,
+    building: pickLang(item.building, item.buildingAr),
     maintenance: item.maintenance,
     lostFound: item.lostFound,
   }));

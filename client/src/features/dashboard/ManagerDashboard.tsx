@@ -12,6 +12,7 @@ import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { ManagerCharts } from '@/features/dashboard/ManagerCharts';
 import { InsightsPanel } from '@/features/ai/InsightsPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { pickLang } from '@/i18n/localize';
 import { formatNumber } from '@/lib/utils';
 import type { ManagerDashboard as ManagerDashboardData } from '@/types/dashboard';
 
@@ -92,9 +93,11 @@ export function ManagerDashboard({ data }: { data: ManagerDashboardData }) {
               topBuildings.map((entry) => {
                 const percent = Math.round((entry.count / Math.max(metrics.totalRequests, 1)) * 100);
                 return (
-                  <div key={entry.building} className="space-y-1.5">
+                  <div key={entry.name || entry.building} className="space-y-1.5">
                     <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="truncate text-foreground">{entry.building}</span>
+                      <span className="truncate text-foreground">
+                        {pickLang(entry.name || entry.building, entry.nameAr || entry.buildingAr)}
+                      </span>
                       <span className="shrink-0 text-xs font-medium text-muted-foreground">
                         {entry.count} · {percent}%
                       </span>

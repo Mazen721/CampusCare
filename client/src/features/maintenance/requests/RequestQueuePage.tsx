@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
 import { ReviewRequestDialog } from '@/features/maintenance/requests/ReviewRequestDialog';
+import { formatLocation, tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
@@ -56,7 +57,7 @@ export function RequestQueuePage() {
             to={`/maintenance/requests/${request.id}`}
             className="font-medium text-foreground hover:text-primary hover:underline"
           >
-            {request.title}
+            {tr(request, 'title')}
           </Link>
           <p className="mt-0.5 text-xs text-muted-foreground">
             <span dir="ltr">{request.requestNumber}</span>
@@ -94,7 +95,7 @@ export function RequestQueuePage() {
       cell: (request) =>
         request.location ? (
           <span className="text-sm text-muted-foreground">
-            {request.location.buildingName} · {request.location.floor} · {request.location.room}
+            {formatLocation(request.location)}
           </span>
         ) : (
           <span className="text-sm text-muted-foreground">—</span>

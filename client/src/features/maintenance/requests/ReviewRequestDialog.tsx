@@ -25,6 +25,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
+import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { MaintenanceRequestRecord, ReviewAction } from '@/types/maintenance';
@@ -52,26 +53,26 @@ type ReviewValues = z.infer<typeof reviewSchema>;
 
 const ACTIONS: Array<{
   value: ReviewAction;
-  label: string;
-  description: string;
+  labelKey: string;
+  descKey: string;
   Icon: LucideIcon;
 }> = [
   {
     value: 'UNDER_REVIEW',
-    label: 'Mark under review',
-    description: 'Keep the request open while you gather more information.',
+    labelKey: 'requests.markUnderReview',
+    descKey: 'requests.markUnderReviewDesc',
     Icon: Search,
   },
   {
     value: 'APPROVE',
-    label: 'Approve',
-    description: 'Create one reactive work order in Pending assignment.',
+    labelKey: 'requests.approve',
+    descKey: 'requests.approveDesc',
     Icon: CheckCircle2,
   },
   {
     value: 'REJECT',
-    label: 'Reject',
-    description: 'Close the request with a reason. This is terminal.',
+    labelKey: 'requests.reject',
+    descKey: 'requests.rejectDesc',
     Icon: XCircle,
   },
 ];
@@ -93,6 +94,7 @@ export function ReviewRequestDialog({
   onOpenChange,
   onReviewed,
 }: ReviewRequestDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -153,10 +155,10 @@ export function ReviewRequestDialog({
 
   const submitLabel =
     action === 'APPROVE'
-      ? 'Approve & create work order'
+      ? t('requests.confirmApprove')
       : action === 'REJECT'
-        ? 'Reject request'
-        : 'Mark under review';
+        ? t('requests.confirmReject')
+        : t('requests.setUnderReview');
 
   return (
     <Dialog
@@ -166,10 +168,10 @@ export function ReviewRequestDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            Review request <span dir="ltr">{request?.requestNumber}</span>
+            {t('requests.reviewTitle')} <span dir="ltr">{request?.requestNumber}</span>
           </DialogTitle>
           <DialogDescription>
-            {request?.title}. Choose the next step. The requester is notified of every decision.
+            {request?.title}{t('requests.reviewSubtitle')}
           </DialogDescription>
         </DialogHeader>
 
@@ -185,7 +187,7 @@ export function ReviewRequestDialog({
           ) : null}
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium text-foreground">Decision</legend>
+            <legend className="mb-2 text-sm font-medium text-foreground">{t('requests.decision')}</legend>
             <div className="space-y-2">
               {ACTIONS.map((option) => {
                 const Icon = option.Icon;
@@ -214,10 +216,10 @@ export function ReviewRequestDialog({
                     />
                     <span>
                       <span className="block text-sm font-medium text-foreground">
-                        {option.label}
+                        {t(option.labelKey)}
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
-                        {option.description}
+                        {t(option.descKey)}
                       </span>
                     </span>
                   </label>
@@ -230,15 +232,15 @@ export function ReviewRequestDialog({
             <div className="flex items-start gap-2.5 rounded-lg border border-teal-200 bg-teal-50 px-3.5 py-3 text-xs leading-relaxed text-teal-900">
               <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <p>
-                Approval creates exactly one work order in <strong>Pending assignment</strong>. If a
-                work order already exists, the server refuses a duplicate.
+                {t('requests.approveNotice')}
+
               </p>
             </div>
           ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="review-notes">
-              {action === 'REJECT' ? 'Reason for rejection' : 'Review notes'}
+              {action === 'REJECT' ? t('requests.reasonForRejection') : t('requests.reviewNotes')}
               {action === 'REJECT' ? (
                 <span className="ms-1 text-destructive" aria-hidden="true">
                   *
@@ -279,7 +281,7 @@ export function ReviewRequestDialog({
               onClick={() => onOpenChange(false)}
               disabled={reviewRequest.isPending}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"

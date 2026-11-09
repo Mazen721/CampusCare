@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
+import { formatLocation, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import {
@@ -72,7 +73,7 @@ export function ReportsTable({
             <span dir="ltr">{item.reportNumber}</span>
           </Link>
           <p className="mt-0.5 max-w-[260px] truncate text-sm font-medium text-foreground">
-            {item.itemTitle}
+            {tr(item, 'itemTitle')}
           </p>
           <p className="text-[11px] text-muted-foreground">{enumLabel('lostFoundCategory', item.category)}</p>
         </div>
@@ -89,14 +90,9 @@ export function ReportsTable({
       cell: (item) => (
         <div className="max-w-[230px] text-xs text-muted-foreground">
           {item.location ? (
-            <>
-              <p className="font-medium text-foreground">{item.location.buildingName}</p>
-              <p>
-                {item.location.floor} · {item.location.room}
-              </p>
-            </>
+            <p className="font-medium text-foreground">{formatLocation(item.location)}</p>
           ) : (
-            <p>{item.locationDetails}</p>
+            <p>{tr(item, 'locationDetails')}</p>
           )}
         </div>
       ),

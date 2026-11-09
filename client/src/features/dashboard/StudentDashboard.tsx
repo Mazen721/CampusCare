@@ -12,7 +12,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
-import { resolveParams } from '@/i18n/localize';
+import { resolveParams, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate, formatNumber } from '@/lib/utils';
 import type { RequestStatus } from '@/types/meta';
@@ -96,7 +96,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                           to={`/maintenance/requests/${request.id}`}
                           className="block truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
                         >
-                          {request.title}
+                          {tr(request, 'title')}
                         </Link>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           <span dir="ltr">{request.requestNumber}</span> · {formatDate(request.createdAt)}
@@ -230,7 +230,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                         to={`/lost-found/claims/${claim.id}`}
                         className="block truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
                       >
-                        {claim.itemTitle}
+                        {tr(claim, 'itemTitle')}
                       </Link>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         <span dir="ltr">{claim.claimNumber}</span> · {formatDate(claim.createdAt)}
@@ -279,7 +279,7 @@ export function StudentDashboard({ data }: { data: StudentDashboardData }) {
                         to={`/lost-found/items/${report.id}`}
                         className="block truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
                       >
-                        {report.itemTitle}
+                        {tr(report, 'itemTitle')}
                       </Link>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         <span dir="ltr">{report.reportNumber}</span> · {enumLabel('reportType', report.reportType)} ·{' '}

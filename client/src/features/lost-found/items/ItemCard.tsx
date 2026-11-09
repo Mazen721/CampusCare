@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
+import { formatLocation, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { LostFoundItem } from '@/types/lostFound';
@@ -24,7 +25,7 @@ export function ItemCard({ item }: ItemCardProps) {
         {image ? (
           <img
             src={image.url}
-            alt={t('lostFound.itemPhoto', { title: item.itemTitle })}
+            alt={t('lostFound.itemPhoto', { title: tr(item, 'itemTitle') })}
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
@@ -45,7 +46,7 @@ export function ItemCard({ item }: ItemCardProps) {
             <span dir="ltr">{item.reportNumber}</span>
           </p>
           <h2 className="line-clamp-2 font-display text-lg leading-snug text-foreground group-hover:text-primary">
-            {item.itemTitle}
+            {tr(item, 'itemTitle')}
           </h2>
           <p className="text-xs text-muted-foreground">{enumLabel('lostFoundCategory', item.category)}</p>
         </div>
@@ -55,8 +56,8 @@ export function ItemCard({ item }: ItemCardProps) {
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
             <span className="line-clamp-2">
               {item.location
-                ? `${item.location.buildingName} · ${item.location.floor} · ${item.location.room}`
-                : item.locationDetails}
+                ? formatLocation(item.location)
+                : tr(item, 'locationDetails')}
             </span>
           </p>
           <p className="flex items-center gap-1.5">

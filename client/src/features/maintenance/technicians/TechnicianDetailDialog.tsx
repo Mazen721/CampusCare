@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
+import { formatLocation, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate, getInitials } from '@/lib/utils';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
@@ -105,6 +106,11 @@ export function TechnicianDetailDialog({
                 {technician.contactPhone && (
                   <p className="text-xs text-muted-foreground">
                     <span dir="ltr">{technician.contactPhone}</span>
+                  </p>
+                )}
+                {tr(technician, 'department') && (
+                  <p className="text-xs text-muted-foreground">
+                    {tr(technician, 'department')}
                   </p>
                 )}
               </div>
@@ -227,11 +233,11 @@ export function TechnicianDetailDialog({
                           <PriorityBadge priority={task.priority} />
                           <StatusBadge status={task.status} />
                         </div>
-                        <p className="mt-1 font-medium text-foreground truncate">{task.title}</p>
+                        <p className="mt-1 font-medium text-foreground truncate">{tr(task, 'title')}</p>
                         {task.location && (
                           <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                             <MapPin className="h-3 w-3" />
-                            {task.location.buildingName} • {task.location.floor} • {task.location.room}
+                            {formatLocation(task.location)}
                           </p>
                         )}
                       </div>

@@ -13,6 +13,7 @@ export interface SerializedCalendarWorkOrder {
   id: string;
   workOrderNumber: string;
   title: string;
+  titleAr?: string;
   status: WorkOrderStatus;
   sourceType: IWorkOrder['sourceType'];
   priority: IWorkOrder['priority'];
@@ -29,8 +30,11 @@ export interface SerializedCalendarWorkOrder {
   location: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
   } | null;
 }
 
@@ -38,6 +42,7 @@ interface PopulatedCalendarWorkOrder {
   _id: Types.ObjectId;
   workOrderNumber: string;
   title: string;
+  titleAr?: string;
   status: WorkOrderStatus;
   sourceType: IWorkOrder['sourceType'];
   priority: IWorkOrder['priority'];
@@ -56,8 +61,11 @@ interface PopulatedCalendarWorkOrder {
     | {
         _id: Types.ObjectId;
         buildingName: string;
+        buildingNameAr?: string;
         floor: string;
+        floorAr?: string;
         room: string;
+        roomAr?: string;
       }
     | null;
 }
@@ -81,6 +89,7 @@ function serializeCalendarWorkOrder(
     id: workOrder._id.toString(),
     workOrderNumber: workOrder.workOrderNumber,
     title: workOrder.title,
+    titleAr: workOrder.titleAr,
     status: workOrder.status,
     sourceType: workOrder.sourceType,
     priority: workOrder.priority,
@@ -102,8 +111,11 @@ function serializeCalendarWorkOrder(
         ? {
             id: location._id.toString(),
             buildingName: location.buildingName,
+            buildingNameAr: location.buildingNameAr,
             floor: location.floor,
+            floorAr: location.floorAr,
             room: location.room,
+            roomAr: location.roomAr,
           }
         : null,
   };
@@ -145,7 +157,7 @@ export async function getCalendar(
 
   const documents = await WorkOrder.find(filter)
     .populate('assignedTechnicianId', 'name availability')
-    .populate('locationId', 'buildingName floor room')
+    .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr')
     .sort({ scheduledStart: 1, expectedCompletion: 1 })
     .lean<PopulatedCalendarWorkOrder[]>();
 

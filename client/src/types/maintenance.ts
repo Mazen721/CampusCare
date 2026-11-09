@@ -13,8 +13,11 @@ export interface ImageAsset {
 export interface RequestLocation {
   id: string;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType: string;
 }
 
@@ -23,6 +26,7 @@ export interface RequestPerson {
   name: string;
   email?: string;
   department?: string;
+  departmentAr?: string;
   role?: Role;
 }
 
@@ -35,6 +39,8 @@ export interface RequestReviewer {
 export interface SerializedWorkOrderSummary {
   id: string;
   workOrderNumber: string;
+  title?: string;
+  titleAr?: string;
   status: string;
   sourceType?: string;
   scheduledStart?: string;
@@ -50,7 +56,9 @@ export interface MaintenanceRequestRecord {
   id: string;
   requestNumber: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   status: RequestStatus;

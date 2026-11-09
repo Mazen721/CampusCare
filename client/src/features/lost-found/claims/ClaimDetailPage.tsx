@@ -28,6 +28,7 @@ import { HandoverDialog } from '@/features/lost-found/claims/HandoverDialog';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ItemGallery } from '@/features/lost-found/items/ItemGallery';
+import { formatLocation, tr } from '@/i18n/localize';
 import { ApiError, getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
@@ -120,7 +121,7 @@ export function ClaimDetailPage() {
 
       <PageHeader
         eyebrow={<span dir="ltr">{claim.claimNumber}</span>}
-        title={claim.item?.itemTitle ?? t('claims.claimNumber')}
+        title={claim.item ? tr(claim.item, 'itemTitle') : t('claims.claimNumber')}
         description={`${formatDate(claim.createdAt, {
           dateStyle: 'medium',
           timeStyle: 'short',
@@ -148,7 +149,7 @@ export function ClaimDetailPage() {
                   {t('claims.whyTheirItem')}
                 </p>
                 <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                  {claim.claimDescription}
+                  {tr(claim, 'claimDescription')}
                 </p>
               </div>
               <div className="rounded-lg border border-amber-300/70 bg-amber-50/60 p-4">
@@ -193,7 +194,7 @@ export function ClaimDetailPage() {
                   >
                     <span dir="ltr">{claim.item.reportNumber}</span>
                   </Link>
-                  <p className="mt-1 font-semibold text-foreground">{claim.item.itemTitle}</p>
+                  <p className="mt-1 font-semibold text-foreground">{tr(claim.item, 'itemTitle')}</p>
                   <p className="text-xs text-muted-foreground">
                     {enumLabel('lostFoundCategory', claim.item.category)} · {enumLabel('reportType', claim.item.reportType)}
                   </p>
@@ -208,8 +209,8 @@ export function ClaimDetailPage() {
                 <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
                   <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   {claim.item.location
-                    ? `${claim.item.location.buildingName} · ${claim.item.location.floor} · ${t('locations.room')} ${claim.item.location.room}`
-                    : claim.item.locationDetails}
+                    ? formatLocation(claim.item.location)
+                    : tr(claim.item, 'locationDetails')}
                 </p>
               </CardContent>
             </Card>
@@ -249,7 +250,7 @@ export function ClaimDetailPage() {
                 >
                   <span dir="ltr">{claim.linkedLostItem.reportNumber}</span>
                 </Link>
-                <p className="font-medium text-foreground">{claim.linkedLostItem.itemTitle}</p>
+                <p className="font-medium text-foreground">{tr(claim.linkedLostItem, 'itemTitle')}</p>
                 <StatusBadge status={claim.linkedLostItem.status} />
               </CardContent>
             </Card>
@@ -272,8 +273,8 @@ export function ClaimDetailPage() {
                     <span dir="ltr">{claim.claimant.email}</span>
                   </p>
                 ) : null}
-                {claim.claimant.department ? (
-                  <p className="text-xs text-muted-foreground">{claim.claimant.department}</p>
+                {tr(claim.claimant, 'department') ? (
+                  <p className="text-xs text-muted-foreground">{tr(claim.claimant, 'department')}</p>
                 ) : null}
               </CardContent>
             </Card>
@@ -302,13 +303,13 @@ export function ClaimDetailPage() {
                 {claim.rejectionReason ? (
                   <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-900">
                     <p className="font-semibold">{t('claims.rejectionReason')}</p>
-                    <p className="mt-1">{claim.rejectionReason}</p>
+                    <p className="mt-1">{tr(claim, 'rejectionReason')}</p>
                   </div>
                 ) : null}
                 {claim.verificationNotes ? (
                   <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
                     <p className="font-semibold text-foreground">{t('claims.internalNotes')}</p>
-                    <p className="mt-1 whitespace-pre-wrap">{claim.verificationNotes}</p>
+                    <p className="mt-1 whitespace-pre-wrap">{tr(claim, 'verificationNotes')}</p>
                   </div>
                 ) : null}
               </CardContent>
@@ -342,7 +343,7 @@ export function ClaimDetailPage() {
                 ) : null}
                 {claim.handover.notes ? (
                   <p className="pt-1 text-xs leading-relaxed text-emerald-900">
-                    {claim.handover.notes}
+                    {tr(claim.handover, 'notes')}
                   </p>
                 ) : null}
               </CardContent>

@@ -14,6 +14,8 @@ import {
   type WorkOrderStatus,
 } from '../../config/constants';
 import { Notification } from '../../shared/models/Notification.model';
+import { applyNotificationLocalization } from '../../shared/utils/notificationLocalization';
+import { getRequestLang } from '../../shared/utils/requestContext';
 import { User } from '../auth/user.model';
 import {
   AiInsightCache,
@@ -51,7 +53,7 @@ export interface ManagerMetrics {
   totalRequests: number;
   requestsByStatus: Record<RequestStatus, number>;
   requestsByCategory: Array<{ category: string; count: number }>;
-  requestsByBuilding: Array<{ building: string; count: number }>;
+  requestsByBuilding: Array<{ name: string; nameAr?: string; building: string; buildingAr?: string; count: number }>;
   activeWorkOrders: number;
   completedWorkOrders: number;
   overdueWorkOrders: number;
@@ -62,6 +64,45 @@ export interface ManagerMetrics {
     averageRating: number | null;
     distribution: Array<{ rating: number; count: number }>;
   };
+}
+
+interface InsightLocationRef {
+  buildingName?: string;
+  buildingNameAr?: string;
+  floor?: string;
+  floorAr?: string;
+  room?: string;
+  roomAr?: string;
+}
+
+interface InsightWorkOrderDetail {
+  workOrderNumber: string;
+  title: string;
+  titleAr?: string;
+  priority: Priority;
+  status: WorkOrderStatus;
+  expectedCompletion?: Date;
+  assignedTechnicianId?: { name?: string } | null;
+  locationId?: InsightLocationRef | null;
+}
+
+interface InsightRequestDetail {
+  requestNumber: string;
+  title: string;
+  titleAr?: string;
+  priority: Priority;
+  status: RequestStatus;
+  createdAt: Date;
+  locationId?: InsightLocationRef | null;
+}
+
+interface InsightFeedbackDetail {
+  rating: number;
+  comment?: string;
+  commentAr?: string;
+  createdAt: Date;
+  technicianId?: { name?: string } | null;
+  maintenanceRequestId?: { requestNumber?: string; title?: string; titleAr?: string } | null;
 }
 
 export interface AdminDashboard {
@@ -92,7 +133,7 @@ export interface AdminDashboard {
   } | null;
   analytics: {
     usersByRole: Array<{ role: Role; count: number }>;
-    activityByBuilding: Array<{ building: string; maintenance: number; lostFound: number }>;
+    activityByBuilding: Array<{ name: string; nameAr?: string; building: string; buildingAr?: string; maintenance: number; lostFound: number }>;
     moduleVolume: Array<{ module: string; count: number }>;
   };
 }
@@ -112,6 +153,7 @@ export interface TechnicianDashboard {
     id: string;
     workOrderNumber: string;
     title: string;
+    titleAr?: string;
     status: WorkOrderStatus;
     priority: string;
     category: string;
@@ -121,8 +163,11 @@ export interface TechnicianDashboard {
     location: {
       id: string;
       buildingName: string;
+      buildingNameAr?: string;
       floor: string;
+      floorAr?: string;
       room: string;
+      roomAr?: string;
     } | null;
   }>;
   analytics: {
@@ -170,6 +215,7 @@ export interface StudentDashboard {
       id: string;
       requestNumber: string;
       title: string;
+      titleAr?: string;
       status: RequestStatus;
       priority: string;
       createdAt: Date;
@@ -181,6 +227,7 @@ export interface StudentDashboard {
       id: string;
       claimNumber: string;
       itemTitle: string;
+      itemTitleAr?: string;
       status: string;
       createdAt: Date;
     }>;
@@ -194,6 +241,7 @@ export interface StudentDashboard {
       reportNumber: string;
       reportType: string;
       itemTitle: string;
+      itemTitleAr?: string;
       status: string;
       createdAt: Date;
     }>;
@@ -229,6 +277,13 @@ export type DashboardResponse =
 
 interface CountRow {
   _id: string | null;
+  count: number;
+}
+
+interface BuildingCountRow {
+  _id: Types.ObjectId | string | null;
+  name: string | null;
+  nameAr?: string | null;
   count: number;
 }
 
@@ -309,6 +364,106 @@ async function getRepeatedLocationIssues(
   return rows.map((row) => ({ ...row._id, count: row.count }));
 }
 
+function localize(en: string | undefined, ar: string | undefined, lang: string): string {
+  return lang === 'ar' && ar?.trim() ? ar : (en ?? '');
+}
+
+function formatInsightLocation(
+  location: InsightLocationRef | null | undefined,
+  lang: string,
+): string {
+  if (!location) {
+    return 'Unassigned location';
+  }
+
+  const parts = [
+    localize(location.buildingName, location.buildingNameAr, lang),
+    localize(location.floor, location.floorAr, lang),
+    localize(location.room, location.roomAr, lang),
+  ].filter(Boolean);
+
+  return parts.join(', ') || 'Unassigned location';
+}
+
+function ageInDays(from: Date, to: Date): number {
+  return Math.max(0, Math.floor((to.getTime() - from.getTime()) / 86_400_000));
+}
+
+async function getInsightOperationalDetails(
+  range: PeriodRange,
+  lang: string,
+): Promise<{
+  overdueWorkOrders: Array<Record<string, unknown>>;
+  oldestOpenRequests: Array<Record<string, unknown>>;
+  lowRatings: Array<Record<string, unknown>>;
+}> {
+  const openRequestStatuses: RequestStatus[] = [
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'APPROVED',
+    'IN_PROGRESS',
+    'REOPENED',
+    'COMPLETED',
+  ];
+
+  const [overdueWorkOrders, oldestOpenRequests, lowRatings] = await Promise.all([
+    WorkOrder.find({
+      status: { $in: ['PENDING_ASSIGNMENT', 'ASSIGNED', 'IN_PROGRESS'] },
+      expectedCompletion: { $lt: range.to },
+    })
+      .sort({ expectedCompletion: 1 })
+      .limit(8)
+      .populate('assignedTechnicianId', 'name')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr')
+      .lean<InsightWorkOrderDetail[]>(),
+    MaintenanceRequest.find({ status: { $in: openRequestStatuses } })
+      .sort({ createdAt: 1 })
+      .limit(8)
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr')
+      .lean<InsightRequestDetail[]>(),
+    ServiceFeedback.find({ rating: { $lte: 3 }, ...createdAtMatch(range) })
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .populate('technicianId', 'name')
+      .populate('maintenanceRequestId', 'requestNumber title titleAr')
+      .lean<InsightFeedbackDetail[]>(),
+  ]);
+
+  return {
+    overdueWorkOrders: overdueWorkOrders.map((workOrder) => ({
+      code: workOrder.workOrderNumber,
+      title: localize(workOrder.title, workOrder.titleAr, lang),
+      priority: workOrder.priority,
+      status: workOrder.status,
+      technician: workOrder.assignedTechnicianId?.name ?? 'Unassigned',
+      location: formatInsightLocation(workOrder.locationId, lang),
+      daysOverdue: workOrder.expectedCompletion
+        ? ageInDays(workOrder.expectedCompletion, range.to)
+        : null,
+    })),
+    oldestOpenRequests: oldestOpenRequests.map((request) => ({
+      code: request.requestNumber,
+      title: localize(request.title, request.titleAr, lang),
+      status: request.status,
+      priority: request.priority,
+      location: formatInsightLocation(request.locationId, lang),
+      daysOpen: ageInDays(request.createdAt, range.to),
+    })),
+    lowRatings: lowRatings.map((feedback) => ({
+      rating: feedback.rating,
+      comment: localize(feedback.comment, feedback.commentAr, lang) || null,
+      technician: feedback.technicianId?.name ?? 'Unknown technician',
+      requestCode: feedback.maintenanceRequestId?.requestNumber ?? null,
+      requestTitle: localize(
+        feedback.maintenanceRequestId?.title,
+        feedback.maintenanceRequestId?.titleAr,
+        lang,
+      ),
+      createdAt: feedback.createdAt,
+    })),
+  };
+}
+
 export async function getManagerMetrics(range: PeriodRange): Promise<ManagerMetrics> {
   const requestMatch = createdAtMatch(range);
 
@@ -323,7 +478,7 @@ export async function getManagerMetrics(range: PeriodRange): Promise<ManagerMetr
         { $group: { _id: '$category', count: { $sum: 1 } } },
         { $sort: { count: -1, _id: 1 } },
       ]),
-      MaintenanceRequest.aggregate<CountRow>([
+      MaintenanceRequest.aggregate<BuildingCountRow>([
         { $match: requestMatch },
         {
           $lookup: {
@@ -334,7 +489,14 @@ export async function getManagerMetrics(range: PeriodRange): Promise<ManagerMetr
           },
         },
         { $unwind: { path: '$location', preserveNullAndEmptyArrays: true } },
-        { $group: { _id: '$location.buildingName', count: { $sum: 1 } } },
+        {
+          $group: {
+            _id: '$location._id',
+            name: { $first: '$location.buildingName' },
+            nameAr: { $first: '$location.buildingNameAr' },
+            count: { $sum: 1 },
+          },
+        },
         { $sort: { count: -1, _id: 1 } },
       ]),
       WorkOrder.countDocuments({ status: { $in: ['ASSIGNED', 'IN_PROGRESS'] } }),
@@ -409,7 +571,10 @@ export async function getManagerMetrics(range: PeriodRange): Promise<ManagerMetr
       .filter((row): row is CountRow & { _id: string } => Boolean(row._id))
       .map((row) => ({ category: row._id, count: row.count })),
     requestsByBuilding: buildingRows.map((row) => ({
-      building: row._id ?? 'Unassigned location',
+      name: row.name ?? 'Unassigned location',
+      nameAr: row.nameAr ?? undefined,
+      building: row.name ?? 'Unassigned location',
+      buildingAr: row.nameAr ?? undefined,
       count: row.count,
     })),
     activeWorkOrders,
@@ -520,6 +685,7 @@ async function getAdminDashboard(
   period: DashboardPeriod,
   range: PeriodRange,
 ): Promise<AdminDashboard> {
+  const lang = getRequestLang();
   const [
     users,
     activeUsers,
@@ -555,9 +721,12 @@ async function getAdminDashboard(
     LostFoundItem.countDocuments({ status: { $in: ['OPEN', 'MATCH_CONFIRMED'] } }),
     ItemMatch.countDocuments({ status: 'SUGGESTED' }),
     ClaimRequest.countDocuments({ status: { $in: ['PENDING_REVIEW', 'UNDER_VERIFICATION'] } }),
-    AiInsightCache.findOne({}).sort({ generatedAt: -1 }).lean(),
+    AiInsightCache.findOne({ lang })
+      .sort({ generatedAt: -1 })
+      .lean()
+      .then((cached) => cached ?? AiInsightCache.findOne({}).sort({ generatedAt: -1 }).lean()),
     User.aggregate<CountRow>([{ $group: { _id: '$role', count: { $sum: 1 } } }]),
-    MaintenanceRequest.aggregate<CountRow>([
+    MaintenanceRequest.aggregate<BuildingCountRow>([
       { $match: createdAtMatch(range) },
       {
         $lookup: {
@@ -568,9 +737,16 @@ async function getAdminDashboard(
         },
       },
       { $unwind: { path: '$location', preserveNullAndEmptyArrays: false } },
-      { $group: { _id: '$location.buildingName', count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: '$location._id',
+          name: { $first: '$location.buildingName' },
+          nameAr: { $first: '$location.buildingNameAr' },
+          count: { $sum: 1 },
+        },
+      },
     ]),
-    LostFoundItem.aggregate<CountRow>([
+    LostFoundItem.aggregate<BuildingCountRow>([
       { $match: createdAtMatch(range) },
       {
         $lookup: {
@@ -581,7 +757,14 @@ async function getAdminDashboard(
         },
       },
       { $unwind: { path: '$location', preserveNullAndEmptyArrays: false } },
-      { $group: { _id: '$location.buildingName', count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: '$location._id',
+          name: { $first: '$location.buildingName' },
+          nameAr: { $first: '$location.buildingNameAr' },
+          count: { $sum: 1 },
+        },
+      },
     ]),
     MaintenanceRequest.countDocuments(createdAtMatch(range)),
     WorkOrder.countDocuments(createdAtMatch(range)),
@@ -596,24 +779,39 @@ async function getAdminDashboard(
     count: userRoleMap.get(role) ?? 0,
   }));
 
-  const buildingActivityMap = new Map<string, { maintenance: number; lostFound: number }>();
+  const buildingActivityMap = new Map<string, { name: string; nameAr?: string; maintenance: number; lostFound: number }>();
   mrBuildingRows.forEach((row) => {
-    if (!row._id) return;
-    const current = buildingActivityMap.get(row._id) ?? { maintenance: 0, lostFound: 0 };
+    if (!row.name) return;
+    const key = row._id ? row._id.toString() : row.name;
+    const current = buildingActivityMap.get(key) ?? {
+      name: row.name,
+      nameAr: row.nameAr ?? undefined,
+      maintenance: 0,
+      lostFound: 0,
+    };
     current.maintenance = row.count;
-    buildingActivityMap.set(row._id, current);
+    buildingActivityMap.set(key, current);
   });
   lfBuildingRows.forEach((row) => {
-    if (!row._id) return;
-    const current = buildingActivityMap.get(row._id) ?? { maintenance: 0, lostFound: 0 };
+    if (!row.name) return;
+    const key = row._id ? row._id.toString() : row.name;
+    const current = buildingActivityMap.get(key) ?? {
+      name: row.name,
+      nameAr: row.nameAr ?? undefined,
+      maintenance: 0,
+      lostFound: 0,
+    };
     current.lostFound = row.count;
-    buildingActivityMap.set(row._id, current);
+    buildingActivityMap.set(key, current);
   });
-  const activityByBuilding = Array.from(buildingActivityMap.entries())
-    .map(([building, counts]) => ({
-      building,
-      maintenance: counts.maintenance,
-      lostFound: counts.lostFound,
+  const activityByBuilding = Array.from(buildingActivityMap.values())
+    .map((item) => ({
+      name: item.name,
+      nameAr: item.nameAr,
+      building: item.name,
+      buildingAr: item.nameAr,
+      maintenance: item.maintenance,
+      lostFound: item.lostFound,
     }))
     .sort((a, b) => b.maintenance + b.lostFound - (a.maintenance + a.lostFound))
     .slice(0, 6);
@@ -705,7 +903,7 @@ async function getTechnicianDashboard(
       assignedTechnicianId: technicianId,
       status: { $in: ['ASSIGNED', 'IN_PROGRESS'] },
     })
-      .populate('locationId', 'buildingName floor room')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr')
       .sort({ scheduledStart: 1, expectedCompletion: 1 })
       .limit(10)
       .lean(),
@@ -801,7 +999,15 @@ async function getTechnicianDashboard(
     counts: { assigned, inProgress, overdue, completed },
     schedule: schedule.map((workOrder) => {
       const location = workOrder.locationId as unknown as
-        | { _id: Types.ObjectId; buildingName: string; floor: string; room: string }
+        | {
+            _id: Types.ObjectId;
+            buildingName: string;
+            buildingNameAr?: string;
+            floor: string;
+            floorAr?: string;
+            room: string;
+            roomAr?: string;
+          }
         | null;
       const isOverdue = Boolean(
         workOrder.status !== 'COMPLETED' &&
@@ -814,6 +1020,7 @@ async function getTechnicianDashboard(
         id: workOrder._id.toString(),
         workOrderNumber: workOrder.workOrderNumber,
         title: workOrder.title,
+        titleAr: (workOrder as unknown as { titleAr?: string }).titleAr,
         status: workOrder.status,
         priority: workOrder.priority,
         category: workOrder.category,
@@ -824,8 +1031,11 @@ async function getTechnicianDashboard(
           ? {
               id: location._id.toString(),
               buildingName: location.buildingName,
+              buildingNameAr: location.buildingNameAr,
               floor: location.floor,
+              floorAr: location.floorAr,
               room: location.room,
+              roomAr: location.roomAr,
             }
           : null,
       };
@@ -961,7 +1171,7 @@ async function getStudentDashboard(
     MaintenanceRequest.find({ requesterId: userId, ...rangeMatch })
       .sort({ createdAt: -1 })
       .limit(5)
-      .select('requestNumber title status priority createdAt')
+      .select('requestNumber title titleAr status priority createdAt')
       .lean(),
     ClaimRequest.aggregate<CountRow>([
       { $match: { claimantId: userId, ...rangeMatch } },
@@ -970,7 +1180,7 @@ async function getStudentDashboard(
     ClaimRequest.find({ claimantId: userId, ...rangeMatch })
       .sort({ createdAt: -1 })
       .limit(5)
-      .populate('itemId', 'itemTitle')
+      .populate('itemId', 'itemTitle itemTitleAr')
       .lean(),
     LostFoundItem.aggregate<CountRow>([
       { $match: { reporterId: userId, ...rangeMatch } },
@@ -979,13 +1189,13 @@ async function getStudentDashboard(
     LostFoundItem.find({ reporterId: userId, ...rangeMatch })
       .sort({ createdAt: -1 })
       .limit(5)
-      .select('reportNumber reportType itemTitle status createdAt')
+      .select('reportNumber reportType itemTitle itemTitleAr status createdAt')
       .lean(),
     Notification.countDocuments({ userId, isRead: false }),
     Notification.find({ userId })
       .sort({ createdAt: -1 })
       .limit(5)
-      .select('title message linkUrl isRead createdAt')
+      .select('type title message titleKey messageKey params linkUrl isRead createdAt')
       .lean(),
   ]);
 
@@ -1015,6 +1225,7 @@ async function getStudentDashboard(
         id: request._id.toString(),
         requestNumber: request.requestNumber,
         title: request.title,
+        titleAr: (request as unknown as { titleAr?: string }).titleAr,
         status: request.status,
         priority: request.priority,
         createdAt: request.createdAt,
@@ -1023,11 +1234,12 @@ async function getStudentDashboard(
     claims: {
       total: totalClaims,
       recent: recentClaims.map((claim) => {
-        const item = claim.itemId as unknown as { itemTitle?: string } | null;
+        const item = claim.itemId as unknown as { itemTitle?: string; itemTitleAr?: string } | null;
         return {
           id: claim._id.toString(),
           claimNumber: claim.claimNumber,
           itemTitle: item?.itemTitle ?? 'Lost & found item',
+          itemTitleAr: item?.itemTitleAr,
           status: claim.status,
           createdAt: claim.createdAt,
         };
@@ -1042,23 +1254,27 @@ async function getStudentDashboard(
         reportNumber: report.reportNumber,
         reportType: report.reportType,
         itemTitle: report.itemTitle,
+        itemTitleAr: (report as unknown as { itemTitleAr?: string }).itemTitleAr,
         status: report.status,
         createdAt: report.createdAt,
       })),
     },
     notifications: {
       unreadCount,
-      recent: recentNotifications.map((notification) => ({
-        id: notification._id.toString(),
-        title: notification.title,
-        titleKey: notification.titleKey,
-        message: notification.message,
-        messageKey: notification.messageKey,
-        params: notification.params,
-        linkUrl: notification.linkUrl,
-        isRead: notification.isRead,
-        createdAt: notification.createdAt,
-      })),
+      recent: recentNotifications.map((notification) => {
+        const localized = applyNotificationLocalization(notification);
+        return {
+          id: notification._id.toString(),
+          title: localized.title,
+          titleKey: localized.titleKey,
+          message: localized.message,
+          messageKey: localized.messageKey,
+          params: localized.params,
+          linkUrl: notification.linkUrl,
+          isRead: notification.isRead,
+          createdAt: notification.createdAt,
+        };
+      }),
     },
   };
 }
@@ -1118,10 +1334,12 @@ export async function getInsightGenerationStats(
     to: previousRangeEnd,
   };
 
-  const [metrics, previousTotalRequests, repeatedIssues] = await Promise.all([
+  const lang = getRequestLang();
+  const [metrics, previousTotalRequests, repeatedIssues, details] = await Promise.all([
     getManagerMetrics(range),
     countRequestsInRange(previousRange),
     getRepeatedLocationIssues(range),
+    getInsightOperationalDetails(range, lang),
   ]);
 
   const totalRequests = metrics.totalRequests;
@@ -1132,13 +1350,18 @@ export async function getInsightGenerationStats(
         : 0
       : round(((totalRequests - previousTotalRequests) / previousTotalRequests) * 100);
 
-  const anonymizedTechnicians = metrics.technicianWorkload.map((technician, index) => ({
-    label: `Technician ${String.fromCharCode(65 + (index % 26))}`,
-    activeWorkOrders: technician.activeWorkOrders,
-    completedWorkOrders: technician.completedWorkOrders,
-    feedbackCount: technician.feedbackCount,
-    averageRating: technician.averageRating,
-  }));
+  const openBacklogStatuses: RequestStatus[] = [
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'APPROVED',
+    'IN_PROGRESS',
+    'REOPENED',
+    'COMPLETED',
+  ];
+  const openBacklog = openBacklogStatuses.reduce(
+    (sum, status) => sum + (metrics.requestsByStatus[status] ?? 0),
+    0,
+  );
 
   const stats = {
     period,
@@ -1150,19 +1373,31 @@ export async function getInsightGenerationStats(
       total: totalRequests,
       previousTotal: previousTotalRequests,
       changePercent: requestChangePercent,
+      openBacklog,
       byStatus: metrics.requestsByStatus,
       byCategory: metrics.requestsByCategory.slice(0, 5),
       byBuilding: metrics.requestsByBuilding.slice(0, 5),
       repeatedLocationIssues: repeatedIssues,
+      oldestOpen: details.oldestOpenRequests,
     },
     workOrders: {
       active: metrics.activeWorkOrders,
       completed: metrics.completedWorkOrders,
       overdue: metrics.overdueWorkOrders,
       averageResolutionHours: metrics.averageResolutionHours,
+      overdueDetails: details.overdueWorkOrders,
     },
-    technicians: anonymizedTechnicians,
-    feedback: metrics.feedback,
+    technicians: metrics.technicianWorkload.map((technician) => ({
+      name: technician.name,
+      activeWorkOrders: technician.activeWorkOrders,
+      completedWorkOrders: technician.completedWorkOrders,
+      feedbackCount: technician.feedbackCount,
+      averageRating: technician.averageRating,
+    })),
+    feedback: {
+      ...metrics.feedback,
+      lowRatings: details.lowRatings,
+    },
   };
 
   return { stats, rangeStart, rangeEnd, previousRangeStart, previousRangeEnd };

@@ -35,7 +35,7 @@ export interface ManagerMetrics {
   totalRequests: number;
   requestsByStatus: Record<RequestStatus, number>;
   requestsByCategory: Array<{ category: string; count: number }>;
-  requestsByBuilding: Array<{ building: string; count: number }>;
+  requestsByBuilding: Array<{ name?: string; nameAr?: string; building: string; buildingAr?: string; count: number }>;
   activeWorkOrders: number;
   completedWorkOrders: number;
   overdueWorkOrders: number;
@@ -78,7 +78,7 @@ export interface AdminDashboard extends DashboardBase {
   } | null;
   analytics: {
     usersByRole: Array<{ role: Role; count: number }>;
-    activityByBuilding: Array<{ building: string; maintenance: number; lostFound: number }>;
+    activityByBuilding: Array<{ name?: string; nameAr?: string; building: string; buildingAr?: string; maintenance: number; lostFound: number }>;
     moduleVolume: Array<{ module: string; count: number }>;
   };
 }
@@ -87,6 +87,7 @@ export interface TechnicianScheduleItem {
   id: string;
   workOrderNumber: string;
   title: string;
+  titleAr?: string;
   status: WorkOrderStatus;
   priority: Priority;
   category: string;
@@ -96,8 +97,11 @@ export interface TechnicianScheduleItem {
   location: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
   } | null;
 }
 

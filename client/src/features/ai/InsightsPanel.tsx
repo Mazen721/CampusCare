@@ -39,12 +39,13 @@ function StatsGrid({ stats }: { stats: InsightStats }) {
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         {t('ai.systemStats')}
       </p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         <StatBlock label={t('dashboard.requests')} value={requests?.total ?? '—'} />
         <StatBlock
           label={t('ai.changeVsPrevious')}
           value={change === undefined ? '—' : `${change > 0 ? '+' : ''}${change}%`}
         />
+        <StatBlock label={t('ai.openBacklog')} value={requests?.openBacklog ?? '—'} />
         <StatBlock label={t('ai.activeWorkOrders')} value={workOrders?.active ?? '—'} />
         <StatBlock label={t('ai.overdueWorkOrders')} value={workOrders?.overdue ?? '—'} />
       </div>
@@ -57,9 +58,10 @@ interface InsightsPanelProps {
 }
 
 export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [period, setPeriod] = useState<InsightsPeriod>(defaultPeriod);
   const queryClient = useQueryClient();
+  const lang = i18n.language === 'en' ? 'en' : 'ar';
 
   const periods: Array<{ value: InsightsPeriod; label: string }> = [
     { value: '7d', label: t('dashboard.period7d') },
@@ -67,7 +69,7 @@ export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
   ];
 
   const insightsQuery = useQuery({
-    queryKey: ['maintenance-insights', period],
+    queryKey: ['maintenance-insights', period, lang],
     queryFn: () => insightsApi.generate({ period }),
     retry: false,
   });
@@ -75,7 +77,7 @@ export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
   const regenerate = useMutation({
     mutationFn: () => insightsApi.generate({ period, regenerate: true }),
     onSuccess: (data: MaintenanceInsightsResponse) => {
-      queryClient.setQueryData(['maintenance-insights', period], data);
+      queryClient.setQueryData(['maintenance-insights', period, lang], data);
       if (data.available) {
         toast.success(t('ai.insights'));
       } else {

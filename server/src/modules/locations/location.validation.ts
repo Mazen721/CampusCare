@@ -3,14 +3,23 @@ import { LOCATION_TYPES } from '../../config/constants';
 
 const locationFields = {
   buildingName: z.string().trim().min(1, 'Building name is required').max(120),
+  buildingNameAr: z.string().trim().min(1, 'Building name (Arabic) is required').max(120),
   floor: z.string().trim().min(1, 'Floor is required').max(40),
+  floorAr: z.string().trim().max(40, 'Floor (Arabic) must be 40 characters or fewer').optional().transform((v) => (v === '' ? undefined : v)),
   room: z.string().trim().min(1, 'Room is required').max(40),
+  roomAr: z.string().trim().max(40, 'Room (Arabic) must be 40 characters or fewer').optional().transform((v) => (v === '' ? undefined : v)),
   locationType: z.enum(LOCATION_TYPES),
   description: z
     .string()
     .trim()
     .max(500, 'Description must be 500 characters or fewer')
     .optional(),
+  descriptionAr: z
+    .string()
+    .trim()
+    .max(500, 'Description (Arabic) must be 500 characters or fewer')
+    .optional()
+    .transform((v) => (v === '' ? undefined : v)),
 };
 
 export const createLocationSchema = z.object(locationFields);

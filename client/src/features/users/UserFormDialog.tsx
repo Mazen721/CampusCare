@@ -49,7 +49,12 @@ export function createUserFormSchema(t: TFunction, isEditing: boolean) {
       department: z
         .string()
         .trim()
-        .max(120, t('validation.maxChars', { field: t('auth.department'), max: 120 }))
+        .max(120, t('validation.maxChars', { field: t('users.department'), max: 120 }))
+        .optional(),
+      departmentAr: z
+        .string()
+        .trim()
+        .max(120, t('validation.maxChars', { field: t('users.departmentAr'), max: 120 }))
         .optional(),
       contactPhone: z
         .string()
@@ -90,6 +95,7 @@ const EMPTY_VALUES: UserFormValues = {
   password: '',
   role: 'STUDENT_EMPLOYEE',
   department: '',
+  departmentAr: '',
   contactPhone: '',
   specializations: [],
   skillsText: '',
@@ -132,6 +138,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
             password: '',
             role: user.role,
             department: user.department ?? '',
+            departmentAr: user.departmentAr ?? '',
             contactPhone: user.contactPhone ?? '',
             specializations: (user.specializations ?? []) as MaintenanceCategory[],
             skillsText: (user.skills ?? []).join(', '),
@@ -149,6 +156,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
         email: values.email,
         role: values.role,
         department: values.department?.trim() || undefined,
+        departmentAr: values.departmentAr?.trim() || undefined,
         contactPhone: values.contactPhone?.trim() || undefined,
         specializations: isTech ? values.specializations : [],
         skills: isTech
@@ -259,12 +267,23 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
               </select>
             </FormField>
 
-            <FormField id="user-department" label={t('auth.department')} error={errors.department?.message}>
+            <FormField id="user-department" label={t('users.department')} error={errors.department?.message}>
               <Input
                 id="user-department"
+                dir="ltr"
                 placeholder={t('users.departmentPlaceholder')}
                 aria-invalid={Boolean(errors.department)}
                 {...register('department')}
+              />
+            </FormField>
+
+            <FormField id="user-department-ar" label={t('users.departmentAr')} error={errors.departmentAr?.message}>
+              <Input
+                id="user-department-ar"
+                dir="rtl"
+                placeholder={t('users.departmentArPlaceholder')}
+                aria-invalid={Boolean(errors.departmentAr)}
+                {...register('departmentAr')}
               />
             </FormField>
 

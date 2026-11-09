@@ -5,6 +5,7 @@ import { assertTransition as assertRequestTransition } from '../../../shared/sta
 import { logActivity } from '../../../shared/services/activityLog.service';
 import { notify } from '../../../shared/services/notification.service';
 import { ApiError } from '../../../shared/utils/ApiError';
+import { getRequestLang } from '../../../shared/utils/requestContext';
 import { paginate, parsePagination } from '../../../shared/utils/paginate';
 import { withTransaction } from '../../../shared/utils/withTransaction';
 import { User } from '../../auth/user.model';
@@ -25,6 +26,7 @@ export interface WorkOrderActor {
 
 export interface SerializedTechnicianNote {
   note: string;
+  noteAr?: string;
   author: {
     id: string;
     name: string;
@@ -48,14 +50,19 @@ export interface SerializedWorkOrder {
     specializations?: string[];
   } | null;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   category: MaintenanceCategory;
   priority: Priority;
   location: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
     locationType?: string;
   } | null;
   status: WorkOrderStatus;
@@ -69,7 +76,9 @@ export interface SerializedWorkOrder {
   completedAt?: Date;
   technicianNotes: SerializedTechnicianNote[];
   resolutionDetails?: string;
+  resolutionDetailsAr?: string;
   cancelReason?: string;
+  cancelReasonAr?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -77,6 +86,10 @@ export interface SerializedWorkOrder {
 function serializeWorkOrder(wo: any): SerializedWorkOrder {
   const tech = wo.assignedTechnicianId;
   const loc = wo.locationId;
+  const lang = getRequestLang();
+  const summary =
+    wo.aiSummaries?.[lang] ??
+    (lang === 'en' && wo.aiSummary ? wo.aiSummary : undefined);
 
   return {
     id: wo._id.toString(),
@@ -96,23 +109,28 @@ function serializeWorkOrder(wo: any): SerializedWorkOrder {
         }
       : null,
     title: wo.title,
+    titleAr: wo.titleAr,
     description: wo.description,
+    descriptionAr: wo.descriptionAr,
     category: wo.category,
     priority: wo.priority,
     location: loc && loc._id
       ? {
           id: loc._id.toString(),
           buildingName: loc.buildingName,
+          buildingNameAr: loc.buildingNameAr,
           floor: loc.floor,
+          floorAr: loc.floorAr,
           room: loc.room,
+          roomAr: loc.roomAr,
           locationType: loc.locationType,
         }
       : null,
     status: wo.status,
-    aiSummary: wo.aiSummary
+    aiSummary: summary
       ? {
-          text: wo.aiSummary.text,
-          generatedAt: wo.aiSummary.generatedAt,
+          text: summary.text,
+          generatedAt: summary.generatedAt,
         }
       : undefined,
     scheduledStart: wo.scheduledStart,
@@ -121,6 +139,7 @@ function serializeWorkOrder(wo: any): SerializedWorkOrder {
     completedAt: wo.completedAt,
     technicianNotes: (wo.technicianNotes ?? []).map((n: any) => ({
       note: n.note,
+      noteAr: n.noteAr,
       author: n.authorId && n.authorId._id
         ? {
             id: n.authorId._id.toString(),
@@ -135,7 +154,9 @@ function serializeWorkOrder(wo: any): SerializedWorkOrder {
       isSystem: Boolean(n.isSystem),
     })),
     resolutionDetails: wo.resolutionDetails,
+    resolutionDetailsAr: wo.resolutionDetailsAr,
     cancelReason: wo.cancelReason,
+    cancelReasonAr: wo.cancelReasonAr,
     createdAt: wo.createdAt,
     updatedAt: wo.updatedAt,
   };
@@ -171,7 +192,7 @@ export async function listWorkOrders(
   const [documents, total] = await Promise.all([
     WorkOrder.find(filter)
       .populate('assignedTechnicianId', 'name email availability specializations')
-      .populate('locationId', 'buildingName floor room locationType')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
       .populate('technicianNotes.authorId', 'name role')
       .sort({ expectedCompletion: 1, createdAt: -1 })
       .skip((page - 1) * limit)
@@ -189,7 +210,7 @@ export async function getWorkOrder(
 ): Promise<SerializedWorkOrder> {
   const wo = await WorkOrder.findById(id)
     .populate('assignedTechnicianId', 'name email availability specializations')
-    .populate('locationId', 'buildingName floor room locationType')
+    .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
     .populate('technicianNotes.authorId', 'name role')
     .lean();
 
@@ -347,7 +368,7 @@ export async function assignWorkOrder(
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
       .populate('assignedTechnicianId', 'name email availability specializations')
-      .populate('locationId', 'buildingName floor room locationType')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
       .populate('technicianNotes.authorId', 'name role')
       .lean();
 
@@ -409,7 +430,7 @@ export async function startWorkOrder(
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
       .populate('assignedTechnicianId', 'name email availability specializations')
-      .populate('locationId', 'buildingName floor room locationType')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
       .populate('technicianNotes.authorId', 'name role')
       .lean();
 
@@ -456,7 +477,7 @@ export async function addTechnicianNote(
 
   const populated = await WorkOrder.findById(wo._id)
     .populate('assignedTechnicianId', 'name email availability specializations')
-    .populate('locationId', 'buildingName floor room locationType')
+    .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
     .populate('technicianNotes.authorId', 'name role')
     .lean();
 
@@ -537,7 +558,7 @@ export async function completeWorkOrder(
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
       .populate('assignedTechnicianId', 'name email availability specializations')
-      .populate('locationId', 'buildingName floor room locationType')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
       .populate('technicianNotes.authorId', 'name role')
       .lean();
 
@@ -615,7 +636,7 @@ export async function cancelWorkOrder(
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
       .populate('assignedTechnicianId', 'name email availability specializations')
-      .populate('locationId', 'buildingName floor room locationType')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
       .populate('technicianNotes.authorId', 'name role')
       .lean();
 

@@ -13,10 +13,14 @@ import type {
 export interface SerializedLocation {
   id: string;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType: ILocation['locationType'];
   description?: string;
+  descriptionAr?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -25,10 +29,14 @@ export interface SerializedLocation {
 export function serializeLocation(location: {
   _id: Types.ObjectId;
   buildingName: string;
+  buildingNameAr?: string;
   floor: string;
+  floorAr?: string;
   room: string;
+  roomAr?: string;
   locationType: ILocation['locationType'];
   description?: string;
+  descriptionAr?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -36,10 +44,14 @@ export function serializeLocation(location: {
   return {
     id: location._id.toString(),
     buildingName: location.buildingName,
+    buildingNameAr: location.buildingNameAr,
     floor: location.floor,
+    floorAr: location.floorAr,
     room: location.room,
+    roomAr: location.roomAr,
     locationType: location.locationType,
     description: location.description,
+    descriptionAr: location.descriptionAr,
     isActive: location.isActive,
     createdAt: location.createdAt,
     updatedAt: location.updatedAt,
@@ -96,9 +108,13 @@ export async function listLocations(
     const pattern = new RegExp(escapeRegExp(query.q), 'i');
     filter.$or = [
       { buildingName: pattern },
+      { buildingNameAr: pattern },
       { floor: pattern },
+      { floorAr: pattern },
       { room: pattern },
+      { roomAr: pattern },
       { description: pattern },
+      { descriptionAr: pattern },
     ];
   }
 
@@ -142,9 +158,9 @@ export async function createLocation(
     description: `Created location ${location.buildingName}, ${location.floor}, Room ${location.room}`,
     descriptionKey: 'locationCreated',
     params: {
-      building: { en: location.buildingName },
-      floor: { en: location.floor },
-      room: { en: location.room },
+      building: { en: location.buildingName, ar: location.buildingNameAr },
+      floor: { en: location.floor, ar: location.floorAr },
+      room: { en: location.room, ar: location.roomAr },
     },
     metadata: { buildingName: location.buildingName, floor: location.floor, room: location.room },
   });
@@ -182,9 +198,9 @@ export async function updateLocation(
     description: `Updated location ${location.buildingName}, ${location.floor}, Room ${location.room}`,
     descriptionKey: 'locationUpdated',
     params: {
-      building: { en: location.buildingName },
-      floor: { en: location.floor },
-      room: { en: location.room },
+      building: { en: location.buildingName, ar: location.buildingNameAr },
+      floor: { en: location.floor, ar: location.floorAr },
+      room: { en: location.room, ar: location.roomAr },
     },
     metadata: { fields: Object.keys(input) },
   });
@@ -214,9 +230,9 @@ export async function deactivateLocation(
       description: `Deactivated location ${location.buildingName}, ${location.floor}, Room ${location.room}`,
       descriptionKey: 'locationDeactivated',
       params: {
-        building: { en: location.buildingName },
-        floor: { en: location.floor },
-        room: { en: location.room },
+        building: { en: location.buildingName, ar: location.buildingNameAr },
+        floor: { en: location.floor, ar: location.floorAr },
+        room: { en: location.room, ar: location.roomAr },
       },
       metadata: { buildingName: location.buildingName, floor: location.floor, room: location.room },
     });

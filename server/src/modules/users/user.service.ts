@@ -63,6 +63,7 @@ export async function listUsers(query: ListUsersQuery): Promise<{
       { name: pattern },
       { email: pattern },
       { department: pattern },
+      { departmentAr: pattern },
     ];
   }
 
@@ -127,6 +128,7 @@ export async function createUser(
     passwordHash,
     role: input.role,
     department: input.department,
+    departmentAr: input.departmentAr,
     contactPhone: input.contactPhone,
     isActive: true,
     ...technicianValues(input.role, input),
@@ -135,6 +137,7 @@ export async function createUser(
   await logUserChange(actorId, 'USER_CREATED', user, {
     role: user.role,
     department: user.department,
+    departmentAr: user.departmentAr,
   });
 
   return toSafeUser(user);
@@ -158,6 +161,7 @@ export async function updateUser(
 
   if (input.name !== undefined) user.name = input.name;
   if (input.department !== undefined) user.department = input.department;
+  if (input.departmentAr !== undefined) user.departmentAr = input.departmentAr;
   if (input.contactPhone !== undefined) user.contactPhone = input.contactPhone;
 
   if (input.role !== undefined) {

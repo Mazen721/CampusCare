@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import { CLAIM_STATUSES, type ClaimRecord, type ClaimStatus } from '@/types/claims';
@@ -62,7 +63,7 @@ export function ClaimsTable({
         claim.item ? (
           <div className="min-w-0">
             <p className="max-w-[240px] truncate text-sm font-medium text-foreground">
-              {claim.item.itemTitle}
+              {tr(claim.item, 'itemTitle')}
             </p>
             <p className="text-[11px] text-muted-foreground">
               <span dir="ltr">{claim.item.reportNumber}</span> · {enumLabel('lostFoundCategory', claim.item.category)}

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/features/auth/AuthContext';
 import { feedbackApi } from '@/features/maintenance/feedback/feedbackApi';
+import { tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import type { MaintenanceRequestRecord } from '@/types/maintenance';
@@ -96,9 +97,9 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
               {existingFeedback.rating} / 5
             </span>
           </div>
-          {existingFeedback.comment && (
+          {tr(existingFeedback, 'comment') && (
             <p className="rounded-md border bg-background/80 p-3 text-sm text-foreground italic">
-              "{existingFeedback.comment}"
+              "{tr(existingFeedback, 'comment')}"
             </p>
           )}
         </CardContent>

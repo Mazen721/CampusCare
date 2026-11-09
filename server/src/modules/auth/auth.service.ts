@@ -14,6 +14,7 @@ export interface SafeUser {
   email: string;
   role: Role;
   department?: string;
+  departmentAr?: string;
   contactPhone?: string;
   isActive: boolean;
   specializations: string[];
@@ -34,6 +35,7 @@ export function toSafeUser(user: UserDocument): SafeUser {
     email: user.email,
     role: user.role,
     department: user.department,
+    departmentAr: user.departmentAr,
     contactPhone: user.contactPhone,
     isActive: user.isActive,
     specializations: user.specializations ?? [],

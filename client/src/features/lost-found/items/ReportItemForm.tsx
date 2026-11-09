@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { itemsApi } from '@/features/lost-found/items/itemsApi';
+import { formatLocation } from '@/i18n/localize';
 import {
   createReportItemSchema,
   type ReportItemValues,
@@ -278,7 +279,7 @@ export function ReportItemForm({ onCancel }: ReportItemFormProps) {
           </option>
           {locations.map((location) => (
             <option key={location.id} value={location.id}>
-              {location.buildingName} · {location.floor} · {t('locations.room')} {location.room}
+              {formatLocation(location)}
             </option>
           ))}
         </select>

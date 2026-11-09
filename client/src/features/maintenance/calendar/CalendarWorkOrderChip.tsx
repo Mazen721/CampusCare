@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatWorkOrderTime } from '@/features/maintenance/calendar/calendar.utils';
+import { formatLocation, tr } from '@/i18n/localize';
 import { cn } from '@/lib/utils';
 import type { CalendarWorkOrder } from '@/types/calendar';
 
@@ -31,7 +32,7 @@ export function CalendarWorkOrderChip({
         ) : null}
         <span className="min-w-0">
           <span className="block truncate text-[11px] font-semibold leading-tight">
-            {workOrder.title}
+            {tr(workOrder, 'title')}
           </span>
           <span
             className={cn(
@@ -49,7 +50,7 @@ export function CalendarWorkOrderChip({
           </span>
           {!compact && workOrder.location ? (
             <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
-              {workOrder.location.buildingName} · {workOrder.location.room}
+              {formatLocation(workOrder.location)}
             </span>
           ) : null}
         </span>

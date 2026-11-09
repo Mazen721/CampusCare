@@ -28,6 +28,7 @@ export interface TechnicianActiveTask {
   id: string;
   workOrderNumber: string;
   title: string;
+  titleAr?: string;
   priority: string;
   status: string;
   category: string;
@@ -37,8 +38,11 @@ export interface TechnicianActiveTask {
   location?: {
     id: string;
     buildingName: string;
+    buildingNameAr?: string;
     floor: string;
+    floorAr?: string;
     room: string;
+    roomAr?: string;
   } | null;
 }
 
@@ -240,9 +244,9 @@ export async function getTechnician(id: string): Promise<TechnicianDetail> {
     assignedTechnicianId: techId,
     status: { $in: ['ASSIGNED', 'IN_PROGRESS'] },
   })
-    .populate<{ locationId: { _id: Types.ObjectId; buildingName: string; floor: string; room: string } }>(
+    .populate<{ locationId: { _id: Types.ObjectId; buildingName: string; buildingNameAr?: string; floor: string; floorAr?: string; room: string; roomAr?: string } }>(
       'locationId',
-      'buildingName floor room',
+      'buildingName buildingNameAr floor floorAr room roomAr',
     )
     .sort({ priority: 1, scheduledStart: 1 })
     .lean<Array<IWorkOrder & { _id: Types.ObjectId; locationId: any }>>();
@@ -251,6 +255,7 @@ export async function getTechnician(id: string): Promise<TechnicianDetail> {
     id: wo._id.toString(),
     workOrderNumber: wo.workOrderNumber,
     title: wo.title,
+    titleAr: wo.titleAr,
     priority: wo.priority,
     status: wo.status,
     category: wo.category,
@@ -261,8 +266,11 @@ export async function getTechnician(id: string): Promise<TechnicianDetail> {
       ? {
           id: wo.locationId._id.toString(),
           buildingName: wo.locationId.buildingName,
+          buildingNameAr: wo.locationId.buildingNameAr,
           floor: wo.locationId.floor,
+          floorAr: wo.locationId.floorAr,
           room: wo.locationId.room,
+          roomAr: wo.locationId.roomAr,
         }
       : null,
   }));
@@ -340,6 +348,7 @@ export async function createTechnician(
     passwordHash,
     role: 'TECHNICIAN', // Strictly forced to TECHNICIAN
     department: input.department,
+    departmentAr: input.departmentAr,
     contactPhone: input.contactPhone,
     isActive: input.isActive ?? true,
     specializations: input.specializations ?? [],
@@ -391,6 +400,7 @@ export async function updateTechnician(
 
   if (input.name !== undefined) tech.name = input.name;
   if (input.department !== undefined) tech.department = input.department;
+  if (input.departmentAr !== undefined) tech.departmentAr = input.departmentAr;
   if (input.contactPhone !== undefined) tech.contactPhone = input.contactPhone;
   if (input.specializations !== undefined) tech.specializations = input.specializations;
   if (input.skills !== undefined) tech.skills = input.skills;

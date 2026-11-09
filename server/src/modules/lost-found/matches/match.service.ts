@@ -58,11 +58,11 @@ export interface SerializedMatch {
 }
 
 const PUBLIC_ITEM_SELECT =
-  'reportNumber reportType itemTitle description category color brand locationDetails occurrenceDate images status locationId';
+  'reportNumber reportType itemTitle itemTitleAr description descriptionAr category color colorAr brand brandAr locationDetails locationDetailsAr occurrenceDate images status locationId';
 
 const LOCATION_POPULATE = {
   path: 'locationId',
-  select: 'buildingName floor room locationType',
+  select: 'buildingName buildingNameAr floor floorAr room roomAr locationType',
 };
 
 const LOST_ITEM_POPULATE = {

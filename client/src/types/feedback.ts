@@ -3,6 +3,7 @@ export interface ServiceFeedbackRecord {
   maintenanceRequestId: string;
   requestNumber?: string;
   requestTitle?: string;
+  requestTitleAr?: string;
   workOrderId: string;
   workOrderNumber?: string;
   technician: {
@@ -18,6 +19,7 @@ export interface ServiceFeedbackRecord {
   };
   rating: number;
   comment?: string;
+  commentAr?: string;
   createdAt: string;
 }
 

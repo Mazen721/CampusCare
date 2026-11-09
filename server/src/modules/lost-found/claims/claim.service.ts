@@ -45,6 +45,7 @@ interface PopulatedPerson {
   name: string;
   email?: string;
   department?: string;
+  departmentAr?: string;
   role?: Role;
 }
 
@@ -52,6 +53,7 @@ interface PopulatedHandover {
   receivedByName?: string;
   handedOverBy?: Types.ObjectId | PopulatedPerson | null;
   notes?: string;
+  notesAr?: string;
   handedOverAt?: Date;
 }
 
@@ -62,11 +64,14 @@ interface PopulatedClaim {
   linkedLostItemId?: ProjectableItem | null;
   claimantId?: Types.ObjectId | PopulatedPerson | null;
   claimDescription: string;
+  claimDescriptionAr?: string;
   identifyingDetailsProvided: string;
   supportingEvidence?: ImageAsset[];
   status: ClaimStatus;
   verificationNotes?: string;
+  verificationNotesAr?: string;
   rejectionReason?: string;
+  rejectionReasonAr?: string;
   reviewedBy?: Types.ObjectId | PopulatedPerson | null;
   reviewedAt?: Date;
   handover?: PopulatedHandover;
@@ -89,19 +94,24 @@ export interface SerializedClaim {
     name: string;
     email?: string;
     department?: string;
+    departmentAr?: string;
     role?: Role;
   } | null;
   claimDescription: string;
+  claimDescriptionAr?: string;
   identifyingDetailsProvided: string;
   supportingEvidence: ImageAsset[];
   verificationNotes?: string;
+  verificationNotesAr?: string;
   rejectionReason?: string;
+  rejectionReasonAr?: string;
   reviewedBy: { id: string; name: string; role?: Role } | null;
   reviewedAt?: Date;
   handover?: {
     receivedByName?: string;
     handedOverBy: { id: string; name: string } | null;
     notes?: string;
+    notesAr?: string;
     handedOverAt?: Date;
   };
   createdAt: Date;
@@ -117,11 +127,11 @@ const CLAIMABLE_ITEM_STATUSES: readonly ItemStatus[] = [
 const LINKABLE_LOST_STATUSES: readonly ItemStatus[] = ['OPEN', 'MATCH_CONFIRMED'];
 
 const PUBLIC_ITEM_SELECT =
-  'reportNumber reportType itemTitle description category color brand locationDetails occurrenceDate images status locationId';
+  'reportNumber reportType itemTitle itemTitleAr description descriptionAr category color colorAr brand brandAr locationDetails locationDetailsAr occurrenceDate images status locationId';
 
 const LOCATION_POPULATE = {
   path: 'locationId',
-  select: 'buildingName floor room locationType',
+  select: 'buildingName buildingNameAr floor floorAr room roomAr locationType',
 };
 
 function itemPopulate(path: string, includePrivate = false) {
@@ -136,7 +146,7 @@ function itemPopulate(path: string, includePrivate = false) {
 
 const CLAIMANT_POPULATE = {
   path: 'claimantId',
-  select: 'name email department role',
+  select: 'name email department departmentAr role',
 };
 
 const REVIEWER_POPULATE = {
@@ -330,6 +340,7 @@ function serializeClaim(
         name: doc.claimantId.name,
         email: doc.claimantId.email,
         department: doc.claimantId.department,
+        departmentAr: doc.claimantId.departmentAr,
         role: doc.claimantId.role,
       }
     : null;
@@ -352,6 +363,7 @@ function serializeClaim(
             }
           : null,
         notes: doc.handover.notes,
+        notesAr: doc.handover.notesAr,
         handedOverAt: doc.handover.handedOverAt,
       }
     : undefined;
@@ -368,10 +380,17 @@ function serializeClaim(
       : null,
     claimant,
     claimDescription: doc.claimDescription,
+    claimDescriptionAr: doc.claimDescriptionAr,
     identifyingDetailsProvided: doc.identifyingDetailsProvided,
     supportingEvidence: doc.supportingEvidence ?? [],
-    ...(includeOfficerFields ? { verificationNotes: doc.verificationNotes } : {}),
+    ...(includeOfficerFields
+      ? {
+          verificationNotes: doc.verificationNotes,
+          verificationNotesAr: doc.verificationNotesAr,
+        }
+      : {}),
     rejectionReason: doc.rejectionReason,
+    rejectionReasonAr: doc.rejectionReasonAr,
     reviewedBy: reviewer,
     reviewedAt: doc.reviewedAt,
     handover,

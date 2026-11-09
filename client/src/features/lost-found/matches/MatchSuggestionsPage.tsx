@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { MatchActions } from '@/features/lost-found/matches/MatchActions';
 import { MatchScoreSummary } from '@/features/lost-found/matches/MatchScoreSummary';
 import { matchesApi } from '@/features/lost-found/matches/matchesApi';
+import { formatLocation, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import {
@@ -52,7 +53,7 @@ export function MatchSuggestionsPage() {
               <span dir="ltr">{match.lostItem.reportNumber}</span>
             </Link>
             <p className="mt-0.5 max-w-[220px] truncate text-sm font-medium text-foreground">
-              {match.lostItem.itemTitle}
+              {tr(match.lostItem, 'itemTitle')}
             </p>
             <p className="text-[11px] text-muted-foreground">
               {formatDate(match.lostItem.occurrenceDate)}
@@ -75,10 +76,12 @@ export function MatchSuggestionsPage() {
               <span dir="ltr">{match.foundItem.reportNumber}</span>
             </Link>
             <p className="mt-0.5 max-w-[220px] truncate text-sm font-medium text-foreground">
-              {match.foundItem.itemTitle}
+              {tr(match.foundItem, 'itemTitle')}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              {match.foundItem.location?.buildingName ?? match.foundItem.locationDetails}
+              {match.foundItem.location
+                ? formatLocation(match.foundItem.location)
+                : tr(match.foundItem, 'locationDetails')}
             </p>
           </div>
         ) : (

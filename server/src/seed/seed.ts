@@ -31,6 +31,7 @@ interface SeedUser {
   email: string;
   role: Role;
   department: string;
+  departmentAr?: string;
   contactPhone?: string;
   specializations?: MaintenanceCategory[];
   skills?: string[];
@@ -81,6 +82,7 @@ const TECHNICIANS: SeedUser[] = [
     email: DEMO_ACCOUNTS.TECHNICIAN.email,
     role: 'TECHNICIAN',
     department: DEMO_ACCOUNTS.TECHNICIAN.department,
+    departmentAr: DEMO_ACCOUNTS.TECHNICIAN.departmentAr,
     contactPhone: '+20 100 555 0142',
     specializations: ['Electrical', 'Air Conditioning'],
     skills: ['Electrical wiring', 'Distribution boards', 'Power diagnostics'],
@@ -91,6 +93,7 @@ const TECHNICIANS: SeedUser[] = [
     email: 'm.elgohary@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'Engineering Affairs & Maintenance Department',
+    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
     contactPhone: '+20 100 555 0188',
     specializations: ['Plumbing', 'General Maintenance'],
     skills: ['Water networks', 'Sanitation maintenance', 'Leak detection'],
@@ -101,6 +104,7 @@ const TECHNICIANS: SeedUser[] = [
     email: 'k.eltantawy@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'Information Technology & Digital Transformation Unit',
+    departmentAr: 'وحدة تكنولوجيا المعلومات والتحول الرقمي',
     contactPhone: '+20 100 555 0164',
     specializations: ['Hardware', 'Network', 'Software'],
     skills: ['Lab PC maintenance', 'Fiber & LAN cabling', 'Access point configuration'],
@@ -111,6 +115,7 @@ const TECHNICIANS: SeedUser[] = [
     email: 'i.abdelfattah@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'Engineering Affairs & Maintenance Department',
+    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
     contactPhone: '+20 100 555 0127',
     specializations: ['Air Conditioning', 'General Maintenance'],
     skills: ['Central HVAC servicing', 'Chiller maintenance', 'Air handling units'],
@@ -121,6 +126,7 @@ const TECHNICIANS: SeedUser[] = [
     email: 's.radwan@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'General Services & Facilities Management',
+    departmentAr: 'إدارة الخدمات العامة والمرافق',
     contactPhone: '+20 100 555 0196',
     specializations: ['Furniture', 'General Maintenance'],
     skills: ['Lecture hall seating repair', 'Carpentry', 'Door & lock hardware'],
@@ -131,23 +137,31 @@ const TECHNICIANS: SeedUser[] = [
 const BUILDINGS = [
   {
     name: 'Administration & Central Library Building',
+    nameAr: 'مبنى الإدارة والمكتبة المركزية',
     floors: 4,
     description: 'Executive offices, main auditorium, student affairs, and the Central Library',
+    descriptionAr: 'المكاتب التنفيذية، القاعة الرئيسية، شؤون الطلاب، والمكتبة المركزية',
   },
   {
     name: 'Engineering & Technological Complex',
+    nameAr: 'مجمع الهندسة والتكنولوجيا',
     floors: 4,
     description: 'Engineering, Computer Engineering, and Artificial Intelligence labs',
+    descriptionAr: 'معامل الهندسة وهندسة الحاسبات والذكاء الاصطناعي',
   },
   {
     name: 'Medical Sector Complex',
+    nameAr: 'مجمع القطاع الطبي',
     floors: 4,
     description: 'Faculties of Medicine, Dentistry, Pharmacy, and Nursing clinics',
+    descriptionAr: 'كليات الطب البشري، طب الأسنان، الصيدلة، وعيادات التمريض',
   },
   {
     name: 'Humanities & Business Building',
+    nameAr: 'مبنى العلوم الإنسانية وإدارة الأعمال',
     floors: 4,
     description: 'Lecture halls and seminar rooms for business, economics, and administrative sciences',
+    descriptionAr: 'مدرجات وقاعات حلقات البحث للعلوم الإدارية والمالية وإدارة الأعمال',
   },
 ] as const;
 
@@ -159,6 +173,7 @@ function buildSeedUsers(): SeedUser[] {
       email: account.email,
       role,
       department: account.department,
+      departmentAr: account.departmentAr,
       contactPhone: '+20 100 555 0100',
     };
   }).filter((user) => user.role !== 'TECHNICIAN');
@@ -168,26 +183,36 @@ function buildSeedUsers(): SeedUser[] {
 
 function buildLocations(): Array<{
   buildingName: string;
+  buildingNameAr: string;
   floor: string;
+  floorAr: string;
   room: string;
+  roomAr: string;
   locationType: 'ROOM';
   description: string;
+  descriptionAr: string;
   isActive: boolean;
 }> {
   return BUILDINGS.flatMap((building) =>
     Array.from({ length: building.floors }, (_, floorIndex) => {
       const floorLabel = floorIndex === 0 ? 'Ground Floor' : `Floor ${floorIndex}`;
+      const floorLabelAr = floorIndex === 0 ? 'الطابق الأرضي' : `الطابق ${floorIndex}`;
       const prefix = floorIndex === 0 ? 'G' : `${floorIndex}`;
-      return [1, 2, 3].map((roomNumber) => ({
-        buildingName: building.name,
-        floor: floorLabel,
-        room: `${prefix}${String(roomNumber).padStart(2, '0')}`,
-        locationType: 'ROOM' as const,
-        description: `${building.description} — ${floorLabel}, Room ${prefix}${String(
-          roomNumber,
-        ).padStart(2, '0')}`,
-        isActive: true,
-      }));
+      return [1, 2, 3].map((roomNumber) => {
+        const roomCode = `${prefix}${String(roomNumber).padStart(2, '0')}`;
+        return {
+          buildingName: building.name,
+          buildingNameAr: building.nameAr,
+          floor: floorLabel,
+          floorAr: floorLabelAr,
+          room: roomCode,
+          roomAr: roomCode,
+          locationType: 'ROOM' as const,
+          description: `${building.description} — ${floorLabel}, Room ${roomCode}`,
+          descriptionAr: `${building.descriptionAr} — ${floorLabelAr}، غرفة ${roomCode}`,
+          isActive: true,
+        };
+      });
     }).flat(),
   );
 }

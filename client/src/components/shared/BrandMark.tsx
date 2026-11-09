@@ -1,4 +1,5 @@
 import { Landmark } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface BrandMarkProps {
@@ -7,6 +8,7 @@ interface BrandMarkProps {
 }
 
 export function BrandMark({ inverted = false, className }: BrandMarkProps) {
+  const { t } = useTranslation();
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <div
@@ -34,7 +36,7 @@ export function BrandMark({ inverted = false, className }: BrandMarkProps) {
             inverted ? 'text-sidebar-muted' : 'text-muted-foreground',
           )}
         >
-          Campus operations
+          {t('meta.tagline')}
         </p>
       </div>
     </div>

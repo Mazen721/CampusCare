@@ -20,8 +20,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { preventiveApi } from '@/features/maintenance/preventive/preventiveApi';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
+import { formatLocation } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
-import { humanizeEnum } from '@/lib/labels';
+import { useTranslation } from 'react-i18next';
+import { enumLabel } from '@/lib/labels';
 import {
   MAINTENANCE_CATEGORIES,
   PRIORITIES,
@@ -29,7 +31,6 @@ import {
   type Priority,
 } from '@/types/meta';
 import {
-  RECURRENCE_LABELS,
   RECURRENCE_TYPES,
   type PreventivePlanRecord,
   type RecurrenceType,
@@ -46,11 +47,21 @@ const planSchema = z
       .trim()
       .min(3, 'Title must be at least 3 characters')
       .max(160, 'Title must be 160 characters or fewer'),
+    titleAr: z
+      .string()
+      .trim()
+      .max(160, 'Title (Arabic) must be 160 characters or fewer')
+      .optional(),
     description: z
       .string()
       .trim()
       .min(10, 'Describe the plan in at least 10 characters')
       .max(4000, 'Description must be 4000 characters or fewer'),
+    descriptionAr: z
+      .string()
+      .trim()
+      .max(4000, 'Description (Arabic) must be 4000 characters or fewer')
+      .optional(),
     category: z.enum(MAINTENANCE_CATEGORIES),
     priority: z.enum(PRIORITIES),
     locationId: z.string().min(1, 'Select an active location'),
@@ -86,7 +97,9 @@ function buildDefaultValues(plan?: PreventivePlanRecord | null): PlanFormValues 
   return plan
     ? {
         title: plan.title,
+        titleAr: plan.titleAr ?? '',
         description: plan.description,
+        descriptionAr: plan.descriptionAr ?? '',
         category: plan.category,
         priority: plan.priority,
         locationId: plan.location?.id ?? '',
@@ -99,7 +112,9 @@ function buildDefaultValues(plan?: PreventivePlanRecord | null): PlanFormValues 
       }
     : {
         title: '',
+        titleAr: '',
         description: '',
+        descriptionAr: '',
         category: 'General Maintenance',
         priority: 'MEDIUM',
         locationId: '',
@@ -123,6 +138,7 @@ export function PreventivePlanFormDialog({
   onOpenChange,
   plan,
 }: PreventivePlanFormDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [serverError, setServerError] = useState<string | null>(null);
   const isEditing = Boolean(plan);
@@ -165,7 +181,9 @@ export function PreventivePlanFormDialog({
         : undefined;
       const payload = {
         title: values.title,
+        titleAr: values.titleAr?.trim() || undefined,
         description: values.description,
+        descriptionAr: values.descriptionAr?.trim() || undefined,
         category: values.category as MaintenanceCategory,
         priority: values.priority as Priority,
         locationId: values.locationId,
@@ -208,10 +226,9 @@ export function PreventivePlanFormDialog({
     <Dialog open={open} onOpenChange={(nextOpen) => !isSubmitting && onOpenChange(nextOpen)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit preventive plan' : 'New preventive plan'}</DialogTitle>
+          <DialogTitle>{isEditing ? t('preventive.editPlan') : t('preventive.createPlan')}</DialogTitle>
           <DialogDescription>
-            Plans do not generate work orders automatically. A manager runs Generate due work
-            orders when needed.
+            {t('preventive.manualNotice')}
           </DialogDescription>
         </DialogHeader>
 
@@ -226,26 +243,49 @@ export function PreventivePlanFormDialog({
             </div>
           ) : null}
 
-          <FormField id="plan-title" label="Title" error={errors.title?.message} required>
-            <Input id="plan-title" placeholder="Weekly HVAC filter inspection" {...register('title')} />
-          </FormField>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField id="plan-title" label={t('preventive.planTitleEn')} error={errors.title?.message} required>
+              <Input id="plan-title" dir="ltr" placeholder={t('preventive.titlePlaceholder')} {...register('title')} />
+            </FormField>
 
-          <FormField
-            id="plan-description"
-            label="Description"
-            error={errors.description?.message}
-            required
-          >
-            <Textarea
-              id="plan-description"
-              rows={3}
-              placeholder="What should the technician inspect, clean or replace?"
-              {...register('description')}
-            />
-          </FormField>
+            <FormField id="plan-title-ar" label={t('preventive.planTitleAr')} error={errors.titleAr?.message}>
+              <Input id="plan-title-ar" dir="rtl" placeholder="فحص فلاتر التكييف الأسبوعي" {...register('titleAr')} />
+            </FormField>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="plan-category" label="Category" error={errors.category?.message} required>
+            <FormField
+              id="plan-description"
+              label={t('preventive.descriptionEn')}
+              error={errors.description?.message}
+              required
+            >
+              <Textarea
+                id="plan-description"
+                dir="ltr"
+                rows={3}
+                placeholder={t('preventive.descPlaceholder')}
+                {...register('description')}
+              />
+            </FormField>
+
+            <FormField
+              id="plan-description-ar"
+              label={t('preventive.descriptionAr')}
+              error={errors.descriptionAr?.message}
+            >
+              <Textarea
+                id="plan-description-ar"
+                dir="rtl"
+                rows={3}
+                placeholder="ما الذي يجب على الفني فحصه أو تنظيفه أو استبداله؟"
+                {...register('descriptionAr')}
+              />
+            </FormField>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField id="plan-category" label={t('preventive.category')} error={errors.category?.message} required>
               <select
                 id="plan-category"
                 className="flex h-10 w-full rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -253,13 +293,13 @@ export function PreventivePlanFormDialog({
               >
                 {MAINTENANCE_CATEGORIES.map((category) => (
                   <option key={category} value={category}>
-                    {category}
+                    {enumLabel('maintenanceCategory', category)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField id="plan-priority" label="Priority" error={errors.priority?.message} required>
+            <FormField id="plan-priority" label={t('preventive.priority')} error={errors.priority?.message} required>
               <select
                 id="plan-priority"
                 className="flex h-10 w-full rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -267,7 +307,7 @@ export function PreventivePlanFormDialog({
               >
                 {PRIORITIES.map((priority) => (
                   <option key={priority} value={priority}>
-                    {humanizeEnum(priority)}
+                    {enumLabel('priority', priority)}
                   </option>
                 ))}
               </select>
@@ -275,7 +315,7 @@ export function PreventivePlanFormDialog({
 
             <FormField
               id="plan-location"
-              label="Location"
+              label={t('preventive.location')}
               error={errors.locationId?.message}
               required
             >
@@ -284,10 +324,10 @@ export function PreventivePlanFormDialog({
                 className="flex h-10 w-full rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 {...register('locationId')}
               >
-                <option value="">Select a location…</option>
+                <option value="">{t('preventive.selectLocationPlaceholder')}</option>
                 {locations.map((location) => (
                   <option key={location.id} value={location.id}>
-                    {location.buildingName} · {location.floor} · {location.room}
+                    {formatLocation(location)}
                   </option>
                 ))}
               </select>
@@ -295,16 +335,16 @@ export function PreventivePlanFormDialog({
 
             <FormField
               id="plan-technician"
-              label="Assigned technician"
+              label={t('preventive.assignedTechnician')}
               error={errors.assignedTechnicianId?.message}
-              hint="Optional. Without a technician, generated work orders stay pending assignment."
+              hint={t('preventive.assignedTechnicianHint')}
             >
               <select
                 id="plan-technician"
                 className="flex h-10 w-full rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 {...register('assignedTechnicianId')}
               >
-                <option value="">Unassigned</option>
+                <option value="">{t('preventive.unassigned')}</option>
                 {technicians.map((technician) => (
                   <option key={technician.id} value={technician.id}>
                     {technician.name}
@@ -315,7 +355,7 @@ export function PreventivePlanFormDialog({
 
             <FormField
               id="plan-recurrence"
-              label="Recurrence"
+              label={t('preventive.recurrence')}
               error={errors.recurrenceType?.message}
               required
             >
@@ -326,7 +366,7 @@ export function PreventivePlanFormDialog({
               >
                 {RECURRENCE_TYPES.map((type) => (
                   <option key={type} value={type}>
-                    {RECURRENCE_LABELS[type]}
+                    {enumLabel('recurrence', type)}
                   </option>
                 ))}
               </select>
@@ -335,7 +375,7 @@ export function PreventivePlanFormDialog({
             {recurrenceType === 'CUSTOM_DAYS' ? (
               <FormField
                 id="plan-interval"
-                label="Custom interval (days)"
+                label={t('preventive.customInterval')}
                 error={errors.recurrenceIntervalDays?.message}
                 required
               >
@@ -352,7 +392,7 @@ export function PreventivePlanFormDialog({
 
             <FormField
               id="plan-start-date"
-              label="First occurrence"
+              label={t('preventive.firstOccurrence')}
               error={errors.startDate?.message}
               required
             >
@@ -361,7 +401,7 @@ export function PreventivePlanFormDialog({
 
             <FormField
               id="plan-duration"
-              label="Expected duration (hours)"
+              label={t('preventive.expectedDuration')}
               error={errors.expectedDurationHours?.message}
               required
             >
@@ -382,7 +422,7 @@ export function PreventivePlanFormDialog({
               className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               {...register('isActive')}
             />
-            Plan is active
+            {t('preventive.planIsActive')}
           </label>
 
           <DialogFooter>
@@ -392,13 +432,13 @@ export function PreventivePlanFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : null}
-              {isEditing ? 'Save changes' : 'Create plan'}
+              {isEditing ? t('common.save') : t('preventive.createPlan')}
             </Button>
           </DialogFooter>
         </form>

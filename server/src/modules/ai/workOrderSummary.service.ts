@@ -1,5 +1,6 @@
 import type { Role } from '../../config/constants';
 import { ApiError } from '../../shared/utils/ApiError';
+import { getRequestLang } from '../../shared/utils/requestContext';
 import { WorkOrder } from '../maintenance/work-orders/workOrder.model';
 import { generateGeminiText } from './gemini.client';
 import { summaryTextSchema } from './ai.validation';
@@ -50,17 +51,33 @@ export async function summarizeWorkOrder(
     );
   }
 
-  if (workOrder.aiSummary) {
+  const lang = getRequestLang();
+
+  const existingSummary =
+    workOrder.aiSummaries?.[lang] ??
+    (lang === 'en' && workOrder.aiSummary ? workOrder.aiSummary : undefined);
+
+  if (existingSummary) {
     return {
       available: true,
-      text: workOrder.aiSummary.text,
-      generatedAt: workOrder.aiSummary.generatedAt,
+      text: existingSummary.text,
+      generatedAt: existingSummary.generatedAt,
     };
   }
 
+  const langInstruction =
+    lang === 'ar'
+      ? 'Write every string value in Modern Standard Arabic. Keep JSON keys in English.'
+      : 'Write in English.';
+  const systemInstruction = `${SYSTEM_INSTRUCTION} ${langInstruction}`;
+
+  const title = lang === 'ar' && workOrder.titleAr ? workOrder.titleAr : workOrder.title;
+  const description =
+    lang === 'ar' && workOrder.descriptionAr ? workOrder.descriptionAr : workOrder.description;
+
   const generated = await generateGeminiText(
-    `Title: ${workOrder.title}\n\nDescription: ${workOrder.description}`,
-    SYSTEM_INSTRUCTION,
+    `Title: ${title}\n\nDescription: ${description}`,
+    systemInstruction,
   );
 
   if (!generated.available) {
@@ -77,15 +94,22 @@ export async function summarizeWorkOrder(
 
   const generatedAt = new Date();
 
-  // Only write when no summary exists yet, so concurrent requests keep one value.
+  // Only write when no summary exists yet for this language, so concurrent requests keep one value.
+  const summaryPath = `aiSummaries.${lang}`;
   await WorkOrder.findOneAndUpdate(
-    { _id: workOrder._id, aiSummary: { $exists: false } },
-    { $set: { aiSummary: { text: parsed.data, generatedAt } } },
+    { _id: workOrder._id, [summaryPath]: { $exists: false } },
+    { $set: { [summaryPath]: { text: parsed.data, generatedAt } } },
   );
 
-  const stored = await WorkOrder.findById(workOrder._id).select('aiSummary').lean();
+  const stored = await WorkOrder.findById(workOrder._id)
+    .select('aiSummaries aiSummary')
+    .lean();
 
-  if (!stored?.aiSummary) {
+  const savedSummary =
+    stored?.aiSummaries?.[lang] ??
+    (lang === 'en' && stored?.aiSummary ? stored.aiSummary : undefined);
+
+  if (!savedSummary) {
     return {
       available: false,
       message: 'The AI summary could not be saved. Please try again.',
@@ -94,7 +118,7 @@ export async function summarizeWorkOrder(
 
   return {
     available: true,
-    text: stored.aiSummary.text,
-    generatedAt: stored.aiSummary.generatedAt,
+    text: savedSummary.text,
+    generatedAt: savedSummary.generatedAt,
   };
 }

@@ -13,6 +13,7 @@ export interface IUser {
   passwordHash: string;
   role: Role;
   department?: string;
+  departmentAr?: string;
   contactPhone?: string;
   isActive: boolean;
   specializations: string[];
@@ -37,6 +38,7 @@ const userSchema = new Schema<IUser>(
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, required: true, enum: ROLES },
     department: { type: String, trim: true, maxlength: 120 },
+    departmentAr: { type: String, trim: true, maxlength: 120 },
     contactPhone: { type: String, trim: true, maxlength: 40 },
     isActive: { type: Boolean, default: true },
     specializations: {
