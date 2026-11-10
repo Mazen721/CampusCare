@@ -56,6 +56,7 @@ export interface LostFoundLocation {
 export interface LostFoundReporter {
   id: string;
   name: string;
+  nameAr?: string;
   email?: string;
   department?: string;
   departmentAr?: string;

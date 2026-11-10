@@ -25,6 +25,7 @@ import { StudentDashboard } from '@/features/dashboard/StudentDashboard';
 import { DashboardPeriodSelect } from '@/features/dashboard/DashboardPeriodSelect';
 import { dashboardApi } from '@/features/dashboard/dashboardApi';
 import { useAuth } from '@/features/auth/AuthContext';
+import { tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import type { Role } from '@/types/auth';
 import type { DashboardPeriod, DashboardResponse } from '@/types/dashboard';
@@ -121,7 +122,12 @@ export function DashboardPage() {
   const PrimaryIcon = portalHeader.PrimaryIcon;
   const SecondaryIcon = portalHeader.SecondaryIcon;
   const isRoleMatched = Boolean(dashboardQuery.data && dashboardQuery.data.role === user.role);
-  const firstName = user.name.trim().split(/\s+/)[0] ?? user.name;
+  const displayName = tr(user, 'name') || user.name;
+  const firstName =
+    displayName
+      .replace(/^(?:م\.|د\.|أ\.|Eng\.|Dr\.)\s+/i, '')
+      .trim()
+      .split(/\s+/)[0] ?? displayName;
   const greetingSeparator = i18n.language === 'ar' ? '، ' : ', ';
   const errorMessage = dashboardQuery.error ? getErrorMessage(dashboardQuery.error) : null;
 

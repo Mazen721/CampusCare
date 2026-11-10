@@ -164,7 +164,7 @@ export function LoginPage() {
 
       <section
         aria-labelledby="login-heading"
-        className="mnu-threshold-card relative z-10 w-full max-w-[440px] rounded-2xl bg-gradient-to-b from-white/[0.58] via-white/[0.48] to-white/[0.50] px-6 py-6 text-foreground shadow-[0_24px_60px_-14px_rgba(4,21,62,0.52)] ring-1 ring-inset ring-white/75 backdrop-blur-md backdrop-saturate-150 sm:px-7 sm:py-7"
+        className="mnu-threshold-card relative z-10 w-full max-w-[440px] rounded-2xl bg-gradient-to-b from-white/[0.82] via-white/[0.72] to-white/[0.68] px-6 py-6 text-foreground shadow-[0_24px_60px_-14px_rgba(4,21,62,0.52)] ring-1 ring-inset ring-white/75 backdrop-blur-md backdrop-saturate-150 sm:px-7 sm:py-7"
       >
         <div className="flex flex-col items-center text-center">
           <img

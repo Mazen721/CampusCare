@@ -78,7 +78,7 @@ export function FeedbackCard({ request, isOwner }: FeedbackCardProps) {
             </span>
           </div>
           <CardDescription>
-            {t('feedback.submittedForTech', { name: existingFeedback.technician.name })}
+            {t('feedback.submittedForTech', { name: tr(existingFeedback.technician, 'name') })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">

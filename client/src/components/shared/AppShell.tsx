@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/features/auth/AuthContext';
+import { tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { cn, formatDate, getInitials } from '@/lib/utils';
 
@@ -71,6 +72,8 @@ function UserMenu() {
 
   if (!user) return null;
 
+  const displayName = tr(user, 'name') || user.name;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -80,11 +83,11 @@ function UserMenu() {
           aria-label={t('auth.profileTitle')}
         >
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+            <AvatarFallback className="text-xs">{getInitials(displayName)}</AvatarFallback>
           </Avatar>
           <span className="hidden min-w-0 sm:block">
             <bdi className="block max-w-[140px] truncate text-xs font-semibold leading-tight text-foreground">
-              {user.name}
+              {displayName}
             </bdi>
             <span className="block text-[11.5px] leading-tight text-muted-foreground">
               {enumLabel('role', user.role)}
@@ -95,7 +98,7 @@ function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="normal-case tracking-normal">
-          <bdi className="block truncate text-sm font-semibold text-foreground">{user.name}</bdi>
+          <bdi className="block truncate text-sm font-semibold text-foreground">{displayName}</bdi>
           <span dir="ltr" className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">
             {user.email}
           </span>

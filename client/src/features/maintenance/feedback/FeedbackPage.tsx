@@ -9,7 +9,7 @@ import { DataTable, type DataTableColumn } from '@/components/shared/DataTable';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { feedbackApi } from '@/features/maintenance/feedback/feedbackApi';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
-import { tr } from '@/i18n/localize';
+import { pickLang, tr } from '@/i18n/localize';
 import { formatDate, getInitials } from '@/lib/utils';
 import type { ServiceFeedbackRecord } from '@/types/feedback';
 
@@ -80,12 +80,12 @@ export function FeedbackPage() {
         <div className="flex min-w-0 items-center gap-2">
           <Avatar className="h-7 w-7 shrink-0">
             <AvatarFallback className="bg-primary/10 text-[10px] font-semibold text-primary">
-              {getInitials(fb.technician.name)}
+              {getInitials(tr(fb.technician, 'name') || fb.technician.name)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
             <p className="truncate text-xs font-medium text-foreground">
-              <bdi>{fb.technician.name}</bdi>
+              <bdi>{tr(fb.technician, 'name')}</bdi>
             </p>
           </div>
         </div>
@@ -125,7 +125,7 @@ export function FeedbackPage() {
       cell: (fb) => (
         <div className="text-xs text-muted-foreground">
           <p className="font-medium text-foreground">
-            <bdi>{fb.requester.name}</bdi>
+            <bdi>{tr(fb.requester, 'name')}</bdi>
           </p>
           <p className="text-[11px]">{formatDate(fb.createdAt)}</p>
         </div>
@@ -185,7 +185,7 @@ export function FeedbackPage() {
                 {perTechnician.slice(0, 2).map((stat) => (
                   <div key={stat.technicianId} className="flex items-center justify-between">
                     <span className="font-medium text-foreground truncate max-w-[140px]">
-                      <bdi>{stat.technicianName}</bdi>
+                      <bdi>{pickLang(stat.technicianName, stat.technicianNameAr)}</bdi>
                     </span>
                     <span className="flex items-center gap-1 font-semibold text-amber-500">
                       <Star className="h-3 w-3 fill-amber-400" />
@@ -216,7 +216,7 @@ export function FeedbackPage() {
           <option value="ALL">{t('calendar.allTechnicians')}</option>
           {technicians.map((tech) => (
             <option key={tech.id} value={tech.id}>
-              {tech.name}
+              {tr(tech, 'name')}
             </option>
           ))}
         </select>

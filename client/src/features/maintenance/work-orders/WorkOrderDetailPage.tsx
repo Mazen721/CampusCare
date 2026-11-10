@@ -344,7 +344,7 @@ export function WorkOrderDetailPage() {
                     >
                       <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
                         <span className="font-semibold text-foreground">
-                          {n.isSystem ? t('workOrders.systemNote') : <bdi>{n.author.name}</bdi>}
+                          {n.isSystem ? t('workOrders.systemNote') : <bdi>{tr(n.author, 'name')}</bdi>}
                         </span>
                         <span>{formatDate(n.createdAt)}</span>
                       </div>
@@ -394,12 +394,12 @@ export function WorkOrderDetailPage() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 shrink-0">
                     <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                      {getInitials(workOrder.assignedTechnician.name)}
+                      {getInitials(tr(workOrder.assignedTechnician, 'name') || workOrder.assignedTechnician.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
                     <p className="font-semibold text-sm text-foreground truncate">
-                      <bdi>{workOrder.assignedTechnician.name}</bdi>
+                      <bdi>{tr(workOrder.assignedTechnician, 'name')}</bdi>
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       <span dir="ltr">{workOrder.assignedTechnician.email}</span>

@@ -24,6 +24,7 @@ export interface RequestLocation {
 export interface RequestPerson {
   id: string;
   name: string;
+  nameAr?: string;
   email?: string;
   department?: string;
   departmentAr?: string;
@@ -33,6 +34,7 @@ export interface RequestPerson {
 export interface RequestReviewer {
   id: string;
   name: string;
+  nameAr?: string;
   role?: Role;
 }
 
@@ -48,6 +50,7 @@ export interface SerializedWorkOrderSummary {
   assignedTechnician?: {
     id: string;
     name: string;
+    nameAr?: string;
     availability?: string;
   } | null;
 }
@@ -63,12 +66,14 @@ export interface MaintenanceRequestRecord {
   priority: Priority;
   status: RequestStatus;
   equipmentDescription?: string;
+  equipmentDescriptionAr?: string;
   attachments: ImageAsset[];
   location: RequestLocation | null;
   requester: RequestPerson | null;
   reviewedBy: RequestReviewer | null;
   reviewedAt?: string;
   reviewNotes?: string;
+  reviewNotesAr?: string;
   currentWorkOrder: SerializedWorkOrderSummary | null;
   reopenCount: number;
   createdAt: string;

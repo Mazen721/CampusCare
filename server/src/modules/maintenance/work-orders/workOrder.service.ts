@@ -30,6 +30,7 @@ export interface SerializedTechnicianNote {
   author: {
     id: string;
     name: string;
+    nameAr?: string;
     role?: string;
   };
   createdAt: Date;
@@ -45,6 +46,7 @@ export interface SerializedWorkOrder {
   assignedTechnician?: {
     id: string;
     name: string;
+    nameAr?: string;
     email: string;
     availability?: string;
     specializations?: string[];
@@ -103,6 +105,7 @@ function serializeWorkOrder(wo: any): SerializedWorkOrder {
       ? {
           id: tech._id.toString(),
           name: tech.name,
+          nameAr: tech.nameAr,
           email: tech.email,
           availability: tech.availability,
           specializations: tech.specializations,
@@ -144,11 +147,13 @@ function serializeWorkOrder(wo: any): SerializedWorkOrder {
         ? {
             id: n.authorId._id.toString(),
             name: n.authorId.name,
+            nameAr: n.authorId.nameAr,
             role: n.authorId.role,
           }
         : {
             id: n.authorId?.toString() ?? '',
             name: 'System',
+            nameAr: 'النظام',
           },
       createdAt: n.createdAt,
       isSystem: Boolean(n.isSystem),
@@ -191,9 +196,9 @@ export async function listWorkOrders(
 
   const [documents, total] = await Promise.all([
     WorkOrder.find(filter)
-      .populate('assignedTechnicianId', 'name email availability specializations')
+      .populate('assignedTechnicianId', 'name nameAr email availability specializations')
       .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
-      .populate('technicianNotes.authorId', 'name role')
+      .populate('technicianNotes.authorId', 'name nameAr role')
       .sort({ expectedCompletion: 1, createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -367,9 +372,9 @@ export async function assignWorkOrder(
 
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
-      .populate('assignedTechnicianId', 'name email availability specializations')
+      .populate('assignedTechnicianId', 'name nameAr email availability specializations')
       .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
-      .populate('technicianNotes.authorId', 'name role')
+      .populate('technicianNotes.authorId', 'name nameAr role')
       .lean();
 
     return serializeWorkOrder(populated);
@@ -429,9 +434,9 @@ export async function startWorkOrder(
 
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
-      .populate('assignedTechnicianId', 'name email availability specializations')
+      .populate('assignedTechnicianId', 'name nameAr email availability specializations')
       .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
-      .populate('technicianNotes.authorId', 'name role')
+      .populate('technicianNotes.authorId', 'name nameAr role')
       .lean();
 
     return serializeWorkOrder(populated);
@@ -557,9 +562,9 @@ export async function completeWorkOrder(
 
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
-      .populate('assignedTechnicianId', 'name email availability specializations')
+      .populate('assignedTechnicianId', 'name nameAr email availability specializations')
       .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
-      .populate('technicianNotes.authorId', 'name role')
+      .populate('technicianNotes.authorId', 'name nameAr role')
       .lean();
 
     return serializeWorkOrder(populated);
@@ -635,9 +640,9 @@ export async function cancelWorkOrder(
 
     const populated = await WorkOrder.findById(wo._id)
       .session(session)
-      .populate('assignedTechnicianId', 'name email availability specializations')
+      .populate('assignedTechnicianId', 'name nameAr email availability specializations')
       .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr locationType')
-      .populate('technicianNotes.authorId', 'name role')
+      .populate('technicianNotes.authorId', 'name nameAr role')
       .lean();
 
     return serializeWorkOrder(populated);

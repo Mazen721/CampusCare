@@ -9,6 +9,7 @@ import {
 
 export interface ClaimHandover {
   receivedByName?: string;
+  receivedByNameAr?: string;
   handedOverBy?: Types.ObjectId;
   notes?: string;
   notesAr?: string;
@@ -39,6 +40,7 @@ export interface IClaimRequest {
 const handoverSchema = new Schema<ClaimHandover>(
   {
     receivedByName: { type: String, trim: true, maxlength: 120 },
+    receivedByNameAr: { type: String, trim: true, maxlength: 120 },
     handedOverBy: { type: Schema.Types.ObjectId, ref: 'User' },
     notes: { type: String, trim: true, maxlength: 1000 },
     notesAr: { type: String, trim: true, maxlength: 1000 },

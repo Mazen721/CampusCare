@@ -9,12 +9,14 @@ export interface ServiceFeedbackRecord {
   technician: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
     specializations?: string[];
   };
   requester: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
   };
   rating: number;
@@ -26,6 +28,7 @@ export interface ServiceFeedbackRecord {
 export interface PerTechnicianFeedbackSummary {
   technicianId: string;
   technicianName: string;
+  technicianNameAr?: string;
   averageRating: number;
   count: number;
 }

@@ -142,7 +142,7 @@ export function OfficerTriageLedgers({ counts }: OfficerTriageLedgersProps) {
                 to={`/lost-found/claims/${claim.id}`}
                 title={title}
                 code={claim.claimNumber}
-                metaItems={claim.claimant?.name ? [claim.claimant.name] : undefined}
+                metaItems={claim.claimant ? [tr(claim.claimant, 'name')] : undefined}
                 date={claim.createdAt}
                 badges={<StatusBadge status={claim.status} className="shrink-0" />}
               />

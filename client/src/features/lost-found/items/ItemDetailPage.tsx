@@ -225,7 +225,7 @@ export function ItemDetailPage() {
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
                 <p className="font-semibold text-foreground">
-                  <bdi>{item.reporter.name}</bdi>
+                  <bdi>{tr(item.reporter, 'name')}</bdi>
                 </p>
                 {item.reporter.email ? (
                   <p className="text-xs text-muted-foreground">

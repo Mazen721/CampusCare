@@ -344,6 +344,7 @@ export async function createTechnician(
   const passwordHash = await hashPassword(input.password);
   const tech = await User.create({
     name: input.name,
+    nameAr: input.nameAr,
     email: input.email.toLowerCase().trim(),
     passwordHash,
     role: 'TECHNICIAN', // Strictly forced to TECHNICIAN
@@ -353,6 +354,7 @@ export async function createTechnician(
     isActive: input.isActive ?? true,
     specializations: input.specializations ?? [],
     skills: input.skills ?? [],
+    skillsAr: input.skillsAr ?? [],
     availability: input.availability ?? 'AVAILABLE',
   });
 
@@ -399,11 +401,13 @@ export async function updateTechnician(
   }
 
   if (input.name !== undefined) tech.name = input.name;
+  if (input.nameAr !== undefined) tech.nameAr = input.nameAr;
   if (input.department !== undefined) tech.department = input.department;
   if (input.departmentAr !== undefined) tech.departmentAr = input.departmentAr;
   if (input.contactPhone !== undefined) tech.contactPhone = input.contactPhone;
   if (input.specializations !== undefined) tech.specializations = input.specializations;
   if (input.skills !== undefined) tech.skills = input.skills;
+  if (input.skillsAr !== undefined) tech.skillsAr = input.skillsAr;
   if (input.availability !== undefined) tech.availability = input.availability;
   if (input.isActive !== undefined) tech.isActive = input.isActive;
 

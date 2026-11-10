@@ -35,13 +35,12 @@ describe('Phase 8: I18n Checks and Schema Integrity', () => {
       expect(paths['descriptionAr']).toBeDefined();
     });
 
-    it('test_user_schema_includes_departmentAr_and_strictly_excludes_nameAr', () => {
+    it('test_user_schema_includes_departmentAr_and_nameAr', () => {
       const paths = User.schema.paths;
       expect(paths['department']).toBeDefined();
       expect(paths['departmentAr']).toBeDefined();
       expect(paths['name']).toBeDefined();
-      // Requirement: person names are never translated, no nameAr field
-      expect(paths['nameAr']).toBeUndefined();
+      expect(paths['nameAr']).toBeDefined();
     });
 
     it('test_preventive_plan_schema_defines_titleAr_and_descriptionAr', () => {

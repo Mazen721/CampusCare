@@ -71,12 +71,12 @@ export function UsersPage() {
         <div className="flex min-w-0 items-center gap-3">
           <Avatar className="h-9 w-9 shrink-0">
             <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-              {getInitials(user.name)}
+              {getInitials(tr(user, 'name') || user.name)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
             <p className="truncate font-medium text-foreground">
-              <bdi>{user.name}</bdi>
+              <bdi>{tr(user, 'name') || user.name}</bdi>
             </p>
             <p className="truncate text-xs text-muted-foreground">
               <span dir="ltr">{user.email}</span>
@@ -283,8 +283,8 @@ export function UsersPage() {
         description={
           statusTarget
             ? isReactivating
-              ? t('users.confirmActivateDesc', { name: statusTarget.name })
-              : t('users.confirmDeactivateDesc', { name: statusTarget.name })
+              ? t('users.confirmActivateDesc', { name: tr(statusTarget, 'name') || statusTarget.name })
+              : t('users.confirmDeactivateDesc', { name: tr(statusTarget, 'name') || statusTarget.name })
             : ''
         }
         confirmLabel={isReactivating ? t('users.activateAccount') : t('users.deactivateAccount')}

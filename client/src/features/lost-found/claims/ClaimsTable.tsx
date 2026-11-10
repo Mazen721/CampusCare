@@ -81,7 +81,7 @@ export function ClaimsTable({
             cell: (claim: ClaimRecord) => (
               <div className="min-w-0 text-xs">
                 <p className="font-medium text-foreground">
-                  <bdi>{claim.claimant?.name ?? t('common.none')}</bdi>
+                  <bdi>{claim.claimant ? tr(claim.claimant, 'name') : t('common.none')}</bdi>
                 </p>
                 <p className="text-muted-foreground">
                   {claim.claimant?.email ? <span dir="ltr">{claim.claimant.email}</span> : null}

@@ -116,6 +116,7 @@ export const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as con
 export interface DemoAccount {
   email: string;
   name: string;
+  nameAr: string;
   department: string;
   departmentAr?: string;
 }
@@ -124,31 +125,36 @@ export const DEMO_ACCOUNTS: Record<Role, DemoAccount> = {
   SUPER_ADMIN: {
     email: 't.elshenawy@mansnu.edu.eg',
     name: 'Eng. Tarek El-Shenawy',
+    nameAr: 'م. طارق الشناوي',
     department: 'Information Technology & Digital Transformation Unit',
     departmentAr: 'وحدة تكنولوجيا المعلومات والتحول الرقمي',
   },
   MAINTENANCE_MANAGER: {
     email: 'm.elmetwally@mansnu.edu.eg',
     name: 'Eng. Mahmoud El-Metwally',
+    nameAr: 'م. محمود المتولي',
     department: 'Engineering Affairs & Maintenance Department',
-    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
+    departmentAr: 'الإدارة العامة للشئون الهندسية والصيانة',
   },
   TECHNICIAN: {
     email: 'h.elsayed@mansnu.edu.eg',
     name: 'Hassan El-Sayed',
+    nameAr: 'حسن السيد',
     department: 'Engineering Affairs & Maintenance Department',
-    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
+    departmentAr: 'الإدارة العامة للشئون الهندسية والصيانة',
   },
   LOST_FOUND_OFFICER: {
     email: 'a.eldesouky@mansnu.edu.eg',
     name: 'Ahmed El-Desouky',
+    nameAr: 'أ. أحمد الدسوقي',
     department: 'University Security, Safety & Lost and Found Office',
-    departmentAr: 'مكتب أمن وسلامة الجامعة والمفقودات',
+    departmentAr: 'إدارة الأمن الجامعي والسلامة — مكتب المفقودات',
   },
   STUDENT_EMPLOYEE: {
     email: 'youssef.elashry@std.mansnu.edu.eg',
     name: 'Youssef El-Ashry',
-    department: 'Faculty of Engineering (Mechatronics)',
-    departmentAr: 'كلية الهندسة (ميكاترونكس)',
+    nameAr: 'يوسف العشري',
+    department: 'Faculty of Engineering (Level 3 Mechatronics)',
+    departmentAr: 'كلية الهندسة (المستوى الثالث — ميكاترونكس)',
   },
 };

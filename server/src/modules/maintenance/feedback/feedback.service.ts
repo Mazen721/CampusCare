@@ -28,12 +28,14 @@ export interface SerializedFeedback {
   technician: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
     specializations?: string[];
   };
   requester: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
   };
   rating: number;
@@ -45,6 +47,7 @@ export interface SerializedFeedback {
 export interface PerTechnicianFeedbackSummary {
   technicianId: string;
   technicianName: string;
+  technicianNameAr?: string;
   averageRating: number;
   count: number;
 }
@@ -66,12 +69,14 @@ function serializeFeedback(doc: any): SerializedFeedback {
     technician: {
       id: tech?._id ? tech._id.toString() : doc.technicianId.toString(),
       name: tech?.name ?? 'Unknown Technician',
+      nameAr: tech?.nameAr,
       email: tech?.email,
       specializations: tech?.specializations,
     },
     requester: {
       id: requester?._id ? requester._id.toString() : doc.requesterId.toString(),
       name: requester?.name ?? 'Requester',
+      nameAr: requester?.nameAr,
       email: requester?.email,
     },
     rating: doc.rating,
@@ -175,8 +180,8 @@ export async function createFeedback(
   });
 
   const populated = await ServiceFeedback.findById(feedback._id)
-    .populate('technicianId', 'name email specializations')
-    .populate('requesterId', 'name email')
+    .populate('technicianId', 'name nameAr email specializations')
+    .populate('requesterId', 'name nameAr email')
     .populate('maintenanceRequestId', 'requestNumber title titleAr')
     .populate('workOrderId', 'workOrderNumber')
     .lean();
@@ -210,8 +215,8 @@ export async function listFeedback(
 
   const [documents, total] = await Promise.all([
     ServiceFeedback.find(filter)
-      .populate('technicianId', 'name email specializations')
-      .populate('requesterId', 'name email')
+      .populate('technicianId', 'name nameAr email specializations')
+      .populate('requesterId', 'name nameAr email')
       .populate('maintenanceRequestId', 'requestNumber title titleAr')
       .populate('workOrderId', 'workOrderNumber')
       .sort({ createdAt: -1 })
@@ -243,12 +248,13 @@ export async function listFeedback(
 
     const techUsers = await User.find({
       _id: { $in: perTechStats.map((s) => s._id) },
-    }).select('name');
-    const nameMap = new Map(techUsers.map((u) => [u._id.toString(), u.name]));
+    }).select('name nameAr');
+    const nameMap = new Map(techUsers.map((u) => [u._id.toString(), { name: u.name, nameAr: u.nameAr }]));
 
     const perTechnician: PerTechnicianFeedbackSummary[] = perTechStats.map((stat) => ({
       technicianId: stat._id.toString(),
-      technicianName: nameMap.get(stat._id.toString()) ?? 'Unknown Technician',
+      technicianName: nameMap.get(stat._id.toString())?.name ?? 'Unknown Technician',
+      technicianNameAr: nameMap.get(stat._id.toString())?.nameAr,
       averageRating: Math.round(stat.avg * 10) / 10,
       count: stat.count,
     }));

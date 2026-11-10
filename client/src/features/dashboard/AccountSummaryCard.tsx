@@ -56,11 +56,13 @@ export function AccountSummaryCard({ user }: AccountSummaryCardProps) {
       <CardContent className="pt-6">
         <div className="flex items-center gap-3">
           <Avatar className="h-12 w-12">
-            <AvatarFallback className="bg-primary/10 text-sm">{getInitials(user.name)}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-sm">
+              {getInitials(tr(user, 'name') || user.name)}
+            </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-foreground">
-              <bdi>{user.name}</bdi>
+              <bdi>{tr(user, 'name') || user.name}</bdi>
             </p>
             <p className="text-xs text-muted-foreground">{enumLabel('role', user.role)}</p>
           </div>

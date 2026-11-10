@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
-import { formatLocation, tr } from '@/i18n/localize';
+import { formatLocation, pickLang, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate, getInitials } from '@/lib/utils';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
@@ -79,13 +79,13 @@ export function TechnicianDetailDialog({
             <div className="flex items-center gap-4 border-b pb-4">
               <Avatar className="h-14 w-14 shrink-0">
                 <AvatarFallback className="bg-primary/10 text-base font-semibold text-primary">
-                  {getInitials(technician.name)}
+                  {getInitials(tr(technician, 'name') || technician.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-semibold text-foreground truncate">
-                    <bdi>{technician.name}</bdi>
+                    <bdi>{tr(technician, 'name') || technician.name}</bdi>
                   </h3>
                   <Badge
                     variant="outline"
@@ -196,12 +196,12 @@ export function TechnicianDetailDialog({
                     {t('technicians.skills')}
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
-                    {technician.skills.map((skill: string) => (
+                    {technician.skills.map((skill: string, idx: number) => (
                       <span
                         key={skill}
                         className="inline-flex items-center rounded-md border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground"
                       >
-                        {skill}
+                        {pickLang(skill, technician.skillsAr?.[idx])}
                       </span>
                     ))}
                   </div>

@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { TechnicianDetailDialog } from '@/features/maintenance/technicians/TechnicianDetailDialog';
 import { TechnicianFormDialog } from '@/features/maintenance/technicians/TechnicianFormDialog';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
+import { tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { getInitials } from '@/lib/utils';
 import { MAINTENANCE_CATEGORIES, type MaintenanceCategory } from '@/types/meta';
@@ -46,13 +47,13 @@ export function TechniciansPage() {
         <div className="flex min-w-0 items-center gap-3">
           <Avatar className="h-9 w-9 shrink-0">
             <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-              {getInitials(tech.name)}
+              {getInitials(tr(tech, 'name') || tech.name)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="truncate font-medium text-foreground">
-                <bdi>{tech.name}</bdi>
+                <bdi>{tr(tech, 'name') || tech.name}</bdi>
               </span>
               {tech.matchesCategory && (
                 <Badge variant="default" className="text-[10px] py-0 px-1.5 bg-amber-500 hover:bg-amber-600">

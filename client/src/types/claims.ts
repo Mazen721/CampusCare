@@ -19,6 +19,7 @@ export interface ClaimItem extends LostFoundItem {
 export interface ClaimPerson {
   id: string;
   name: string;
+  nameAr?: string;
   email?: string;
   department?: string;
   departmentAr?: string;
@@ -28,12 +29,14 @@ export interface ClaimPerson {
 export interface ClaimReviewer {
   id: string;
   name: string;
+  nameAr?: string;
   role?: Role;
 }
 
 export interface ClaimHandover {
   receivedByName?: string;
-  handedOverBy: { id: string; name: string } | null;
+  receivedByNameAr?: string;
+  handedOverBy: { id: string; name: string; nameAr?: string } | null;
   notes?: string;
   notesAr?: string;
   handedOverAt?: string;

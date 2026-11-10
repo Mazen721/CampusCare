@@ -69,7 +69,7 @@ export function RequestsListPage() {
             {isAdmin && request.requester ? (
               <>
                 {' · '}
-                <bdi>{request.requester.name}</bdi>
+                <bdi>{tr(request.requester, 'name')}</bdi>
               </>
             ) : ''}
           </p>

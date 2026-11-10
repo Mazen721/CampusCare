@@ -37,19 +37,23 @@ function extractAfter(value: string, marker: string): string | undefined {
 }
 
 const BUILDING_AR_BY_EN: Record<string, string> = {
-  'Administration & Central Library Building': 'مبنى الإدارة والمكتبة المركزية',
-  'Engineering & Technological Complex': 'مجمع الهندسة والتكنولوجيا',
+  'Administration & Central Library Building': 'مبنى إدارة الجامعة والمكتبة المركزية',
+  'Engineering & Technological Complex': 'مجمع الكليات الهندسية والتكنولوجية',
+  'Engineering & Technological Complex A & B': 'مجمع الكليات الهندسية والتكنولوجية',
   'Engineering Building': 'مبنى كلية الهندسة',
-  'Medical Sector Complex': 'مجمع القطاع الطبي',
-  'Humanities & Business Building': 'مبنى العلوم الإنسانية وإدارة الأعمال',
+  'Medical Sector Complex': 'مجمع الكليات الطبية',
+  'Medical Sector Complex A & B': 'مجمع الكليات الطبية',
+  'Humanities & Business Building': 'مبنى العلوم الإنسانية والاقتصاد وإدارة الأعمال',
+  'Central Workshops & Laboratories Building': 'مبنى الورش والمعامل المركزية',
+  'Student Activities & Sports Complex': 'منطقة الأنشطة الطلابية والملاعب الرياضية',
 };
 
 const FLOOR_AR_BY_EN: Record<string, string> = {
   'Ground Floor': 'الطابق الأرضي',
-  'Floor 1': 'الطابق 1',
-  'Floor 2': 'الطابق 2',
-  'Floor 3': 'الطابق 3',
-  'Floor 4': 'الطابق 4',
+  'Floor 1': 'الطابق الأول',
+  'Floor 2': 'الطابق الثاني',
+  'Floor 3': 'الطابق الثالث',
+  'Floor 4': 'الطابق الرابع',
 };
 
 function toBilingualParam(

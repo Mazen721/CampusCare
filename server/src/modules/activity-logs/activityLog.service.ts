@@ -10,6 +10,7 @@ import type { ListActivityLogsQuery } from './activityLog.validation';
 interface PopulatedActor {
   _id: Types.ObjectId;
   name: string;
+  nameAr?: string;
   email?: string;
   role?: Role;
 }
@@ -25,6 +26,7 @@ export interface SerializedActivityLog {
   actor: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
     role?: Role;
   } | null;
@@ -48,6 +50,7 @@ function serializeActivityLog(entry: PopulatedActivityLog): SerializedActivityLo
         ? {
             id: actor._id.toString(),
             name: actor.name,
+            nameAr: actor.nameAr,
             email: actor.email,
             role: actor.role,
           }
@@ -89,7 +92,7 @@ export async function listActivityLogs(query: ListActivityLogsQuery): Promise<{
 
   const [entries, total] = await Promise.all([
     ActivityLog.find(filter)
-      .populate('actorId', 'name email role')
+      .populate('actorId', 'name nameAr email role')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)

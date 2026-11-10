@@ -11,6 +11,7 @@ const PASSWORD_ROUNDS = 12;
 export interface SafeUser {
   id: string;
   name: string;
+  nameAr?: string;
   email: string;
   role: Role;
   department?: string;
@@ -19,6 +20,7 @@ export interface SafeUser {
   isActive: boolean;
   specializations: string[];
   skills: string[];
+  skillsAr?: string[];
   availability?: TechnicianAvailability;
   createdAt: Date;
 }
@@ -32,6 +34,7 @@ export function toSafeUser(user: UserDocument): SafeUser {
   return {
     id: user._id.toString(),
     name: user.name,
+    nameAr: user.nameAr,
     email: user.email,
     role: user.role,
     department: user.department,
@@ -40,6 +43,7 @@ export function toSafeUser(user: UserDocument): SafeUser {
     isActive: user.isActive,
     specializations: user.specializations ?? [],
     skills: user.skills ?? [],
+    skillsAr: user.skillsAr ?? [],
     availability: user.availability,
     createdAt: user.createdAt,
   };

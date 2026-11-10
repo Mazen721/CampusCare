@@ -43,6 +43,7 @@ type ItemDocument = HydratedDocument<ILostFoundItem>;
 interface PopulatedPerson {
   _id: Types.ObjectId;
   name: string;
+  nameAr?: string;
   email?: string;
   department?: string;
   departmentAr?: string;
@@ -51,6 +52,7 @@ interface PopulatedPerson {
 
 interface PopulatedHandover {
   receivedByName?: string;
+  receivedByNameAr?: string;
   handedOverBy?: Types.ObjectId | PopulatedPerson | null;
   notes?: string;
   notesAr?: string;
@@ -92,6 +94,7 @@ export interface SerializedClaim {
   claimant: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
     department?: string;
     departmentAr?: string;
@@ -105,11 +108,12 @@ export interface SerializedClaim {
   verificationNotesAr?: string;
   rejectionReason?: string;
   rejectionReasonAr?: string;
-  reviewedBy: { id: string; name: string; role?: Role } | null;
+  reviewedBy: { id: string; name: string; nameAr?: string; role?: Role } | null;
   reviewedAt?: Date;
   handover?: {
     receivedByName?: string;
-    handedOverBy: { id: string; name: string } | null;
+    receivedByNameAr?: string;
+    handedOverBy: { id: string; name: string; nameAr?: string } | null;
     notes?: string;
     notesAr?: string;
     handedOverAt?: Date;
@@ -146,17 +150,17 @@ function itemPopulate(path: string, includePrivate = false) {
 
 const CLAIMANT_POPULATE = {
   path: 'claimantId',
-  select: 'name email department departmentAr role',
+  select: 'name nameAr email department departmentAr role',
 };
 
 const REVIEWER_POPULATE = {
   path: 'reviewedBy',
-  select: 'name role',
+  select: 'name nameAr role',
 };
 
 const HANDOVER_POPULATE = {
   path: 'handover.handedOverBy',
-  select: 'name',
+  select: 'name nameAr',
 };
 
 function isProjectableItem(value: unknown): value is ProjectableItem {
@@ -338,6 +342,7 @@ function serializeClaim(
     ? {
         id: doc.claimantId._id.toString(),
         name: doc.claimantId.name,
+        nameAr: doc.claimantId.nameAr,
         email: doc.claimantId.email,
         department: doc.claimantId.department,
         departmentAr: doc.claimantId.departmentAr,
@@ -349,6 +354,7 @@ function serializeClaim(
     ? {
         id: doc.reviewedBy._id.toString(),
         name: doc.reviewedBy.name,
+        nameAr: doc.reviewedBy.nameAr,
         role: doc.reviewedBy.role,
       }
     : null;
@@ -356,10 +362,12 @@ function serializeClaim(
   const handover = doc.handover
     ? {
         receivedByName: doc.handover.receivedByName,
+        receivedByNameAr: doc.handover.receivedByNameAr,
         handedOverBy: isPopulatedPerson(doc.handover.handedOverBy)
           ? {
               id: doc.handover.handedOverBy._id.toString(),
               name: doc.handover.handedOverBy.name,
+              nameAr: doc.handover.handedOverBy.nameAr,
             }
           : null,
         notes: doc.handover.notes,

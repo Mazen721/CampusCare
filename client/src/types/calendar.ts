@@ -3,6 +3,7 @@ import type { MaintenanceCategory, Priority, WorkOrderStatus } from '@/types/met
 export interface CalendarTechnician {
   id: string;
   name: string;
+  nameAr?: string;
   availability?: string;
 }
 

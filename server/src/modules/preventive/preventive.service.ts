@@ -38,12 +38,14 @@ interface PopulatedLocation {
 interface PopulatedTechnician {
   _id: Types.ObjectId;
   name: string;
+  nameAr?: string;
   availability?: string;
 }
 
 interface PopulatedUser {
   _id: Types.ObjectId;
   name: string;
+  nameAr?: string;
   role?: Role;
 }
 
@@ -78,6 +80,7 @@ export interface SerializedPreventivePlan {
   assignedTechnician: {
     id: string;
     name: string;
+    nameAr?: string;
     availability?: string;
   } | null;
   recurrenceType: RecurrenceType;
@@ -88,15 +91,15 @@ export interface SerializedPreventivePlan {
   expectedDurationHours: number;
   isActive: boolean;
   overdue: boolean;
-  createdBy: { id: string; name: string } | null;
+  createdBy: { id: string; name: string; nameAr?: string } | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const PLAN_POPULATION = [
   { path: 'locationId', select: 'buildingName buildingNameAr floor floorAr room roomAr' },
-  { path: 'assignedTechnicianId', select: 'name availability' },
-  { path: 'createdBy', select: 'name role' },
+  { path: 'assignedTechnicianId', select: 'name nameAr availability' },
+  { path: 'createdBy', select: 'name nameAr role' },
 ];
 
 function serializePlan(plan: PopulatedPreventivePlan): SerializedPreventivePlan {
@@ -128,6 +131,7 @@ function serializePlan(plan: PopulatedPreventivePlan): SerializedPreventivePlan 
       ? {
           id: technician._id.toString(),
           name: technician.name,
+          nameAr: technician.nameAr,
           availability: technician.availability,
         }
       : null,
@@ -140,7 +144,7 @@ function serializePlan(plan: PopulatedPreventivePlan): SerializedPreventivePlan 
     isActive: plan.isActive,
     overdue: plan.isActive && new Date(plan.nextScheduledDate).getTime() <= now,
     createdBy: creator
-      ? { id: creator._id.toString(), name: creator.name }
+      ? { id: creator._id.toString(), name: creator.name, nameAr: creator.nameAr }
       : null,
     createdAt: plan.createdAt,
     updatedAt: plan.updatedAt,

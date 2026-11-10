@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { activityLogsApi } from '@/features/activity-logs/activityLogsApi';
 import { usersApi } from '@/features/users/usersApi';
 import { getErrorMessage } from '@/lib/api';
-import { resolveParams } from '@/i18n/localize';
+import { resolveParams, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import type { ActivityLogRecord } from '@/types/activityLogs';
@@ -74,7 +74,7 @@ export function ActivityLogsPage() {
       cell: (entry) =>
         entry.actor ? (
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground"><bdi>{entry.actor.name}</bdi></p>
+            <p className="truncate text-sm font-medium text-foreground"><bdi>{tr(entry.actor, 'name')}</bdi></p>
             <p className="truncate text-xs text-muted-foreground">
               {entry.actor.role ? enumLabel('role', entry.actor.role) : t('common.none')}
               {entry.actor.email ? (
@@ -170,7 +170,7 @@ export function ActivityLogsPage() {
             options: [
               { label: t('common.all'), value: 'ALL' },
               ...actors.map((actor) => ({
-                label: `${actor.name} (${enumLabel('role', actor.role)})`,
+                label: `${tr(actor, 'name')} (${enumLabel('role', actor.role)})`,
                 value: actor.id,
               })),
             ],

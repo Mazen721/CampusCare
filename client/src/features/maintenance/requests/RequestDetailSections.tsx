@@ -34,12 +34,12 @@ export function RequestDescriptionCard({ request }: SectionProps) {
           {tr(request, 'description')}
         </p>
 
-        {request.equipmentDescription ? (
+        {tr(request, 'equipmentDescription') ? (
           <div className="rounded-md border bg-muted/30 px-3.5 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               {t('requests.equipmentInvolved')}
             </p>
-            <p className="mt-1 text-sm text-foreground">{request.equipmentDescription}</p>
+            <p className="mt-1 text-sm text-foreground">{tr(request, 'equipmentDescription')}</p>
           </div>
         ) : null}
 
@@ -80,7 +80,7 @@ export function RequestReviewCard({ request }: SectionProps) {
         <div className="flex items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">{t('requests.reviewedBy')}</span>
           <span className="text-end font-medium text-foreground">
-            {request.reviewedBy?.name ? <bdi>{request.reviewedBy.name}</bdi> : t('requests.managerRole')}
+            {request.reviewedBy ? <bdi>{tr(request.reviewedBy, 'name')}</bdi> : t('requests.managerRole')}
           </span>
         </div>
         {request.reviewedAt ? (
@@ -91,14 +91,14 @@ export function RequestReviewCard({ request }: SectionProps) {
             </span>
           </div>
         ) : null}
-        {request.reviewNotes ? (
+        {tr(request, 'reviewNotes') ? (
           <div className="rounded-md border bg-muted/30 px-3.5 py-3">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
               {t('common.notes')}
             </p>
             <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground">
-              {request.reviewNotes}
+              {tr(request, 'reviewNotes')}
             </p>
           </div>
         ) : null}
@@ -149,8 +149,8 @@ export function RequestWorkOrderCard({ request }: SectionProps) {
             {t('workOrders.assignedTechnician')}
           </p>
           <p className="mt-1 text-sm text-foreground">
-            {workOrder.assignedTechnician?.name ? (
-              <bdi>{workOrder.assignedTechnician.name}</bdi>
+            {workOrder.assignedTechnician ? (
+              <bdi>{tr(workOrder.assignedTechnician, 'name')}</bdi>
             ) : (
               t('requests.notAssignedYet')
             )}
@@ -214,7 +214,7 @@ export function RequestMetaCard({ request }: SectionProps) {
               {t('requests.requester')}
             </p>
             <p className="mt-0.5 text-foreground">
-              {request.requester?.name ? <bdi>{request.requester.name}</bdi> : '—'}
+              {request.requester ? <bdi>{tr(request.requester, 'name')}</bdi> : '—'}
             </p>
             {tr(request.requester, 'department') ? (
               <p className="text-xs text-muted-foreground">{tr(request.requester, 'department')}</p>

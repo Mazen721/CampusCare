@@ -25,6 +25,7 @@ interface DashboardBase {
 export interface TechnicianWorkload {
   id: string;
   name: string;
+  nameAr?: string;
   activeWorkOrders: number;
   completedWorkOrders: number;
   feedbackCount: number;

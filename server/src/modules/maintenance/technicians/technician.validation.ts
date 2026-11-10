@@ -18,6 +18,7 @@ export const technicianIdSchema = z.object({
 
 export const createTechnicianSchema = z.object({
   name: z.string().trim().min(2).max(120),
+  nameAr: z.string().trim().max(120).optional(),
   email: z.string().email().trim().max(254),
   password: z.string().min(8).max(128),
   department: z.string().trim().max(120).optional(),
@@ -25,12 +26,14 @@ export const createTechnicianSchema = z.object({
   contactPhone: z.string().trim().max(40).optional(),
   specializations: z.array(z.enum(MAINTENANCE_CATEGORIES)).default([]),
   skills: z.array(z.string().trim().min(1).max(80)).default([]),
+  skillsAr: z.array(z.string().trim().min(1).max(80)).default([]),
   availability: z.enum(TECHNICIAN_AVAILABILITIES).default('AVAILABLE'),
   isActive: z.boolean().default(true),
 });
 
 export const updateTechnicianSchema = z.object({
   name: z.string().trim().min(2).max(120).optional(),
+  nameAr: z.string().trim().max(120).optional(),
   email: z.string().email().trim().max(254).optional(),
   password: z.string().min(8).max(128).optional(),
   department: z.string().trim().max(120).optional(),
@@ -38,6 +41,7 @@ export const updateTechnicianSchema = z.object({
   contactPhone: z.string().trim().max(40).optional(),
   specializations: z.array(z.enum(MAINTENANCE_CATEGORIES)).optional(),
   skills: z.array(z.string().trim().min(1).max(80)).optional(),
+  skillsAr: z.array(z.string().trim().min(1).max(80)).optional(),
   availability: z.enum(TECHNICIAN_AVAILABILITIES).optional(),
   isActive: z.boolean().optional(),
 });

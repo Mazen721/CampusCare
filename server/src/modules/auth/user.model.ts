@@ -9,6 +9,7 @@ import {
 
 export interface IUser {
   name: string;
+  nameAr?: string;
   email: string;
   passwordHash: string;
   role: Role;
@@ -18,6 +19,7 @@ export interface IUser {
   isActive: boolean;
   specializations: string[];
   skills: string[];
+  skillsAr?: string[];
   availability?: TechnicianAvailability;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +30,7 @@ export type UserDocument = HydratedDocument<IUser>;
 const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
+    nameAr: { type: String, trim: true, maxlength: 120 },
     email: {
       type: String,
       required: true,
@@ -47,6 +50,7 @@ const userSchema = new Schema<IUser>(
       default: [],
     },
     skills: { type: [String], default: [] },
+    skillsAr: { type: [String], default: [] },
     availability: { type: String, enum: TECHNICIAN_AVAILABILITIES },
   },
   {

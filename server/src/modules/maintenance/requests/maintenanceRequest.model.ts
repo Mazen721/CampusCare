@@ -25,11 +25,13 @@ export interface IMaintenanceRequest {
   priority: Priority;
   locationId: Types.ObjectId;
   equipmentDescription?: string;
+  equipmentDescriptionAr?: string;
   attachments: ImageAsset[];
   status: RequestStatus;
   reviewedBy?: Types.ObjectId;
   reviewedAt?: Date;
   reviewNotes?: string;
+  reviewNotesAr?: string;
   currentWorkOrderId?: Types.ObjectId;
   reopenCount: number;
   createdAt: Date;
@@ -48,6 +50,7 @@ const maintenanceRequestSchema = new Schema<IMaintenanceRequest>(
     priority: { type: String, required: true, enum: PRIORITIES },
     locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true },
     equipmentDescription: { type: String, trim: true, maxlength: 1000 },
+    equipmentDescriptionAr: { type: String, trim: true, maxlength: 1000 },
     attachments: {
       type: [imageSchema],
       default: [],
@@ -57,6 +60,7 @@ const maintenanceRequestSchema = new Schema<IMaintenanceRequest>(
     reviewedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     reviewedAt: { type: Date },
     reviewNotes: { type: String, trim: true, maxlength: 2000 },
+    reviewNotesAr: { type: String, trim: true, maxlength: 2000 },
     currentWorkOrderId: { type: Schema.Types.ObjectId, ref: 'WorkOrder' },
     reopenCount: { type: Number, default: 0, min: 0 },
   },

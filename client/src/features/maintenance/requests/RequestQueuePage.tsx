@@ -71,10 +71,10 @@ export function RequestQueuePage() {
       cell: (request) => (
         <div className="min-w-0">
           <p className="truncate text-sm text-foreground">
-            {request.requester?.name ? <bdi>{request.requester.name}</bdi> : '—'}
+            {request.requester ? <bdi>{tr(request.requester, 'name')}</bdi> : '—'}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            {request.requester?.department || (request.requester?.email ? <span dir="ltr">{request.requester.email}</span> : '')}
+            {tr(request.requester, 'department') || (request.requester?.email ? <span dir="ltr">{request.requester.email}</span> : '')}
           </p>
         </div>
       ),

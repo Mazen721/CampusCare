@@ -142,12 +142,12 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
           <div className="flex items-center gap-3 rounded-lg bg-sidebar-active/50 p-2.5">
             <Avatar className="h-9 w-9 border border-sidebar-border">
               <AvatarFallback className="bg-sidebar-active text-xs text-sidebar-foreground">
-                {getInitials(user.name)}
+                {getInitials(tr(user, 'name') || user.name)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-sidebar-foreground">
-                <bdi>{user.name}</bdi>
+                <bdi>{tr(user, 'name') || user.name}</bdi>
               </p>
               <p className="truncate text-[11px] text-sidebar-muted">
                 {enumLabel('role', user.role)}

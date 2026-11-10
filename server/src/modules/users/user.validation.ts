@@ -30,11 +30,13 @@ const optionalText = (max: number) =>
 const technicianFields = {
   specializations: z.array(z.enum(MAINTENANCE_CATEGORIES)).max(9).optional(),
   skills: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
+  skillsAr: z.array(z.string().trim().min(1).max(80)).max(20).optional(),
   availability: z.enum(TECHNICIAN_AVAILABILITIES).optional(),
 };
 
 export const createUserSchema = z.object({
   name,
+  nameAr: optionalText(120),
   email,
   password,
   role: z.enum(ROLES),
@@ -47,6 +49,7 @@ export const createUserSchema = z.object({
 export const updateUserSchema = z
   .object({
     name,
+    nameAr: optionalText(120),
     email,
     role: z.enum(ROLES),
     department: optionalText(120),

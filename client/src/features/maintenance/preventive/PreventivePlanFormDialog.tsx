@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { locationsApi } from '@/features/locations/locationsApi';
 import { preventiveApi } from '@/features/maintenance/preventive/preventiveApi';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
-import { formatLocation } from '@/i18n/localize';
+import { formatLocation, tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import { enumLabel } from '@/lib/labels';
@@ -347,7 +347,7 @@ export function PreventivePlanFormDialog({
                 <option value="">{t('preventive.unassigned')}</option>
                 {technicians.map((technician) => (
                   <option key={technician.id} value={technician.id}>
-                    {technician.name}
+                    {tr(technician, 'name')}
                   </option>
                 ))}
               </select>

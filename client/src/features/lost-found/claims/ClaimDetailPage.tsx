@@ -125,7 +125,7 @@ export function ClaimDetailPage() {
         description={`${formatDate(claim.createdAt, {
           dateStyle: 'medium',
           timeStyle: 'short',
-        })}${claim.claimant ? ` · ${claim.claimant.name}` : ''}`}
+        })}${claim.claimant ? ` · ${tr(claim.claimant, 'name')}` : ''}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={claim.status} />
@@ -266,7 +266,7 @@ export function ClaimDetailPage() {
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
                 <p className="font-semibold text-foreground">
-                  <bdi>{claim.claimant.name}</bdi>
+                  <bdi>{tr(claim.claimant, 'name')}</bdi>
                 </p>
                 {claim.claimant.email ? (
                   <p className="text-xs text-muted-foreground">
@@ -326,7 +326,7 @@ export function ClaimDetailPage() {
               </CardHeader>
               <CardContent className="space-y-1 pt-5 text-sm">
                 <p className="font-semibold text-emerald-950">
-                  {t('claims.receivedByPerson', { name: claim.handover.receivedByName ? claim.handover.receivedByName : '' })}
+                  {t('claims.receivedByPerson', { name: tr(claim.handover, 'receivedByName') })}
                 </p>
                 {claim.handover.handedOverAt ? (
                   <p className="text-xs text-emerald-800">
@@ -338,7 +338,7 @@ export function ClaimDetailPage() {
                 ) : null}
                 {claim.handover.handedOverBy ? (
                   <p className="text-xs text-emerald-800">
-                    {t('claims.handedOverByPerson', { name: claim.handover.handedOverBy.name })}
+                    {t('claims.handedOverByPerson', { name: tr(claim.handover.handedOverBy, 'name') })}
                   </p>
                 ) : null}
                 {claim.handover.notes ? (

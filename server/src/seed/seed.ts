@@ -28,6 +28,7 @@ export const SEED_PASSWORD = 'CampusCare#2026';
 
 interface SeedUser {
   name: string;
+  nameAr?: string;
   email: string;
   role: Role;
   department: string;
@@ -35,6 +36,7 @@ interface SeedUser {
   contactPhone?: string;
   specializations?: MaintenanceCategory[];
   skills?: string[];
+  skillsAr?: string[];
   availability?: TechnicianAvailability;
 }
 
@@ -79,6 +81,7 @@ const ALL_MODELS: IndexableModel[] = [
 const TECHNICIANS: SeedUser[] = [
   {
     name: DEMO_ACCOUNTS.TECHNICIAN.name,
+    nameAr: DEMO_ACCOUNTS.TECHNICIAN.nameAr,
     email: DEMO_ACCOUNTS.TECHNICIAN.email,
     role: 'TECHNICIAN',
     department: DEMO_ACCOUNTS.TECHNICIAN.department,
@@ -86,21 +89,25 @@ const TECHNICIANS: SeedUser[] = [
     contactPhone: '+20 100 555 0142',
     specializations: ['Electrical', 'Air Conditioning'],
     skills: ['Electrical wiring', 'Distribution boards', 'Power diagnostics'],
+    skillsAr: ['التمديدات الكهربائية', 'لوحات التوزيع الكهربائية', 'تشخيص أعطال الطاقة'],
     availability: 'AVAILABLE',
   },
   {
     name: 'Mohamed El-Gohary',
+    nameAr: 'محمد الجوهري',
     email: 'm.elgohary@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'Engineering Affairs & Maintenance Department',
-    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
+    departmentAr: 'الإدارة العامة للشئون الهندسية والصيانة',
     contactPhone: '+20 100 555 0188',
     specializations: ['Plumbing', 'General Maintenance'],
     skills: ['Water networks', 'Sanitation maintenance', 'Leak detection'],
+    skillsAr: ['شبكات المياه', 'صيانة الصرف الصحي', 'كشف التسريبات'],
     availability: 'AVAILABLE',
   },
   {
     name: 'Karim El-Tantawy',
+    nameAr: 'كريم الطنطاوي',
     email: 'k.eltantawy@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'Information Technology & Digital Transformation Unit',
@@ -108,61 +115,168 @@ const TECHNICIANS: SeedUser[] = [
     contactPhone: '+20 100 555 0164',
     specializations: ['Hardware', 'Network', 'Software'],
     skills: ['Lab PC maintenance', 'Fiber & LAN cabling', 'Access point configuration'],
+    skillsAr: ['صيانة حواسيب المعامل', 'كابلات الألياف والشبكات المحلية', 'إعداد نقاط الوصول اللاسلكية'],
     availability: 'BUSY',
   },
   {
     name: 'Ibrahim Abdel-Fattah',
+    nameAr: 'إبراهيم عبد الفتاح',
     email: 'i.abdelfattah@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'Engineering Affairs & Maintenance Department',
-    departmentAr: 'إدارة الشؤون الهندسية والصيانة',
+    departmentAr: 'الإدارة العامة للشئون الهندسية والصيانة',
     contactPhone: '+20 100 555 0127',
     specializations: ['Air Conditioning', 'General Maintenance'],
     skills: ['Central HVAC servicing', 'Chiller maintenance', 'Air handling units'],
+    skillsAr: ['صيانة التكييف المركزي', 'صيانة المبردات المركزية (Chillers)', 'وحدات مناولة الهواء'],
     availability: 'AVAILABLE',
   },
   {
     name: 'Sameh Radwan',
+    nameAr: 'سامح رضوان',
     email: 's.radwan@mansnu.edu.eg',
     role: 'TECHNICIAN',
     department: 'General Services & Facilities Management',
-    departmentAr: 'إدارة الخدمات العامة والمرافق',
+    departmentAr: 'إدارة الشئون الإدارية والخدمات الداخلية',
     contactPhone: '+20 100 555 0196',
     specializations: ['Furniture', 'General Maintenance'],
     skills: ['Lecture hall seating repair', 'Carpentry', 'Door & lock hardware'],
+    skillsAr: ['إصلاح مقاعد المدرجات', 'أعمال النجارة والأثاث', 'صيانة الأبواب والأقفال'],
     availability: 'OFF_DUTY',
   },
 ];
 
-const BUILDINGS = [
+interface RoomTemplate {
+  suffix: string;
+  en: (code: string) => string;
+  ar: (code: string) => string;
+  type: 'ROOM' | 'LAB' | 'OTHER';
+}
+
+const CORE_BUILDINGS: ReadonlyArray<{
+  name: string;
+  nameAr: string;
+  floors: number;
+  description: string;
+  descriptionAr: string;
+  rooms: readonly [RoomTemplate, RoomTemplate, RoomTemplate];
+}> = [
   {
     name: 'Administration & Central Library Building',
-    nameAr: 'مبنى الإدارة والمكتبة المركزية',
+    nameAr: 'مبنى إدارة الجامعة والمكتبة المركزية',
     floors: 4,
     description: 'Executive offices, main auditorium, student affairs, and the Central Library',
-    descriptionAr: 'المكاتب التنفيذية، القاعة الرئيسية، شؤون الطلاب، والمكتبة المركزية',
+    descriptionAr: 'المكاتب التنفيذية، القاعة الكبرى، شئون الطلاب، والمكتبة المركزية',
+    rooms: [
+      {
+        suffix: '01',
+        en: (code) => (code === 'G01' ? `Student Affairs Hall ${code}` : `Central Library Hall ${code}`),
+        ar: (code) => (code === 'G01' ? `قاعة شئون الطلاب ${code}` : `قاعة المكتبة المركزية ${code}`),
+        type: 'ROOM',
+      },
+      {
+        suffix: '02',
+        en: (code) => (code === 'G02' ? `Main Auditorium ${code}` : `Reading & Research Room ${code}`),
+        ar: (code) => (code === 'G02' ? `القاعة الكبرى ${code}` : `قاعة المطالعة والبحث ${code}`),
+        type: 'ROOM',
+      },
+      {
+        suffix: '05',
+        en: (code) => `Administrative Office ${code}`,
+        ar: (code) => `مكتب إداري ${code}`,
+        type: 'ROOM',
+      },
+    ],
   },
   {
-    name: 'Engineering & Technological Complex',
-    nameAr: 'مجمع الهندسة والتكنولوجيا',
-    floors: 4,
-    description: 'Engineering, Computer Engineering, and Artificial Intelligence labs',
-    descriptionAr: 'معامل الهندسة وهندسة الحاسبات والذكاء الاصطناعي',
+    name: 'Engineering & Technological Complex A & B',
+    nameAr: 'مجمع الكليات الهندسية والتكنولوجية',
+    floors: 5,
+    description: 'Engineering, Mechatronics, Computer Engineering, and Artificial Intelligence labs',
+    descriptionAr: 'معامل ومدرجات كلية الهندسة والميكاترونكس وهندسة الحاسبات والذكاء الاصطناعي',
+    rooms: [
+      {
+        suffix: '01',
+        en: (code) => `Lecture Hall ${code}`,
+        ar: (code) => `مدرج ${code}`,
+        type: 'ROOM',
+      },
+      {
+        suffix: '04',
+        en: (code) => `Mechatronics & AI Lab ${code}`,
+        ar: (code) => `معمل ميكاترونكس وذكاء اصطناعي ${code}`,
+        type: 'LAB',
+      },
+      {
+        suffix: '05',
+        en: (code) => `Drawing Studio ${code}`,
+        ar: (code) => `صالة رسم ${code}`,
+        type: 'ROOM',
+      },
+    ],
   },
   {
-    name: 'Medical Sector Complex',
-    nameAr: 'مجمع القطاع الطبي',
+    name: 'Medical Sector Complex A & B',
+    nameAr: 'مجمع الكليات الطبية',
     floors: 4,
-    description: 'Faculties of Medicine, Dentistry, Pharmacy, and Nursing clinics',
-    descriptionAr: 'كليات الطب البشري، طب الأسنان، الصيدلة، وعيادات التمريض',
+    description: 'Faculties of Medicine, Dentistry (including dental clinics), Pharmacy, and Nursing',
+    descriptionAr: 'كليات الطب والجراحة، طب الفم والأسنان (بما يشمل العيادات)، الصيدلة، والتمريض',
+    rooms: [
+      {
+        suffix: '01',
+        en: (code) => `Medical Lecture Hall ${code}`,
+        ar: (code) => `مدرج طبي ${code}`,
+        type: 'ROOM',
+      },
+      {
+        suffix: '02',
+        en: (code) => `Dental Clinic ${code}`,
+        ar: (code) => `عيادة أسنان ${code}`,
+        type: 'LAB',
+      },
+      {
+        suffix: '04',
+        en: (code) => `Clinical Skills Lab ${code}`,
+        ar: (code) => `معمل المهارات الإكلينيكية ${code}`,
+        type: 'LAB',
+      },
+    ],
   },
   {
     name: 'Humanities & Business Building',
-    nameAr: 'مبنى العلوم الإنسانية وإدارة الأعمال',
+    nameAr: 'مبنى العلوم الإنسانية والاقتصاد وإدارة الأعمال',
     floors: 4,
     description: 'Lecture halls and seminar rooms for business, economics, and administrative sciences',
-    descriptionAr: 'مدرجات وقاعات حلقات البحث للعلوم الإدارية والمالية وإدارة الأعمال',
+    descriptionAr: 'مدرجات وقاعات سيمينار لكلية الاقتصاد وإدارة الأعمال والعلوم الإنسانية',
+    rooms: [
+      {
+        suffix: '01',
+        en: (code) => `Lecture Hall ${code}`,
+        ar: (code) => `مدرج ${code}`,
+        type: 'ROOM',
+      },
+      {
+        suffix: '03',
+        en: (code) => `Seminar Room ${code}`,
+        ar: (code) => `قاعة سيمينار ${code}`,
+        type: 'ROOM',
+      },
+      {
+        suffix: '06',
+        en: (code) => `Business Simulation Lab ${code}`,
+        ar: (code) => `معمل محاكاة الأعمال ${code}`,
+        type: 'LAB',
+      },
+    ],
   },
+];
+
+const FLOOR_LABELS_AR = [
+  'الطابق الأرضي',
+  'الطابق الأول',
+  'الطابق الثاني',
+  'الطابق الثالث',
+  'الطابق الرابع',
 ] as const;
 
 function buildSeedUsers(): SeedUser[] {
@@ -170,6 +284,7 @@ function buildSeedUsers(): SeedUser[] {
     const account = DEMO_ACCOUNTS[role];
     return {
       name: account.name,
+      nameAr: account.nameAr,
       email: account.email,
       role,
       department: account.department,
@@ -188,28 +303,30 @@ function buildLocations(): Array<{
   floorAr: string;
   room: string;
   roomAr: string;
-  locationType: 'ROOM';
+  locationType: 'ROOM' | 'LAB' | 'OTHER';
   description: string;
   descriptionAr: string;
   isActive: boolean;
 }> {
-  return BUILDINGS.flatMap((building) =>
+  return CORE_BUILDINGS.flatMap((building) =>
     Array.from({ length: building.floors }, (_, floorIndex) => {
       const floorLabel = floorIndex === 0 ? 'Ground Floor' : `Floor ${floorIndex}`;
-      const floorLabelAr = floorIndex === 0 ? 'الطابق الأرضي' : `الطابق ${floorIndex}`;
+      const floorLabelAr = FLOOR_LABELS_AR[floorIndex] ?? `الطابق ${floorIndex}`;
       const prefix = floorIndex === 0 ? 'G' : `${floorIndex}`;
-      return [1, 2, 3].map((roomNumber) => {
-        const roomCode = `${prefix}${String(roomNumber).padStart(2, '0')}`;
+      return building.rooms.map((roomSpec) => {
+        const roomCode = `${prefix}${roomSpec.suffix}`;
+        const roomEn = roomSpec.en(roomCode);
+        const roomAr = roomSpec.ar(roomCode);
         return {
           buildingName: building.name,
           buildingNameAr: building.nameAr,
           floor: floorLabel,
           floorAr: floorLabelAr,
-          room: roomCode,
-          roomAr: roomCode,
-          locationType: 'ROOM' as const,
-          description: `${building.description} — ${floorLabel}, Room ${roomCode}`,
-          descriptionAr: `${building.descriptionAr} — ${floorLabelAr}، غرفة ${roomCode}`,
+          room: roomEn,
+          roomAr,
+          locationType: roomSpec.type,
+          description: `${building.description} — ${floorLabel}, ${roomEn}`,
+          descriptionAr: `${building.descriptionAr} — ${floorLabelAr}، ${roomAr}`,
           isActive: true,
         };
       });
@@ -255,6 +372,7 @@ export async function seedDatabase(options: SeedOptions = {}): Promise<SeedRepor
         isActive: true,
         specializations: user.specializations ?? [],
         skills: user.skills ?? [],
+        skillsAr: user.skillsAr ?? [],
       })),
     );
 
@@ -265,12 +383,13 @@ export async function seedDatabase(options: SeedOptions = {}): Promise<SeedRepor
     const demo = includeDemoData ? await seedDemoData(passwordHash) : undefined;
     const accountCount = await User.countDocuments({});
     const technicianCount = await User.countDocuments({ role: 'TECHNICIAN' });
+    const locationCount = await Location.countDocuments({});
     const buildingNames = await Location.distinct('buildingName');
 
     const report: SeedReport = {
       accounts: accountCount,
       technicians: technicianCount,
-      locations: locations.length,
+      locations: locationCount,
       buildings: buildingNames.length,
       demo,
     };
@@ -297,7 +416,7 @@ export async function seedDatabase(options: SeedOptions = {}): Promise<SeedRepor
       console.log('Demo accounts:');
       for (const role of ROLES) {
         const account = DEMO_ACCOUNTS[role];
-        console.log(`  ${role.padEnd(20)} ${account.email.padEnd(28)} ${account.name}`);
+        console.log(`  ${role.padEnd(20)} ${account.email.padEnd(28)} ${account.name} (${account.nameAr})`);
       }
       console.log('');
     }

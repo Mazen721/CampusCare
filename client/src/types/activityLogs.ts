@@ -19,6 +19,7 @@ export interface ActivityLogRecord {
   actor: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
     role?: Role;
   } | null;

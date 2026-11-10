@@ -158,7 +158,7 @@ export function WorkOrdersPage() {
               <div className="text-xs">
                 {wo.assignedTechnician ? (
                   <span className="font-medium text-foreground">
-                    <bdi>{wo.assignedTechnician.name}</bdi>
+                    <bdi>{tr(wo.assignedTechnician, 'name')}</bdi>
                   </span>
                 ) : (
                   <span className="text-amber-600 italic">{t('workOrders.unassigned')}</span>

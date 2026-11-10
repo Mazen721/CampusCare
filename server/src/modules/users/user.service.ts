@@ -30,12 +30,13 @@ async function assertEmailAvailable(email: string, excludeId?: string): Promise<
 
 function technicianValues(role: Role, input: CreateUserInput | UpdateUserInput) {
   if (role !== 'TECHNICIAN') {
-    return { specializations: [], skills: [], availability: undefined };
+    return { specializations: [], skills: [], skillsAr: [], availability: undefined };
   }
 
   return {
     specializations: input.specializations ?? [],
     skills: input.skills ?? [],
+    skillsAr: input.skillsAr ?? [],
     availability: input.availability ?? 'AVAILABLE',
   };
 }
@@ -61,6 +62,7 @@ export async function listUsers(query: ListUsersQuery): Promise<{
     const pattern = new RegExp(escapeRegExp(query.q), 'i');
     filter.$or = [
       { name: pattern },
+      { nameAr: pattern },
       { email: pattern },
       { department: pattern },
       { departmentAr: pattern },
@@ -124,6 +126,7 @@ export async function createUser(
   const passwordHash = await hashPassword(input.password);
   const user = await User.create({
     name: input.name,
+    nameAr: input.nameAr,
     email: input.email,
     passwordHash,
     role: input.role,
@@ -160,6 +163,7 @@ export async function updateUser(
   }
 
   if (input.name !== undefined) user.name = input.name;
+  if (input.nameAr !== undefined) user.nameAr = input.nameAr;
   if (input.department !== undefined) user.department = input.department;
   if (input.departmentAr !== undefined) user.departmentAr = input.departmentAr;
   if (input.contactPhone !== undefined) user.contactPhone = input.contactPhone;
@@ -174,11 +178,13 @@ export async function updateUser(
   if (isTechnician) {
     if (input.specializations !== undefined) user.specializations = input.specializations;
     if (input.skills !== undefined) user.skills = input.skills;
+    if (input.skillsAr !== undefined) user.skillsAr = input.skillsAr;
     if (input.availability !== undefined) user.availability = input.availability;
     else if (!user.availability) user.availability = 'AVAILABLE';
   } else {
     user.specializations = [];
     user.skills = [];
+    user.skillsAr = [];
     user.availability = undefined;
   }
 

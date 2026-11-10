@@ -142,8 +142,8 @@ export function PreventivePlansPage() {
       header: t('workOrders.technician'),
       cell: (plan) => (
         <span className="text-xs text-muted-foreground">
-          {plan.assignedTechnician?.name ? (
-            <bdi>{plan.assignedTechnician.name}</bdi>
+          {plan.assignedTechnician ? (
+            <bdi>{tr(plan.assignedTechnician, 'name')}</bdi>
           ) : (
             <span className="italic">{t('workOrders.unassigned')}</span>
           )}

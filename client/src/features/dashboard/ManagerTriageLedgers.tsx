@@ -280,7 +280,7 @@ export function ManagerTriageLedgers({ metrics }: ManagerTriageLedgersProps) {
               code={request.requestNumber}
               metaItems={
                 [
-                  request.requester?.name,
+                  tr(request.requester, 'name'),
                   enumLabel('maintenanceCategory', request.category),
                 ].filter(Boolean) as string[]
               }
@@ -343,7 +343,8 @@ export function ManagerTriageLedgers({ metrics }: ManagerTriageLedgersProps) {
         <ul className="divide-y divide-border/75">
           {dispatchWorkOrders.map((workOrder) => {
             const overdue = isWorkOrderOverdue(workOrder);
-            const assignee = workOrder.assignedTechnician?.name ?? t('workOrders.unassigned');
+            const assignee =
+              tr(workOrder.assignedTechnician, 'name') || t('workOrders.unassigned');
             const categoryLabel = enumLabel('maintenanceCategory', workOrder.category);
             const metaItems = workOrder.expectedCompletion
               ? [

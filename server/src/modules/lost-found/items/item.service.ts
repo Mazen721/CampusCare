@@ -31,6 +31,7 @@ export interface ItemActor {
 interface PopulatedReporter {
   _id: Types.ObjectId;
   name: string;
+  nameAr?: string;
   email?: string;
   department?: string;
   departmentAr?: string;
@@ -49,6 +50,7 @@ export interface SerializedItem extends PublicItem {
   reporter?: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
     department?: string;
     departmentAr?: string;
@@ -65,7 +67,7 @@ const LOCATION_POPULATION = {
 
 const REPORTER_POPULATION = {
   path: 'reporterId',
-  select: 'name email department departmentAr role',
+  select: 'name nameAr email department departmentAr role',
 };
 
 export const BROWSE_ACTIVE_STATUSES: ItemStatus[] = [
@@ -104,6 +106,7 @@ function serializeItem(item: PopulatedItem, includePrivate: boolean): Serialized
       ? {
           id: item.reporterId._id.toString(),
           name: item.reporterId.name,
+          nameAr: item.reporterId.nameAr,
           email: item.reporterId.email,
           department: item.reporterId.department,
           departmentAr: item.reporterId.departmentAr,

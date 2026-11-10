@@ -26,6 +26,7 @@ export interface TechnicianActiveTask {
 export interface TechnicianRecord {
   id: string;
   name: string;
+  nameAr?: string;
   email: string;
   role: 'TECHNICIAN';
   department?: string;
@@ -34,6 +35,7 @@ export interface TechnicianRecord {
   isActive: boolean;
   specializations: MaintenanceCategory[];
   skills: string[];
+  skillsAr?: string[];
   availability: TechnicianAvailability;
   createdAt: string;
   activeWorkOrderCount: number;
@@ -49,6 +51,7 @@ export interface TechnicianDetailRecord extends TechnicianRecord {
 
 export interface CreateTechnicianInput {
   name: string;
+  nameAr?: string;
   email: string;
   password: string;
   department?: string;
@@ -56,12 +59,14 @@ export interface CreateTechnicianInput {
   contactPhone?: string;
   specializations: MaintenanceCategory[];
   skills: string[];
+  skillsAr?: string[];
   availability: TechnicianAvailability;
   isActive?: boolean;
 }
 
 export interface UpdateTechnicianInput {
   name?: string;
+  nameAr?: string;
   email?: string;
   password?: string;
   department?: string;
@@ -69,6 +74,7 @@ export interface UpdateTechnicianInput {
   contactPhone?: string;
   specializations?: MaintenanceCategory[];
   skills?: string[];
+  skillsAr?: string[];
   availability?: TechnicianAvailability;
   isActive?: boolean;
 }

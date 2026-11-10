@@ -26,6 +26,7 @@ import type {
 interface PopulatedUserRef {
   _id: Types.ObjectId;
   name: string;
+  nameAr?: string;
   email?: string;
   department?: string;
   departmentAr?: string;
@@ -46,6 +47,7 @@ interface PopulatedLocationRef {
 interface PopulatedTechnicianRef {
   _id: Types.ObjectId;
   name: string;
+  nameAr?: string;
   availability?: string;
 }
 
@@ -86,6 +88,7 @@ export interface SerializedWorkOrderSummary {
   assignedTechnician?: {
     id: string;
     name: string;
+    nameAr?: string;
     availability?: string;
   } | null;
 }
@@ -101,6 +104,7 @@ export interface SerializedRequest {
   priority: IMaintenanceRequest['priority'];
   status: RequestStatus;
   equipmentDescription?: string;
+  equipmentDescriptionAr?: string;
   attachments: ImageAsset[];
   location: {
     id: string;
@@ -115,6 +119,7 @@ export interface SerializedRequest {
   requester: {
     id: string;
     name: string;
+    nameAr?: string;
     email?: string;
     department?: string;
     departmentAr?: string;
@@ -123,10 +128,12 @@ export interface SerializedRequest {
   reviewedBy: {
     id: string;
     name: string;
+    nameAr?: string;
     role?: Role;
   } | null;
   reviewedAt?: Date;
   reviewNotes?: string;
+  reviewNotesAr?: string;
   currentWorkOrder: SerializedWorkOrderSummary | null;
   reopenCount: number;
   createdAt: Date;
@@ -134,13 +141,13 @@ export interface SerializedRequest {
 }
 
 const REQUEST_POPULATION = [
-  { path: 'requesterId', select: 'name email department departmentAr role' },
+  { path: 'requesterId', select: 'name nameAr email department departmentAr role' },
   { path: 'locationId', select: 'buildingName buildingNameAr floor floorAr room roomAr locationType' },
-  { path: 'reviewedBy', select: 'name role' },
+  { path: 'reviewedBy', select: 'name nameAr role' },
   {
     path: 'currentWorkOrderId',
     select: 'workOrderNumber status sourceType scheduledStart expectedCompletion assignedTechnicianId',
-    populate: { path: 'assignedTechnicianId', select: 'name availability' },
+    populate: { path: 'assignedTechnicianId', select: 'name nameAr availability' },
   },
 ];
 
@@ -160,6 +167,7 @@ function serializeTechnician(
   return {
     id: value._id.toString(),
     name: value.name,
+    nameAr: value.nameAr,
     availability: value.availability,
   };
 }
@@ -194,6 +202,7 @@ export function serializeRequest(request: RequestWithRefs): SerializedRequest {
     priority: request.priority,
     status: request.status,
     equipmentDescription: request.equipmentDescription,
+    equipmentDescriptionAr: request.equipmentDescriptionAr,
     attachments: request.attachments ?? [],
     location: location
       ? {
@@ -211,6 +220,7 @@ export function serializeRequest(request: RequestWithRefs): SerializedRequest {
       ? {
           id: requester._id.toString(),
           name: requester.name,
+          nameAr: requester.nameAr,
           email: requester.email,
           department: requester.department,
           departmentAr: requester.departmentAr,
@@ -221,11 +231,13 @@ export function serializeRequest(request: RequestWithRefs): SerializedRequest {
       ? {
           id: reviewer._id.toString(),
           name: reviewer.name,
+          nameAr: reviewer.nameAr,
           role: reviewer.role,
         }
       : null,
     reviewedAt: request.reviewedAt,
     reviewNotes: request.reviewNotes,
+    reviewNotesAr: request.reviewNotesAr,
     currentWorkOrder: request.currentWorkOrderId
       ? serializeWorkOrderSummary(request.currentWorkOrderId)
       : null,

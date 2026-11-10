@@ -16,6 +16,7 @@ import { FormField } from '@/components/shared/FormField';
 import { Input } from '@/components/ui/input';
 import { techniciansApi } from '@/features/maintenance/technicians/techniciansApi';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
+import { tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
 import { enumLabel } from '@/lib/labels';
 import type { WorkOrderRecord } from '@/types/workOrders';
@@ -126,7 +127,7 @@ export function AssignWorkOrderDialog({
               : t('workOrders.assignTechnicianTitle')}
           </DialogTitle>
           <DialogDescription>
-            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title}{' '}
+            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {tr(workOrder, 'title')}{' '}
             ({workOrder ? enumLabel('maintenanceCategory', workOrder.category) : ''})
           </DialogDescription>
         </DialogHeader>
@@ -171,7 +172,7 @@ export function AssignWorkOrderDialog({
                       disabled={tech.availability === 'OFF_DUTY'}
                     >
                       {tech.matchesCategory ? '⭐ ' : ''}
-                      {tech.name} ({enumLabel('availability', tech.availability)}) — {tech.activeWorkOrderCount}
+                      {tr(tech, 'name')} ({enumLabel('availability', tech.availability)}) — {tech.activeWorkOrderCount}
                       {tech.availability === 'OFF_DUTY' ? ' [OFF DUTY]' : ''}
                     </option>
                   ))}
@@ -186,7 +187,7 @@ export function AssignWorkOrderDialog({
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <p className="text-xs font-medium">
                   {t('workOrders.nonSpecialistWarning', {
-                    name: selectedTech.name,
+                    name: tr(selectedTech, 'name'),
                     category: workOrder ? enumLabel('maintenanceCategory', workOrder.category) : '',
                   })}
                 </p>

@@ -5,6 +5,7 @@ export type UserRecord = AuthUser;
 
 export interface CreateUserInput {
   name: string;
+  nameAr?: string;
   email: string;
   password: string;
   role: AuthUser['role'];
@@ -13,6 +14,7 @@ export interface CreateUserInput {
   contactPhone?: string;
   specializations?: MaintenanceCategory[];
   skills?: string[];
+  skillsAr?: string[];
   availability?: TechnicianAvailability;
 }
 

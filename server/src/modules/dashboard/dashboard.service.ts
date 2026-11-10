@@ -45,6 +45,7 @@ export interface PeriodRange {
 export interface ManagerTechnicianPerformance {
   id: string;
   name: string;
+  nameAr?: string;
   activeWorkOrders: number;
   completedWorkOrders: number;
   feedbackCount: number;
@@ -493,9 +494,9 @@ export async function getManagerMetrics(range: PeriodRange): Promise<ManagerMetr
         { $unwind: { path: '$location', preserveNullAndEmptyArrays: true } },
         {
           $group: {
-            _id: '$location._id',
+            _id: '$location.buildingName',
             name: { $first: '$location.buildingName' },
-            nameAr: { $first: '$location.buildingNameAr' },
+            nameAr: { $max: '$location.buildingNameAr' },
             count: { $sum: 1 },
           },
         },
@@ -599,9 +600,9 @@ async function getTechnicianPerformance(
   range: PeriodRange,
 ): Promise<ManagerTechnicianPerformance[]> {
   const technicians = await User.find({ role: 'TECHNICIAN', isActive: true })
-    .select('name')
+    .select('name nameAr')
     .sort({ name: 1 })
-    .lean<Array<{ _id: Types.ObjectId; name: string }>>();
+    .lean<Array<{ _id: Types.ObjectId; name: string; nameAr?: string }>>();
 
   if (technicians.length === 0) {
     return [];
@@ -669,6 +670,7 @@ async function getTechnicianPerformance(
       return {
         id,
         name: technician.name,
+        nameAr: technician.nameAr,
         activeWorkOrders: activeMap.get(id) ?? 0,
         completedWorkOrders: completedMap.get(id) ?? 0,
         feedbackCount: rating?.count ?? 0,
@@ -748,9 +750,9 @@ async function getAdminDashboard(
       { $unwind: { path: '$location', preserveNullAndEmptyArrays: false } },
       {
         $group: {
-          _id: '$location._id',
+          _id: '$location.buildingName',
           name: { $first: '$location.buildingName' },
-          nameAr: { $first: '$location.buildingNameAr' },
+          nameAr: { $max: '$location.buildingNameAr' },
           count: { $sum: 1 },
         },
       },
@@ -768,9 +770,9 @@ async function getAdminDashboard(
       { $unwind: { path: '$location', preserveNullAndEmptyArrays: false } },
       {
         $group: {
-          _id: '$location._id',
+          _id: '$location.buildingName',
           name: { $first: '$location.buildingName' },
-          nameAr: { $first: '$location.buildingNameAr' },
+          nameAr: { $max: '$location.buildingNameAr' },
           count: { $sum: 1 },
         },
       },
@@ -810,6 +812,9 @@ async function getAdminDashboard(
       maintenance: 0,
       lostFound: 0,
     };
+    if (!current.nameAr && row.nameAr) {
+      current.nameAr = row.nameAr;
+    }
     current.lostFound = row.count;
     buildingActivityMap.set(key, current);
   });

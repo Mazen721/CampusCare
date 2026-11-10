@@ -29,10 +29,14 @@ const TOOLTIP_STYLE: CSSProperties = {
 };
 
 const BUILDING_AR_FALLBACK: Record<string, string> = {
-  'Administration & Central Library Building': 'مبنى الإدارة والمكتبة المركزية',
-  'Engineering & Technological Complex': 'مجمع الهندسة والتكنولوجيا',
-  'Medical Sector Complex': 'مجمع القطاع الطبي',
-  'Humanities & Business Building': 'مبنى العلوم الإنسانية وإدارة الأعمال',
+  'Administration & Central Library Building': 'مبنى إدارة الجامعة والمكتبة المركزية',
+  'Medical Sector Complex A & B': 'مجمع الكليات الطبية',
+  'Engineering & Technological Complex A & B': 'مجمع الكليات الهندسية والتكنولوجية',
+  'Humanities & Business Building': 'مبنى العلوم الإنسانية والاقتصاد وإدارة الأعمال',
+  'Central Workshops & Laboratories Building': 'مبنى الورش والمعامل المركزية',
+  'Student Activities & Sports Complex': 'منطقة الأنشطة الطلابية والملاعب الرياضية',
+  'Engineering & Technological Complex': 'مجمع الكليات الهندسية والتكنولوجية',
+  'Medical Sector Complex': 'مجمع الكليات الطبية',
 };
 
 const MODULE_LABEL_KEYS: Record<string, string> = {

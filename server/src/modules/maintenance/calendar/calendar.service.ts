@@ -25,6 +25,7 @@ export interface SerializedCalendarWorkOrder {
   assignedTechnician: {
     id: string;
     name: string;
+    nameAr?: string;
     availability?: string;
   } | null;
   location: {
@@ -54,6 +55,7 @@ interface PopulatedCalendarWorkOrder {
     | {
         _id: Types.ObjectId;
         name: string;
+        nameAr?: string;
         availability?: string;
       }
     | null;
@@ -103,6 +105,7 @@ function serializeCalendarWorkOrder(
         ? {
             id: technician._id.toString(),
             name: technician.name,
+            nameAr: technician.nameAr,
             availability: technician.availability,
           }
         : null,
@@ -156,7 +159,7 @@ export async function getCalendar(
   }
 
   const documents = await WorkOrder.find(filter)
-    .populate('assignedTechnicianId', 'name availability')
+    .populate('assignedTechnicianId', 'name nameAr availability')
     .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr')
     .sort({ scheduledStart: 1, expectedCompletion: 1 })
     .lean<PopulatedCalendarWorkOrder[]>();

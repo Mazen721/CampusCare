@@ -29,6 +29,7 @@ export type TechnicianAvailability = 'AVAILABLE' | 'BUSY' | 'OFF_DUTY';
 export interface AuthUser {
   id: string;
   name: string;
+  nameAr?: string;
   email: string;
   role: Role;
   department?: string;
@@ -37,6 +38,7 @@ export interface AuthUser {
   isActive: boolean;
   specializations: string[];
   skills: string[];
+  skillsAr?: string[];
   availability?: TechnicianAvailability;
   createdAt: string;
 }

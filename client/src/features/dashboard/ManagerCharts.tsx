@@ -12,7 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { pickLang } from '@/i18n/localize';
+import { pickLang, tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { cn, formatNumber } from '@/lib/utils';
 import { REQUEST_STATUSES } from '@/types/meta';
@@ -95,11 +95,19 @@ export function ManagerCharts({ metrics }: { metrics: ManagerMetrics }) {
         (a.activeWorkOrders + a.completedWorkOrders),
     )
     .slice(0, 5)
-    .map((technician) => ({
-      name: technician.name.split(' ')[0] ?? technician.name,
-      active: technician.activeWorkOrders,
-      completed: technician.completedWorkOrders,
-    }));
+    .map((technician) => {
+      const displayName = tr(technician, 'name') || technician.name;
+      const firstName =
+        displayName
+          .replace(/^(?:م\.|د\.|أ\.|Eng\.|Dr\.)\s+/i, '')
+          .trim()
+          .split(/\s+/)[0] ?? displayName;
+      return {
+        name: firstName,
+        active: technician.activeWorkOrders,
+        completed: technician.completedWorkOrders,
+      };
+    });
 
   const topBuildings = metrics.requestsByBuilding.slice(0, 5);
   const maxFeedback = Math.max(...metrics.feedback.distribution.map((entry) => entry.count), 1);

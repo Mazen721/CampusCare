@@ -44,7 +44,7 @@ export function CalendarWorkOrderChip({
             {showTechnician && workOrder.assignedTechnician ? (
               <>
                 {' · '}
-                <bdi>{workOrder.assignedTechnician.name}</bdi>
+                <bdi>{tr(workOrder.assignedTechnician, 'name')}</bdi>
               </>
             ) : null}
           </span>

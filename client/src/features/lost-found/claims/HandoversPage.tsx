@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { HandoverDialog } from '@/features/lost-found/claims/HandoverDialog';
 import { claimsApi } from '@/features/lost-found/claims/claimsApi';
+import { tr } from '@/i18n/localize';
 import { enumLabel } from '@/lib/labels';
 import { formatDate } from '@/lib/utils';
 import { CLAIM_STATUSES, type ClaimRecord, type ClaimStatus } from '@/types/claims';
@@ -55,7 +56,7 @@ export function HandoversPage() {
       cell: (claim) => (
         <div className="min-w-0">
           <p className="max-w-[240px] truncate text-sm font-medium text-foreground">
-            {claim.item?.itemTitle ?? t('common.none')}
+            {claim.item ? tr(claim.item, 'itemTitle') : t('common.none')}
           </p>
           <p className="text-[11px] text-muted-foreground">
             {claim.item?.reportNumber ? <span dir="ltr">{claim.item.reportNumber}</span> : null}
@@ -69,7 +70,7 @@ export function HandoversPage() {
       cell: (claim) => (
         <div className="min-w-0 text-xs">
           <p className="font-medium text-foreground">
-            <bdi>{claim.claimant?.name ?? t('common.none')}</bdi>
+            <bdi>{claim.claimant ? tr(claim.claimant, 'name') : t('common.none')}</bdi>
           </p>
           <p className="text-muted-foreground">
             {claim.claimant?.email ? <span dir="ltr">{claim.claimant.email}</span> : null}

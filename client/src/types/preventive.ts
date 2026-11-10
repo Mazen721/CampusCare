@@ -30,6 +30,7 @@ export interface PreventivePlanRecord {
   assignedTechnician: {
     id: string;
     name: string;
+    nameAr?: string;
     availability?: string;
   } | null;
   recurrenceType: RecurrenceType;
@@ -40,7 +41,7 @@ export interface PreventivePlanRecord {
   expectedDurationHours: number;
   isActive: boolean;
   overdue: boolean;
-  createdBy: { id: string; name: string } | null;
+  createdBy: { id: string; name: string; nameAr?: string } | null;
   createdAt: string;
   updatedAt: string;
 }

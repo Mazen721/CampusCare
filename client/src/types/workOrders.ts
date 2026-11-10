@@ -3,6 +3,7 @@ import type { MaintenanceCategory, Priority, WorkOrderStatus } from '@/types/met
 export interface WorkOrderTechnician {
   id: string;
   name: string;
+  nameAr?: string;
   email: string;
   availability?: string;
   specializations?: MaintenanceCategory[];
@@ -25,6 +26,7 @@ export interface WorkOrderNote {
   author: {
     id: string;
     name: string;
+    nameAr?: string;
     role?: string;
   };
   createdAt: string;
