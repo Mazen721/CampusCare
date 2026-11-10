@@ -13,6 +13,7 @@ import {
   type Role,
   type WorkOrderStatus,
 } from '../../config/constants';
+import { ActivityLog } from '../../shared/models/ActivityLog.model';
 import { Notification } from '../../shared/models/Notification.model';
 import { applyNotificationLocalization } from '../../shared/utils/notificationLocalization';
 import { getRequestLang } from '../../shared/utils/requestContext';
@@ -28,6 +29,7 @@ import { ItemMatch } from '../lost-found/matches/itemMatch.model';
 import { ServiceFeedback } from '../maintenance/feedback/serviceFeedback.model';
 import { MaintenanceRequest } from '../maintenance/requests/maintenanceRequest.model';
 import { WorkOrder } from '../maintenance/work-orders/workOrder.model';
+import { PreventivePlan } from '../preventive/preventivePlan.model';
 import type { DashboardPeriod } from './dashboard.validation';
 
 export interface DashboardActor {
@@ -721,9 +723,16 @@ async function getAdminDashboard(
     LostFoundItem.countDocuments({ status: { $in: ['OPEN', 'MATCH_CONFIRMED'] } }),
     ItemMatch.countDocuments({ status: 'SUGGESTED' }),
     ClaimRequest.countDocuments({ status: { $in: ['PENDING_REVIEW', 'UNDER_VERIFICATION'] } }),
-    AiInsightCache.findOne({ lang })
+    AiInsightCache.findOne({ scope: 'ADMIN', lang })
       .sort({ generatedAt: -1 })
       .lean()
+      .then(
+        (cached) =>
+          cached ??
+          AiInsightCache.findOne({ scope: 'ADMIN' })
+            .sort({ generatedAt: -1 })
+            .lean(),
+      )
       .then((cached) => cached ?? AiInsightCache.findOne({}).sort({ generatedAt: -1 }).lean()),
     User.aggregate<CountRow>([{ $group: { _id: '$role', count: { $sum: 1 } } }]),
     MaintenanceRequest.aggregate<BuildingCountRow>([
@@ -1401,4 +1410,224 @@ export async function getInsightGenerationStats(
   };
 
   return { stats, rangeStart, rangeEnd, previousRangeStart, previousRangeEnd };
+}
+
+interface AdminClaimDetail {
+  claimNumber: string;
+  status: ClaimStatus;
+  createdAt: Date;
+  claimantId?: { name?: string; email?: string } | null;
+  itemId?: { reportNumber?: string; itemTitle?: string; itemTitleAr?: string } | null;
+}
+
+interface AdminMatchDetail {
+  score: number;
+  matchLevel: string;
+  lostItemId?: { reportNumber?: string; itemTitle?: string; itemTitleAr?: string } | null;
+  foundItemId?: { reportNumber?: string; itemTitle?: string; itemTitleAr?: string } | null;
+}
+
+interface AdminPlanDetail {
+  title: string;
+  titleAr?: string;
+  category: string;
+  priority: Priority;
+  recurrenceType: string;
+  nextScheduledDate: Date;
+  assignedTechnicianId?: { name?: string } | null;
+  locationId?: InsightLocationRef | null;
+}
+
+interface AdminActivityDetail {
+  action: string;
+  entityType: string;
+  description: string;
+  createdAt: Date;
+  actorId?: { name?: string; role?: Role } | null;
+}
+
+export async function getAdminInsightGenerationStats(
+  period: '7d' | '30d',
+  now: Date = new Date(),
+): Promise<{
+  stats: Record<string, unknown>;
+  rangeStart: Date;
+  rangeEnd: Date;
+}> {
+  const days = period === '7d' ? 7 : 30;
+  const rangeEnd = now;
+  const rangeStart = subDays(now, days);
+  const range: PeriodRange = { from: rangeStart, to: rangeEnd };
+  const lang = getRequestLang();
+
+  const [
+    adminDashboard,
+    maintenanceStats,
+    inactiveUsers,
+    technicianRoster,
+    inactiveLocationsCount,
+    duePlans,
+    openLostItemsCount,
+    openFoundItemsCount,
+    claimsAwaitingHandoverCount,
+    completedHandoversCount,
+    pendingClaimsList,
+    suggestedMatchesList,
+    recentLogs,
+  ] = await Promise.all([
+    getAdminDashboard(period, range),
+    getInsightGenerationStats(period, now),
+    User.find({ isActive: false })
+      .select('name email role department departmentAr')
+      .limit(10)
+      .lean<Array<{ name: string; email: string; role: Role; department?: string; departmentAr?: string }>>(),
+    User.find({ role: 'TECHNICIAN', isActive: true })
+      .select('name availability specializations')
+      .sort({ name: 1 })
+      .lean<Array<{ name: string; availability?: string; specializations?: string[] }>>(),
+    Location.countDocuments({ isActive: false }),
+    PreventivePlan.find({ isActive: true, nextScheduledDate: { $lte: now } })
+      .sort({ nextScheduledDate: 1 })
+      .limit(8)
+      .populate('assignedTechnicianId', 'name')
+      .populate('locationId', 'buildingName buildingNameAr floor floorAr room roomAr')
+      .lean<AdminPlanDetail[]>(),
+    LostFoundItem.countDocuments({ reportType: 'LOST', status: 'OPEN' }),
+    LostFoundItem.countDocuments({ reportType: 'FOUND', status: 'OPEN' }),
+    ClaimRequest.countDocuments({ status: 'APPROVED' }),
+    ClaimRequest.countDocuments({ status: 'COMPLETED' }),
+    ClaimRequest.find({ status: { $in: ['PENDING_REVIEW', 'UNDER_VERIFICATION', 'APPROVED'] } })
+      .sort({ createdAt: 1 })
+      .limit(8)
+      .populate('claimantId', 'name email')
+      .populate('itemId', 'reportNumber itemTitle itemTitleAr')
+      .lean<AdminClaimDetail[]>(),
+    ItemMatch.find({ status: 'SUGGESTED' })
+      .sort({ score: -1 })
+      .limit(6)
+      .populate('lostItemId', 'reportNumber itemTitle itemTitleAr')
+      .populate('foundItemId', 'reportNumber itemTitle itemTitleAr')
+      .lean<AdminMatchDetail[]>(),
+    ActivityLog.find({})
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('actorId', 'name role')
+      .lean<AdminActivityDetail[]>(),
+  ]);
+
+  const maintRequests = maintenanceStats.stats.requests as Record<string, unknown>;
+  const maintWorkOrders = maintenanceStats.stats.workOrders as Record<string, unknown>;
+  const maintFeedback = maintenanceStats.stats.feedback as Record<string, unknown>;
+  const maintTechnicians = maintenanceStats.stats.technicians as Array<{
+    name: string;
+    activeWorkOrders: number;
+    completedWorkOrders: number;
+    averageRating: number | null;
+  }>;
+
+  const techWorkloadByName = new Map(maintTechnicians.map((tech) => [tech.name, tech]));
+
+  const stats = {
+    scope: 'ADMIN',
+    period,
+    rangeStart,
+    rangeEnd,
+    users: {
+      total: adminDashboard.totals.users,
+      active: adminDashboard.totals.activeUsers,
+      inactive: Math.max(0, adminDashboard.totals.users - adminDashboard.totals.activeUsers),
+      technicians: adminDashboard.totals.technicians,
+      byRole: adminDashboard.analytics.usersByRole,
+      inactiveAccounts: inactiveUsers.map((user) => ({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: localize(user.department, user.departmentAr, lang),
+      })),
+      technicianRoster: technicianRoster.map((tech) => {
+        const perf = techWorkloadByName.get(tech.name);
+        return {
+          name: tech.name,
+          availability: tech.availability ?? 'AVAILABLE',
+          specializations: tech.specializations ?? [],
+          activeWorkOrders: perf?.activeWorkOrders ?? 0,
+          completedWorkOrders: perf?.completedWorkOrders ?? 0,
+          averageRating: perf?.averageRating ?? null,
+        };
+      }),
+    },
+    locations: {
+      activeLocations: adminDashboard.totals.locations,
+      inactiveLocations: inactiveLocationsCount,
+      buildings: adminDashboard.totals.buildings,
+      activityByBuilding: adminDashboard.analytics.activityByBuilding.map((entry) => ({
+        building: localize(entry.name || entry.building, entry.nameAr || entry.buildingAr, lang),
+        maintenanceRequests: entry.maintenance,
+        lostFoundReports: entry.lostFound,
+        totalActivity: entry.maintenance + entry.lostFound,
+      })),
+    },
+    maintenance: {
+      totalRequestsAllTime: adminDashboard.totals.maintenanceRequests,
+      totalWorkOrdersAllTime: adminDashboard.totals.workOrders,
+      requestsInPeriod: maintRequests.total,
+      previousPeriodRequests: maintRequests.previousTotal,
+      changePercent: maintRequests.changePercent,
+      openBacklog: maintRequests.openBacklog,
+      activeWorkOrders: maintWorkOrders.active,
+      completedWorkOrders: maintWorkOrders.completed,
+      overdueWorkOrders: maintWorkOrders.overdue,
+      averageResolutionHours: maintWorkOrders.averageResolutionHours,
+      overdueDetails: maintWorkOrders.overdueDetails,
+      oldestOpenRequests: maintRequests.oldestOpen,
+      repeatedLocationIssues: maintRequests.repeatedLocationIssues,
+      duePreventivePlans: duePlans.map((plan) => ({
+        title: localize(plan.title, plan.titleAr, lang),
+        category: plan.category,
+        priority: plan.priority,
+        recurrenceType: plan.recurrenceType,
+        technician: plan.assignedTechnicianId?.name ?? 'Unassigned',
+        location: formatInsightLocation(plan.locationId, lang),
+        daysOverdue: ageInDays(plan.nextScheduledDate, now),
+      })),
+      feedbackAverage: maintFeedback.averageRating,
+      lowRatings: maintFeedback.lowRatings,
+    },
+    lostFound: {
+      totalLostItems: adminDashboard.totals.lostItems,
+      totalFoundItems: adminDashboard.totals.foundItems,
+      openLostItems: openLostItemsCount,
+      openFoundItems: openFoundItemsCount,
+      pendingMatchesCount: adminDashboard.totals.pendingMatches,
+      pendingClaimsCount: adminDashboard.totals.pendingClaims,
+      claimsAwaitingHandover: claimsAwaitingHandoverCount,
+      completedHandovers: completedHandoversCount,
+      suggestedMatches: suggestedMatchesList.map((match) => ({
+        score: match.score,
+        level: match.matchLevel,
+        lostCode: match.lostItemId?.reportNumber ?? null,
+        lostTitle: localize(match.lostItemId?.itemTitle, match.lostItemId?.itemTitleAr, lang),
+        foundCode: match.foundItemId?.reportNumber ?? null,
+        foundTitle: localize(match.foundItemId?.itemTitle, match.foundItemId?.itemTitleAr, lang),
+      })),
+      activeClaims: pendingClaimsList.map((claim) => ({
+        code: claim.claimNumber,
+        status: claim.status,
+        claimant: claim.claimantId?.name ?? 'Unknown claimant',
+        itemCode: claim.itemId?.reportNumber ?? null,
+        itemTitle: localize(claim.itemId?.itemTitle, claim.itemId?.itemTitleAr, lang),
+        daysOpen: ageInDays(claim.createdAt, now),
+      })),
+    },
+    recentActivity: recentLogs.map((log) => ({
+      action: log.action,
+      entityType: log.entityType,
+      actor: log.actorId?.name ?? 'System',
+      actorRole: log.actorId?.role ?? null,
+      description: log.description,
+      createdAt: log.createdAt,
+    })),
+  };
+
+  return { stats, rangeStart, rangeEnd };
 }

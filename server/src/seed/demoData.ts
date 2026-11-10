@@ -1944,6 +1944,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
   await AiInsightCache.insertMany([
     {
       ...sharedInsightBase,
+      scope: 'MAINTENANCE' as const,
       lang: 'ar' as const,
       insights: {
         observations: [
@@ -1966,6 +1967,7 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
     },
     {
       ...sharedInsightBase,
+      scope: 'MAINTENANCE' as const,
       lang: 'en' as const,
       insights: {
         observations: [
@@ -1983,6 +1985,52 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
         preventiveRecommendations: [
           'Bring forward the HVAC filter inspection for the library with Ibrahim Abdel-Fattah.',
           'Schedule a network hardware health check before the next exam period.',
+        ],
+      },
+    },
+    {
+      ...sharedInsightBase,
+      scope: 'ADMIN' as const,
+      lang: 'ar' as const,
+      insights: {
+        observations: [
+          'تضم المنظومة 11 حساباً (منها 5 فنيين) و48 موقعاً نشطاً موزعة على 4 مبانٍ جامعية، مع 24 طلب صيانة و18 بلاغ مفقودات ومعثورات.',
+          'سجل مجمع الهندسة والتكنولوجيا أعلى كثافة نشاط مشترك بين بلاغات الصيانة والمفقودات تلاه مبنى الإدارة والمكتبة المركزية.',
+        ],
+        repeatedPatterns: [
+          'تتركز بلاغات المفقودات المفتوحة (9 أغراض) في الهواتف والحقائب والأجهزة الإلكترونية داخل مجمع الهندسة والمجمع الطبي.',
+          'الفني كريم الطنطاوي في حالة انشغال (BUSY) وسامح رضوان خارج الدوام (OFF_DUTY)، بينما تتركز المهام الحرجة على الشبكات والتكييف.',
+        ],
+        operationalRisks: [
+          'تجاوز أمران للعمل (منها WO-2005) موعد الإنجاز المتوقع، كما توجد خطة صيانة وقائية مستحقة (فحص فلاتر التكييف الأسبوعي) بانتظار التوليد.',
+          'يوجد تطابقان مقترحان للمفقودات (مثل LF-2003 وLF-2004 بنسبة 88%) وطلبات استلام قيد المراجعة والتحقق (CLM-2001 وCLM-2002) وطلب معتمد بانتظار التسليم (CLM-2003).',
+        ],
+        preventiveRecommendations: [
+          'توجيه مسؤول المفقودات لحسم التطابق المقترح بين LF-2003 وLF-2004 واستكمال التحقق والتسليم لطلبات الاستلام CLM-2001 وCLM-2002 وCLM-2003.',
+          'متابعة مدير الصيانة لتوليد خطة فحص فلاتر التكييف المستحقة وإعادة موازنة مهام الشبكات المتأخرة قبل ذروة الاختبارات.',
+        ],
+      },
+    },
+    {
+      ...sharedInsightBase,
+      scope: 'ADMIN' as const,
+      lang: 'en' as const,
+      insights: {
+        observations: [
+          'The platform spans 11 accounts (including 5 technicians) and 48 active locations across 4 buildings, with 24 maintenance requests and 18 lost & found reports.',
+          'Engineering & Technological Complex records the highest combined maintenance and lost & found activity, followed by Administration & Central Library.',
+        ],
+        repeatedPatterns: [
+          'Open lost & found items (9 reports) cluster around phones, bags, and electronics in the Engineering and Medical complexes.',
+          'Technician Karim El-Tantawy is marked BUSY and Sameh Radwan is OFF_DUTY while critical workload concentrates in Network and Air Conditioning.',
+        ],
+        operationalRisks: [
+          'Two work orders (including WO-2005) are overdue, and the Weekly HVAC filter inspection preventive plan is past due for generation.',
+          'Two suggested item matches (including LF-2003 / LF-2004) and active ownership claims (CLM-2001, CLM-2002, and approved CLM-2003 awaiting handover) need officer action.',
+        ],
+        preventiveRecommendations: [
+          'Direct the Lost & Found Officer to review pending match suggestions and complete verification and handover for CLM-2001, CLM-2002, and CLM-2003.',
+          'Coordinate with the Maintenance Manager to generate the due library HVAC preventive work order and clear overdue network work order WO-2005.',
         ],
       },
     },

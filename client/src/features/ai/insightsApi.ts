@@ -12,4 +12,7 @@ export const insightsApi = {
   generate(input: GenerateInsightsInput): Promise<MaintenanceInsightsResponse> {
     return api.post<MaintenanceInsightsResponse>('/ai/maintenance-insights', input);
   },
+  generateAdmin(input: GenerateInsightsInput): Promise<MaintenanceInsightsResponse> {
+    return api.post<MaintenanceInsightsResponse>('/ai/admin-insights', input);
+  },
 };

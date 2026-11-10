@@ -28,8 +28,50 @@ function StatBlock({ label, value }: { label: string; value: string | number }) 
   );
 }
 
-function StatsGrid({ stats }: { stats: InsightStats }) {
+function StatsGrid({
+  stats,
+  scope = 'maintenance',
+}: {
+  stats: InsightStats;
+  scope?: 'maintenance' | 'admin';
+}) {
   const { t } = useTranslation();
+
+  if (scope === 'admin' && stats.users && stats.maintenance && stats.lostFound) {
+    const { users, maintenance, lostFound } = stats;
+    const duePlansCount = maintenance.duePreventivePlans?.length ?? 0;
+
+    return (
+      <div className="space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          {t('ai.systemStats')}
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          <StatBlock
+            label={t('ai.activeAccounts')}
+            value={`${users.active} / ${users.total}`}
+          />
+          <StatBlock
+            label={t('ai.openBacklog')}
+            value={`${maintenance.openBacklog} (${maintenance.requestsInPeriod})`}
+          />
+          <StatBlock
+            label={t('ai.overdueWorkOrders')}
+            value={`${maintenance.overdueWorkOrders} · ${duePlansCount} ${t('ai.duePreventivePlans')}`}
+          />
+          <StatBlock
+            label={t('ai.openLostFound')}
+            value={lostFound.openLostItems + lostFound.openFoundItems}
+          />
+          <StatBlock
+            label={t('ai.pendingMatchesClaims')}
+            value={`${lostFound.pendingMatchesCount} / ${lostFound.pendingClaimsCount + lostFound.claimsAwaitingHandover}`}
+          />
+        </div>
+      </div>
+    );
+  }
+
   const requests = stats.requests;
   const workOrders = stats.workOrders;
   const change = requests?.changePercent;
@@ -53,15 +95,100 @@ function StatsGrid({ stats }: { stats: InsightStats }) {
   );
 }
 
-interface InsightsPanelProps {
-  defaultPeriod?: InsightsPeriod;
+function AdminOperationalSnapshot({ stats }: { stats: InsightStats }) {
+  const { t } = useTranslation();
+  const claims = stats.lostFound?.activeClaims ?? [];
+  const matches = stats.lostFound?.suggestedMatches ?? [];
+  const overdueWOs = stats.maintenance?.overdueDetails ?? [];
+  const duePlans = stats.maintenance?.duePreventivePlans ?? [];
+  const roster = stats.users?.technicianRoster ?? [];
+
+  if (
+    claims.length === 0 &&
+    matches.length === 0 &&
+    overdueWOs.length === 0 &&
+    duePlans.length === 0 &&
+    roster.length === 0
+  ) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        {t('ai.platformHighlights')}
+      </p>
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-md border border-border/70 bg-muted/15 p-3">
+          <p className="text-xs font-semibold text-foreground">
+            {t('ai.overdueAndPreventiveWatch')}
+          </p>
+          <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+            {overdueWOs.slice(0, 3).map((wo) => (
+              <li key={wo.code} className="truncate">
+                <span className="font-medium text-foreground" dir="ltr">
+                  {wo.code}
+                </span>{' '}
+                · {wo.title} · {wo.technician} ({wo.location})
+              </li>
+            ))}
+            {duePlans.slice(0, 2).map((plan) => (
+              <li key={plan.title} className="truncate">
+                <span className="font-medium text-foreground">{plan.title}</span> ·{' '}
+                {plan.technician} ({plan.location})
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-md border border-border/70 bg-muted/15 p-3">
+          <p className="text-xs font-semibold text-foreground">
+            {t('ai.activeClaimsWatch')} & {t('ai.suggestedMatchesWatch')}
+          </p>
+          <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+            {claims.slice(0, 3).map((claim) => (
+              <li key={claim.code} className="truncate">
+                <span className="font-medium text-foreground" dir="ltr">
+                  {claim.code}
+                </span>{' '}
+                · {claim.itemTitle} · {claim.claimant} ({claim.status})
+              </li>
+            ))}
+            {matches.slice(0, 2).map((match, idx) => (
+              <li key={`${match.lostCode ?? idx}-${match.foundCode ?? idx}`} className="truncate">
+                <span className="font-medium text-foreground" dir="ltr">
+                  {match.lostCode} ↔ {match.foundCode}
+                </span>{' '}
+                · {match.lostTitle} ({match.score}%)
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
+interface InsightsPanelProps {
+  defaultPeriod?: InsightsPeriod;
+  scope?: 'maintenance' | 'admin';
+}
+
+export function InsightsPanel({
+  defaultPeriod = '7d',
+  scope = 'maintenance',
+}: InsightsPanelProps) {
   const { t, i18n } = useTranslation();
   const [period, setPeriod] = useState<InsightsPeriod>(defaultPeriod);
   const queryClient = useQueryClient();
   const lang = i18n.language === 'en' ? 'en' : 'ar';
+  const queryKey = [
+    scope === 'admin' ? 'admin-insights' : 'maintenance-insights',
+    period,
+    lang,
+  ] as const;
+  const runGenerate =
+    scope === 'admin' ? insightsApi.generateAdmin : insightsApi.generate;
 
   const periods: Array<{ value: InsightsPeriod; label: string }> = [
     { value: '7d', label: t('dashboard.period7d') },
@@ -69,15 +196,15 @@ export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
   ];
 
   const insightsQuery = useQuery({
-    queryKey: ['maintenance-insights', period, lang],
-    queryFn: () => insightsApi.generate({ period }),
+    queryKey,
+    queryFn: () => runGenerate({ period }),
     retry: false,
   });
 
   const regenerate = useMutation({
-    mutationFn: () => insightsApi.generate({ period, regenerate: true }),
+    mutationFn: () => runGenerate({ period, regenerate: true }),
     onSuccess: (data: MaintenanceInsightsResponse) => {
-      queryClient.setQueryData(['maintenance-insights', period, lang], data);
+      queryClient.setQueryData(queryKey, data);
       if (data.available) {
         toast.success(t('ai.insights'));
       } else {
@@ -98,10 +225,12 @@ export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
         <div>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            {t('ai.insightsTitle')}
+            {scope === 'admin' ? t('ai.adminInsightsTitle') : t('ai.insightsTitle')}
           </CardTitle>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            {t('ai.statsCalculatedNotice')}
+            {scope === 'admin'
+              ? t('ai.adminStatsCalculatedNotice')
+              : t('ai.statsCalculatedNotice')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -151,7 +280,8 @@ export function InsightsPanel({ defaultPeriod = '7d' }: InsightsPanelProps) {
           />
         ) : data ? (
           <>
-            <StatsGrid stats={data.stats} />
+            <StatsGrid stats={data.stats} scope={scope} />
+            {scope === 'admin' ? <AdminOperationalSnapshot stats={data.stats} /> : null}
 
             {!data.available ? (
               <div

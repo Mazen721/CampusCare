@@ -7,6 +7,7 @@ import {
   AiInsightCache,
   ensureAiInsightCacheIndexes,
   type InsightContent,
+  type InsightScope,
 } from './aiInsightCache.model';
 import {
   parseInsightsContent,
@@ -17,7 +18,10 @@ import {
   generateGeminiText,
   type AiClientResult,
 } from './gemini.client';
-import { getInsightGenerationStats } from '../dashboard/dashboard.service';
+import {
+  getAdminInsightGenerationStats,
+  getInsightGenerationStats,
+} from '../dashboard/dashboard.service';
 
 const SYSTEM_INSTRUCTION =
   'You are a senior campus maintenance operations analyst. You receive ' +
@@ -36,6 +40,26 @@ const SYSTEM_INSTRUCTION =
   'overdue, aging or high-impact work and its operational consequence. ' +
   'preventiveRecommendations: concrete actions with an owner and timeframe ' +
   'when the data supports it. Return raw JSON only, without markdown fences.';
+
+const ADMIN_SYSTEM_INSTRUCTION =
+  'You are the chief campus platform operations & governance analyst advising ' +
+  'the Super Administrator of CampusCare. You receive whole-platform data ' +
+  'spanning Users & Role Distribution, Technician Availability, Campus ' +
+  'Buildings & Locations, Maintenance Requests & Work Orders, Preventive ' +
+  'Maintenance Plans, Lost & Found Reports, Match Suggestions, Ownership ' +
+  'Claims & Handovers, and Recent Administrative Activity Logs. Use only the ' +
+  'supplied data; never invent facts, people or events. Cite concrete codes ' +
+  '(MR-*, WO-*, LF-*, CLM-*), user/technician/claimant names, building names ' +
+  'and numbers whenever available. Return a JSON object with exactly four ' +
+  'arrays of short strings (each sentence under 300 characters): ' +
+  'observations (platform-wide volume across users, maintenance, and lost & ' +
+  'found), repeatedPatterns (cross-module hotspots by building, technician ' +
+  'capacity/availability, and lost & found categories), operationalRisks ' +
+  '(overdue work orders, ungenerated preventive plans, unreviewed matches or ' +
+  'pending claims awaiting verification/handover, or off-duty/inactive ' +
+  'accounts), and preventiveRecommendations (concrete executive actions across ' +
+  'staffing, campus facilities, preventive schedules, and lost & found ' +
+  'verification). Return raw JSON only, without markdown fences.';
 
 export type InsightGenerator = (
   prompt: string,
@@ -77,12 +101,14 @@ interface InsightCacheValues {
 }
 
 async function saveInsightCache(
+  scope: InsightScope,
   period: InsightPeriod,
   lang: ReturnType<typeof getRequestLang>,
   values: InsightCacheValues,
 ): Promise<void> {
   const update = {
     $set: {
+      scope,
       period,
       lang,
       promptVersion: AI_INSIGHTS_PROMPT_VERSION,
@@ -91,7 +117,7 @@ async function saveInsightCache(
   };
 
   try {
-    await AiInsightCache.findOneAndUpdate({ period, lang }, update, {
+    await AiInsightCache.findOneAndUpdate({ scope, period, lang }, update, {
       upsert: true,
       new: true,
     });
@@ -100,41 +126,30 @@ async function saveInsightCache(
       throw error;
     }
 
-    // Either two managers generated at the same time, or this database still
-    // has the legacy unique index on `period` alone. Repair and retry once.
     await ensureAiInsightCacheIndexes();
-    await AiInsightCache.findOneAndUpdate({ period, lang }, update, {
+    await AiInsightCache.findOneAndUpdate({ scope, period, lang }, update, {
       upsert: true,
       new: true,
     });
   }
 }
 
-/**
- * Generates (or returns cached) AI maintenance insights for a manager.
- * Gemini receives the aggregated statistics plus operational details such as
- * codes, technician names, locations and feedback comments.
- */
-export async function generateMaintenanceInsights(
-  actor: InsightsActor,
-  input: MaintenanceInsightsBody,
-  generator: InsightGenerator = (prompt, instruction) =>
-    generateGeminiText(prompt, instruction, {
-      maxOutputTokens: 1200,
-      temperature: 0.3,
-    }),
+async function runScopedInsights(
+  scope: InsightScope,
+  period: InsightPeriod,
+  regenerate: boolean,
+  baseInstruction: string,
+  statsBundle: {
+    stats: Record<string, unknown>;
+    rangeStart: Date;
+    rangeEnd: Date;
+  },
+  generator: InsightGenerator,
 ): Promise<MaintenanceInsightsResponse> {
-  if (actor.role !== 'MAINTENANCE_MANAGER') {
-    throw ApiError.forbidden(
-      'Only maintenance managers can generate insights',
-      'managerInsightsOnly',
-    );
-  }
-
   const lang = getRequestLang();
-  const { period, regenerate = false } = input;
-  const { stats, rangeStart, rangeEnd } = await getInsightGenerationStats(period);
+  const { stats, rangeStart, rangeEnd } = statsBundle;
   const cached = await AiInsightCache.findOne({
+    scope,
     period,
     lang,
     promptVersion: AI_INSIGHTS_PROMPT_VERSION,
@@ -155,7 +170,7 @@ export async function generateMaintenanceInsights(
     lang === 'ar'
       ? 'Write every string value in Modern Standard Arabic. Keep JSON keys in English.'
       : 'Write in English.';
-  const systemInstruction = `${SYSTEM_INSTRUCTION} ${langInstruction}`;
+  const systemInstruction = `${baseInstruction} ${langInstruction}`;
 
   const result = await generator(buildPrompt(stats, period), systemInstruction);
 
@@ -196,7 +211,7 @@ export async function generateMaintenanceInsights(
 
   const generatedAt = new Date();
 
-  await saveInsightCache(period, lang, {
+  await saveInsightCache(scope, period, lang, {
     generatedAt,
     rangeStart,
     rangeEnd,
@@ -213,4 +228,68 @@ export async function generateMaintenanceInsights(
     rangeStart,
     rangeEnd,
   };
+}
+
+/**
+ * Generates (or returns cached) AI maintenance insights for a manager.
+ */
+export async function generateMaintenanceInsights(
+  actor: InsightsActor,
+  input: MaintenanceInsightsBody,
+  generator: InsightGenerator = (prompt, instruction) =>
+    generateGeminiText(prompt, instruction, {
+      maxOutputTokens: 1200,
+      temperature: 0.3,
+    }),
+): Promise<MaintenanceInsightsResponse> {
+  if (actor.role !== 'MAINTENANCE_MANAGER') {
+    throw ApiError.forbidden(
+      'Only maintenance managers can generate insights',
+      'managerInsightsOnly',
+    );
+  }
+
+  const { period, regenerate = false } = input;
+  const statsBundle = await getInsightGenerationStats(period);
+
+  return runScopedInsights(
+    'MAINTENANCE',
+    period,
+    regenerate,
+    SYSTEM_INSTRUCTION,
+    statsBundle,
+    generator,
+  );
+}
+
+/**
+ * Generates (or returns cached) whole-platform AI insights for a Super Admin.
+ */
+export async function generateAdminInsights(
+  actor: InsightsActor,
+  input: MaintenanceInsightsBody,
+  generator: InsightGenerator = (prompt, instruction) =>
+    generateGeminiText(prompt, instruction, {
+      maxOutputTokens: 1400,
+      temperature: 0.3,
+    }),
+): Promise<MaintenanceInsightsResponse> {
+  if (actor.role !== 'SUPER_ADMIN') {
+    throw ApiError.forbidden(
+      'Only administrators can generate platform insights',
+      'forbidden',
+    );
+  }
+
+  const { period, regenerate = false } = input;
+  const statsBundle = await getAdminInsightGenerationStats(period);
+
+  return runScopedInsights(
+    'ADMIN',
+    period,
+    regenerate,
+    ADMIN_SYSTEM_INSTRUCTION,
+    statsBundle,
+    generator,
+  );
 }

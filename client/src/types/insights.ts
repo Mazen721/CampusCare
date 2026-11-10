@@ -6,7 +6,105 @@ export interface InsightContent {
 }
 
 export interface InsightStats {
+  scope?: 'MAINTENANCE' | 'ADMIN';
   period?: string;
+  users?: {
+    total: number;
+    active: number;
+    inactive: number;
+    technicians: number;
+    byRole?: Array<{ role: string; count: number }>;
+    inactiveAccounts?: Array<{
+      name: string;
+      email: string;
+      role: string;
+      department?: string;
+    }>;
+    technicianRoster?: Array<{
+      name: string;
+      availability: string;
+      specializations: string[];
+      activeWorkOrders: number;
+      completedWorkOrders: number;
+      averageRating: number | null;
+    }>;
+  };
+  locations?: {
+    activeLocations: number;
+    inactiveLocations: number;
+    buildings: number;
+    activityByBuilding?: Array<{
+      building: string;
+      maintenanceRequests: number;
+      lostFoundReports: number;
+      totalActivity: number;
+    }>;
+  };
+  maintenance?: {
+    totalRequestsAllTime: number;
+    totalWorkOrdersAllTime: number;
+    requestsInPeriod: number;
+    previousPeriodRequests: number;
+    changePercent: number;
+    openBacklog: number;
+    activeWorkOrders: number;
+    completedWorkOrders: number;
+    overdueWorkOrders: number;
+    averageResolutionHours: number | null;
+    overdueDetails?: Array<{
+      code: string;
+      title: string;
+      priority: string;
+      status: string;
+      technician: string;
+      location: string;
+      daysOverdue: number | null;
+    }>;
+    duePreventivePlans?: Array<{
+      title: string;
+      category: string;
+      priority: string;
+      recurrenceType: string;
+      technician: string;
+      location: string;
+      daysOverdue: number;
+    }>;
+    feedbackAverage?: number | null;
+  };
+  lostFound?: {
+    totalLostItems: number;
+    totalFoundItems: number;
+    openLostItems: number;
+    openFoundItems: number;
+    pendingMatchesCount: number;
+    pendingClaimsCount: number;
+    claimsAwaitingHandover: number;
+    completedHandovers: number;
+    suggestedMatches?: Array<{
+      score: number;
+      level: string;
+      lostCode: string | null;
+      lostTitle: string;
+      foundCode: string | null;
+      foundTitle: string;
+    }>;
+    activeClaims?: Array<{
+      code: string;
+      status: string;
+      claimant: string;
+      itemCode: string | null;
+      itemTitle: string;
+      daysOpen: number;
+    }>;
+  };
+  recentActivity?: Array<{
+    action: string;
+    entityType: string;
+    actor: string;
+    actorRole: string | null;
+    description: string;
+    createdAt: string;
+  }>;
   requests?: {
     total: number;
     previousTotal: number;

@@ -11,17 +11,17 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { InsightSections } from '@/features/ai/InsightSections';
+import { InsightsPanel } from '@/features/ai/InsightsPanel';
 import { AdminCharts } from '@/features/dashboard/AdminCharts';
 import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatDate, formatNumber } from '@/lib/utils';
+import { formatNumber } from '@/lib/utils';
 import type { AdminDashboard as AdminDashboardData } from '@/types/dashboard';
 
 export function AdminDashboard({ data }: { data: AdminDashboardData }) {
   const { t } = useTranslation();
-  const { totals, latestInsights, analytics } = data;
+  const { totals, analytics } = data;
 
   return (
     <div className="space-y-6">
@@ -77,37 +77,8 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
 
       {analytics ? <AdminCharts analytics={analytics} /> : null}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <Card className="shadow-none">
-          <CardHeader className="flex-row items-start justify-between gap-3 pb-3">
-            <div>
-              <CardTitle className="text-sm">{t('dashboard.latestAiInsight')}</CardTitle>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {t('dashboard.latestAiInsightDesc')}
-              </p>
-            </div>
-            {latestInsights ? (
-              <span className="shrink-0 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                {latestInsights.period}
-              </span>
-            ) : null}
-          </CardHeader>
-          <CardContent className="pt-1">
-            {latestInsights ? (
-              <div className="space-y-3">
-                <p className="text-xs text-muted-foreground">
-                  {formatDate(latestInsights.generatedAt, { dateStyle: 'medium', timeStyle: 'short' })}{' '}
-                  · {formatDate(latestInsights.rangeStart)} – {formatDate(latestInsights.rangeEnd)}
-                </p>
-                <InsightSections insights={latestInsights.insights} compact />
-              </div>
-            ) : (
-              <p className="py-6 text-sm text-muted-foreground">
-                {t('dashboard.noCachedAiInsight')}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+        <InsightsPanel scope="admin" />
 
         <Card className="shadow-none">
           <CardHeader className="pb-3">
