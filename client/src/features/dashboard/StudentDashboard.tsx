@@ -1,298 +1,219 @@
-import {
-  Bell,
-  ClipboardList,
-  PackageSearch,
-  ShieldCheck,
-} from 'lucide-react';
+import { Bell, ChevronRight, ClipboardList, PackageSearch, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { EmptyState } from '@/components/shared/EmptyState';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardStatCard } from '@/features/dashboard/DashboardStatCard';
+import { PortalLedgerRow } from '@/features/dashboard/PortalLedgerRow';
+import { PortalViewAllLink } from '@/features/dashboard/PortalViewAllLink';
+import { StudentLedgerCard } from '@/features/dashboard/StudentLedgerCard';
+import { StudentSummaryGrid } from '@/features/dashboard/StudentSummaryGrid';
+import { ReportTypeBadge } from '@/features/lost-found/items/ReportTypeBadge';
 import { resolveParams, tr } from '@/i18n/localize';
-import { enumLabel } from '@/lib/labels';
-import { formatDate, formatNumber } from '@/lib/utils';
-import type { RequestStatus } from '@/types/meta';
+import { cn, formatDate } from '@/lib/utils';
 import type { StudentDashboard as StudentDashboardData } from '@/types/dashboard';
 
-const ACTIVE_STATUSES: RequestStatus[] = [
-  'SUBMITTED',
-  'UNDER_REVIEW',
-  'APPROVED',
-  'IN_PROGRESS',
-  'REOPENED',
-];
-
+/**
+ * Status-ledger dashboard for students and employees covering requests,
+ * notifications, claims, and lost-and-found reports.
+ */
 export function StudentDashboard({ data }: { data: StudentDashboardData }) {
   const { t } = useTranslation();
-  const activeRequests = ACTIVE_STATUSES.reduce(
-    (sum, status) => sum + data.requests.byStatus[status],
-    0,
-  );
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <DashboardStatCard
-          label={t('dashboard.myRequests')}
-          value={data.requests.total}
-          icon={ClipboardList}
-          hint={t('dashboard.recentRequestsDesc')}
-        />
-        <DashboardStatCard
-          label={t('dashboard.activeRequests')}
-          value={activeRequests}
-          icon={ClipboardList}
-          hint={t('dashboard.active')}
-        />
-        <DashboardStatCard
-          label={t('dashboard.myClaims')}
-          value={data.claims.total}
-          icon={ShieldCheck}
-          hint={t('claims.title')}
-        />
-        <DashboardStatCard
-          label={t('dashboard.myReports')}
-          value={data.reports.total}
-          icon={PackageSearch}
-          hint={`${formatNumber(data.reports.lost)} ${t('dashboard.lost')} · ${formatNumber(data.reports.found)} ${t('dashboard.found')}`}
-        />
-      </div>
+      <StudentSummaryGrid data={data} />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="shadow-none">
-          <CardHeader className="flex-row items-start justify-between gap-3 pb-2">
-            <div>
-              <CardTitle className="text-sm">{t('dashboard.recentRequests')}</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('dashboard.recentRequestsDesc')}
-              </p>
-            </div>
-            <Link
-              to="/maintenance/requests"
-              className="shrink-0 text-xs font-medium text-primary hover:underline"
-            >
-              {t('common.viewAll')}
-            </Link>
-          </CardHeader>
-          <CardContent className="pt-2">
-            {data.requests.recent.length === 0 ? (
-              <EmptyState
-                title={t('requests.noRequestsYet')}
-                description={t('dashboard.noRecentRequestsDesc')}
-                icon={ClipboardList}
-                className="min-h-[170px]"
+      <div className="grid gap-5 lg:grid-cols-2">
+        <StudentLedgerCard
+          title={t('dashboard.recentRequests')}
+          description={t('dashboard.recentRequestsDesc')}
+          headerAction={<PortalViewAllLink to="/maintenance/requests" label={t('common.viewAll')} />}
+          isEmpty={data.requests.recent.length === 0}
+          emptyTitle={t('requests.noRequestsYet')}
+          emptyDescription={t('dashboard.noRecentRequestsDesc')}
+          emptyIcon={ClipboardList}
+          emptyAction={{
+            label: t('dashboard.newMaintenanceRequest'),
+            to: '/maintenance/requests/new',
+          }}
+        >
+          <ul className="divide-y divide-border/75">
+            {data.requests.recent.map((request) => (
+              <PortalLedgerRow
+                key={request.id}
+                to={`/maintenance/requests/${request.id}`}
+                title={tr(request, 'title')}
+                code={request.requestNumber}
+                date={request.createdAt}
+                badges={
+                  <>
+                    <StatusBadge status={request.status} />
+                    <PriorityBadge priority={request.priority} />
+                  </>
+                }
               />
-            ) : (
-              <ul className="divide-y divide-border/70">
-                {data.requests.recent.map((request) => (
-                  <li key={request.id} className="py-2.5 first:pt-1 last:pb-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link
-                          to={`/maintenance/requests/${request.id}`}
-                          className="block truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
-                        >
-                          {tr(request, 'title')}
-                        </Link>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          <span dir="ltr">{request.requestNumber}</span> · {formatDate(request.createdAt)}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <StatusBadge status={request.status} />
-                        <PriorityBadge priority={request.priority} />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </ul>
+        </StudentLedgerCard>
 
-        <Card className="shadow-none">
-          <CardHeader className="flex-row items-start justify-between gap-3 pb-2">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Bell className="h-4 w-4 text-primary" aria-hidden="true" />
-                {t('dashboard.notificationsTitle')}
-              </CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('dashboard.notificationsDesc')}
-              </p>
-            </div>
-            {data.notifications.unreadCount > 0 ? (
-              <Badge variant="default" className="shrink-0">
+        <StudentLedgerCard
+          title={t('dashboard.notificationsTitle')}
+          description={t('dashboard.notificationsDesc')}
+          icon={Bell}
+          headerAction={
+            data.notifications.unreadCount > 0 ? (
+              <Badge
+                variant="outline"
+                className="border-[hsl(var(--mnu-gold)/0.6)] bg-[hsl(var(--mnu-gold-tint))] font-semibold text-[hsl(var(--mnu-navy))]"
+              >
                 {t('dashboard.unreadBadge', { count: data.notifications.unreadCount })}
               </Badge>
-            ) : null}
-          </CardHeader>
-          <CardContent className="pt-2">
-            {data.notifications.recent.length === 0 ? (
-              <EmptyState
-                title={t('dashboard.allCaughtUpTitle')}
-                description={t('dashboard.allCaughtUpDesc')}
-                icon={Bell}
-                className="min-h-[170px]"
-              />
-            ) : (
-              <ul className="divide-y divide-border/70">
-                {data.notifications.recent.map((notification) => (
-                  <li key={notification.id} className="py-2.5 first:pt-1 last:pb-1">
-                    <div className="flex items-start gap-2">
-                      <span
-                        className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                          notification.isRead ? 'bg-muted-foreground/30' : 'bg-primary'
-                        }`}
-                        aria-hidden="true"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground">
-                          {notification.titleKey
-                            ? t(`notif.${notification.titleKey}`, {
-                                ...resolveParams(notification.params),
-                                defaultValue: notification.title,
-                              })
-                            : notification.title}
-                        </p>
-                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                          {notification.messageKey
-                            ? t(`notif.${notification.messageKey}`, {
-                                ...resolveParams(notification.params),
-                                defaultValue: notification.message,
-                              })
-                            : notification.message}
-                        </p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          {formatDate(notification.createdAt, {
-                            dateStyle: 'medium',
-                            timeStyle: 'short',
-                          })}
-                          {notification.linkUrl ? (
-                            <>
-                              {' · '}
-                              <Link
-                                to={notification.linkUrl}
-                                className="font-medium text-primary hover:underline"
-                              >
-                                {t('common.open')}
-                              </Link>
-                            </>
-                          ) : null}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            ) : null
+          }
+          isEmpty={data.notifications.recent.length === 0}
+          emptyTitle={t('dashboard.allCaughtUpTitle')}
+          emptyDescription={t('dashboard.allCaughtUpDesc')}
+          emptyIcon={Bell}
+        >
+          <ul className="divide-y divide-border/75">
+            {data.notifications.recent.map((notification) => {
+              const title = notification.titleKey
+                ? t(`notif.${notification.titleKey}`, {
+                    ...resolveParams(notification.params),
+                    defaultValue: notification.title,
+                  })
+                : notification.title;
+              const message = notification.messageKey
+                ? t(`notif.${notification.messageKey}`, {
+                    ...resolveParams(notification.params),
+                    defaultValue: notification.message,
+                  })
+                : notification.message;
+              const timestamp = formatDate(notification.createdAt, {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              });
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="shadow-none">
-          <CardHeader className="flex-row items-start justify-between gap-3 pb-2">
-            <div>
-              <CardTitle className="text-sm">{t('dashboard.recentClaims')}</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('dashboard.recentClaimsDesc')}
-              </p>
-            </div>
-            <Link
-              to="/lost-found/claims"
-              className="shrink-0 text-xs font-medium text-primary hover:underline"
-            >
-              {t('common.viewAll')}
-            </Link>
-          </CardHeader>
-          <CardContent className="pt-2">
-            {data.claims.recent.length === 0 ? (
-              <EmptyState
-                title={t('claims.noClaimsFound')}
-                description={t('dashboard.noRecentClaimsDesc')}
-                icon={ShieldCheck}
-                className="min-h-[150px]"
-              />
-            ) : (
-              <ul className="divide-y divide-border/70">
-                {data.claims.recent.map((claim) => (
-                  <li
-                    key={claim.id}
-                    className="flex items-center justify-between gap-3 py-2.5 first:pt-1 last:pb-1"
-                  >
-                    <div className="min-w-0">
-                      <Link
-                        to={`/lost-found/claims/${claim.id}`}
-                        className="block truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
+              const content = (
+                <>
+                  <span
+                    className={cn(
+                      'mt-1.5 h-2 w-2 shrink-0 rounded-full',
+                      notification.isRead ? 'bg-border' : 'bg-primary',
+                    )}
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                      <p
+                        className={cn(
+                          'text-sm leading-snug',
+                          notification.isRead
+                            ? 'font-medium text-muted-foreground'
+                            : 'font-semibold text-foreground',
+                        )}
                       >
-                        {tr(claim, 'itemTitle')}
-                      </Link>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        <span dir="ltr">{claim.claimNumber}</span> · {formatDate(claim.createdAt)}
+                        {title}
                       </p>
+                      <span className="inline-flex shrink-0 items-center gap-1 text-[11.5px] tabular-nums text-muted-foreground">
+                        <span>{timestamp}</span>
+                        {notification.linkUrl ? (
+                          <ChevronRight
+                            className="h-3.5 w-3.5 text-muted-foreground/75 transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                      </span>
                     </div>
-                    <StatusBadge status={claim.status} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+                    <p className="mt-0.5 text-pretty text-xs leading-relaxed text-muted-foreground">
+                      {message}
+                    </p>
+                  </div>
+                </>
+              );
 
-        <Card className="shadow-none">
-          <CardHeader className="flex-row items-start justify-between gap-3 pb-2">
-            <div>
-              <CardTitle className="text-sm">{t('dashboard.recentReports')}</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('dashboard.recentReportsDesc')}
-              </p>
-            </div>
-            <Link
-              to="/lost-found/my-reports"
-              className="shrink-0 text-xs font-medium text-primary hover:underline"
-            >
-              {t('common.viewAll')}
-            </Link>
-          </CardHeader>
-          <CardContent className="pt-2">
-            {data.reports.recent.length === 0 ? (
-              <EmptyState
-                title={t('lostFound.noReportsYet')}
-                description={t('dashboard.noRecentReportsDesc')}
-                icon={PackageSearch}
-                className="min-h-[150px]"
+              return (
+                <li key={notification.id} className="py-1 first:pt-0 last:pb-0">
+                  {notification.linkUrl ? (
+                    <Link
+                      to={notification.linkUrl}
+                      className="group -mx-2 flex items-start gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-secondary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className="flex items-start gap-2.5 py-2">{content}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </StudentLedgerCard>
+
+        <StudentLedgerCard
+          title={t('dashboard.recentClaims')}
+          description={t('dashboard.recentClaimsDesc')}
+          headerAction={<PortalViewAllLink to="/lost-found/claims" label={t('common.viewAll')} />}
+          isEmpty={data.claims.recent.length === 0}
+          emptyTitle={t('claims.noClaimsFound')}
+          emptyDescription={t('dashboard.noRecentClaimsDesc')}
+          emptyIcon={ShieldCheck}
+          emptyAction={{
+            label: t('dashboard.browseFoundItems'),
+            to: '/lost-found',
+          }}
+        >
+          <ul className="divide-y divide-border/75">
+            {data.claims.recent.map((claim) => (
+              <PortalLedgerRow
+                key={claim.id}
+                to={`/lost-found/claims/${claim.id}`}
+                title={tr(claim, 'itemTitle')}
+                code={claim.claimNumber}
+                date={claim.createdAt}
+                badges={<StatusBadge status={claim.status} className="shrink-0" />}
               />
-            ) : (
-              <ul className="divide-y divide-border/70">
-                {data.reports.recent.map((report) => (
-                  <li
-                    key={report.id}
-                    className="flex items-center justify-between gap-3 py-2.5 first:pt-1 last:pb-1"
-                  >
-                    <div className="min-w-0">
-                      <Link
-                        to={`/lost-found/items/${report.id}`}
-                        className="block truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
-                      >
-                        {tr(report, 'itemTitle')}
-                      </Link>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        <span dir="ltr">{report.reportNumber}</span> · {enumLabel('reportType', report.reportType)} ·{' '}
-                        {formatDate(report.createdAt)}
-                      </p>
-                    </div>
-                    <StatusBadge status={report.status} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </ul>
+        </StudentLedgerCard>
+
+        <StudentLedgerCard
+          title={t('dashboard.recentReports')}
+          description={t('dashboard.recentReportsDesc')}
+          headerAction={<PortalViewAllLink to="/lost-found/my-reports" label={t('common.viewAll')} />}
+          isEmpty={data.reports.recent.length === 0}
+          emptyTitle={t('lostFound.noReportsYet')}
+          emptyDescription={t('dashboard.noRecentReportsDesc')}
+          emptyIcon={PackageSearch}
+          emptyAction={{
+            label: t('dashboard.reportLostFoundItem'),
+            to: '/lost-found/report',
+          }}
+        >
+          <ul className="divide-y divide-border/75">
+            {data.reports.recent.map((report) => {
+              const reportType = report.reportType === 'LOST' ? 'LOST' : 'FOUND';
+              return (
+                <PortalLedgerRow
+                  key={report.id}
+                  to={`/lost-found/items/${report.id}`}
+                  title={tr(report, 'itemTitle')}
+                  code={report.reportNumber}
+                  date={report.createdAt}
+                  badges={
+                    <>
+                      <ReportTypeBadge reportType={reportType} />
+                      <StatusBadge status={report.status} />
+                    </>
+                  }
+                />
+              );
+            })}
+          </ul>
+        </StudentLedgerCard>
       </div>
     </div>
   );

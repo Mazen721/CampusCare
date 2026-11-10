@@ -10,20 +10,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getErrorMessage } from '@/lib/api';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatNumber } from '@/lib/utils';
 import type { InsightStats, MaintenanceInsightsResponse } from '@/types/insights';
 
 function formatDateTime(value: string): string {
   return formatDate(value, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-function StatBlock({ label, value }: { label: string; value: string | number }) {
+function StatBlock({
+  label,
+  value,
+  className = '',
+}: {
+  label: string;
+  value: string | number;
+  className?: string;
+}) {
   return (
-    <div className="rounded-md border border-border/70 bg-card px-3 py-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+    <div className={`bg-background px-3.5 py-2.5 ${className}`}>
+      <p className="text-[11px] font-medium text-muted-foreground ltr:uppercase ltr:tracking-[0.08em]">
         {label}
       </p>
-      <p className="mt-1 text-lg font-semibold text-foreground">{value}</p>
+      <p className="mt-1 text-lg font-bold leading-tight tabular-nums text-foreground">
+        {typeof value === 'number' ? formatNumber(value) : value}
+      </p>
     </div>
   );
 }
@@ -42,11 +52,11 @@ function StatsGrid({
     const duePlansCount = maintenance.duePreventivePlans?.length ?? 0;
 
     return (
-      <div className="space-y-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="space-y-2.5">
+        <p className="text-[11px] font-semibold text-muted-foreground ltr:uppercase ltr:tracking-[0.12em]">
           {t('ai.systemStats')}
         </p>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/80 bg-border/75 sm:grid-cols-5">
           <StatBlock
             label={t('ai.activeAccounts')}
             value={`${users.active} / ${users.total}`}
@@ -64,6 +74,7 @@ function StatsGrid({
             value={lostFound.openLostItems + lostFound.openFoundItems}
           />
           <StatBlock
+            className="col-span-2 sm:col-span-1"
             label={t('ai.pendingMatchesClaims')}
             value={`${lostFound.pendingMatchesCount} / ${lostFound.pendingClaimsCount + lostFound.claimsAwaitingHandover}`}
           />
@@ -78,10 +89,10 @@ function StatsGrid({
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <p className="text-[11px] font-semibold text-muted-foreground ltr:uppercase ltr:tracking-[0.12em]">
         {t('ai.systemStats')}
       </p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/80 bg-border/75 sm:grid-cols-5">
         <StatBlock label={t('dashboard.requests')} value={requests?.total ?? '—'} />
         <StatBlock
           label={t('ai.changeVsPrevious')}
@@ -89,7 +100,11 @@ function StatsGrid({
         />
         <StatBlock label={t('ai.openBacklog')} value={requests?.openBacklog ?? '—'} />
         <StatBlock label={t('ai.activeWorkOrders')} value={workOrders?.active ?? '—'} />
-        <StatBlock label={t('ai.overdueWorkOrders')} value={workOrders?.overdue ?? '—'} />
+        <StatBlock
+          className="col-span-2 sm:col-span-1"
+          label={t('ai.overdueWorkOrders')}
+          value={workOrders?.overdue ?? '—'}
+        />
       </div>
     </div>
   );
@@ -115,11 +130,11 @@ function AdminOperationalSnapshot({ stats }: { stats: InsightStats }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <p className="text-[11px] font-semibold text-muted-foreground ltr:uppercase ltr:tracking-[0.12em]">
         {t('ai.platformHighlights')}
       </p>
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-md border border-border/70 bg-muted/15 p-3">
+        <div className="min-w-0 rounded-lg border border-border/75 bg-secondary/35 p-3">
           <p className="text-xs font-semibold text-foreground">
             {t('ai.overdueAndPreventiveWatch')}
           </p>
@@ -141,7 +156,7 @@ function AdminOperationalSnapshot({ stats }: { stats: InsightStats }) {
           </ul>
         </div>
 
-        <div className="rounded-md border border-border/70 bg-muted/15 p-3">
+        <div className="min-w-0 rounded-lg border border-border/75 bg-secondary/35 p-3">
           <p className="text-xs font-semibold text-foreground">
             {t('ai.activeClaimsWatch')} & {t('ai.suggestedMatchesWatch')}
           </p>
@@ -220,14 +235,14 @@ export function InsightsPanel({
   const errorMessage = insightsQuery.error ? getErrorMessage(insightsQuery.error) : null;
 
   return (
-    <Card>
-      <CardHeader className="gap-4 border-b border-border/70 pb-4 sm:flex-row sm:items-start sm:justify-between">
+    <Card className="rounded-xl border-border bg-card shadow-none">
+      <CardHeader className="gap-4 border-b border-border/75 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+          <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-[-0.01em] text-foreground">
+            <Sparkles className="h-4 w-4 shrink-0 text-[hsl(var(--badge-warn-icon))]" aria-hidden="true" />
             {scope === 'admin' ? t('ai.adminInsightsTitle') : t('ai.insightsTitle')}
           </CardTitle>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
             {scope === 'admin'
               ? t('ai.adminStatsCalculatedNotice')
               : t('ai.statsCalculatedNotice')}
@@ -254,6 +269,7 @@ export function InsightsPanel({
             size="sm"
             onClick={() => regenerate.mutate()}
             disabled={regenerate.isPending || insightsQuery.isLoading}
+            className="h-9 gap-1.5 border-border bg-card text-xs font-semibold text-foreground shadow-sm hover:border-[hsl(var(--badge-warn-border))] hover:bg-[hsl(var(--badge-warn-bg))] hover:text-foreground"
           >
             <RefreshCw
               className={`h-3.5 w-3.5 ${regenerate.isPending ? 'animate-spin' : ''}`}
@@ -286,12 +302,15 @@ export function InsightsPanel({
             {!data.available ? (
               <div
                 role="status"
-                className="flex items-start gap-2.5 rounded-lg border border-amber-300/60 bg-amber-50 px-3.5 py-3 text-sm text-amber-950"
+                className="flex items-start gap-2.5 rounded-lg border border-[hsl(var(--badge-warn-border)/0.6)] bg-[hsl(var(--badge-warn-bg))] px-3.5 py-3 text-sm text-[hsl(var(--badge-warn-fg))]"
               >
-                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <TriangleAlert
+                  className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--badge-warn-icon))]"
+                  aria-hidden="true"
+                />
                 <div>
-                  <p className="font-medium">{t('ai.analysisUnavailable')}</p>
-                  <p className="mt-0.5 text-amber-900/80">
+                  <p className="font-semibold">{t('ai.analysisUnavailable')}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                     {data.message ?? t('ai.unavailable')}
                   </p>
                 </div>
@@ -301,11 +320,11 @@ export function InsightsPanel({
             {data.insights ? (
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+                  <p className="text-[11px] font-semibold text-primary ltr:uppercase ltr:tracking-[0.12em]">
                     {data.available ? t('ai.insights') : t('ai.lastCachedInsight')}
                   </p>
                   {data.generatedAt ? (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs tabular-nums text-muted-foreground">
                       {formatDateTime(data.generatedAt)} ·{' '}
                       {formatDate(data.rangeStart)} – {formatDate(data.rangeEnd)}
                     </p>

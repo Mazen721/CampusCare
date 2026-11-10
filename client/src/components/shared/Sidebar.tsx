@@ -2,7 +2,7 @@ import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { BrandMark } from '@/components/shared/BrandMark';
-import { getNavigation } from '@/components/shared/navigation';
+import { getNavigation, isMnuPortalRole } from '@/components/shared/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -21,17 +21,28 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
   if (!user) return null;
 
   const groups = getNavigation(user.role);
+  const isMnuPortal = isMnuPortalRole(user.role);
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-5">
-        <BrandMark inverted />
+        <BrandMark inverted portal={isMnuPortal} />
       </div>
 
-      <div className="flex items-center gap-2 border-b border-sidebar-border px-5 py-4">
-        <span className="inline-flex items-center rounded-full border border-sidebar-border bg-sidebar-active px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground">
-          {enumLabel('role', user.role)}
-        </span>
+      <div className="flex items-center gap-2 border-b border-sidebar-border px-5 py-3.5">
+        {isMnuPortal ? (
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-sidebar-foreground">
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--mnu-gold))]"
+              aria-hidden="true"
+            />
+            {enumLabel('role', user.role)}
+          </span>
+        ) : (
+          <span className="inline-flex items-center rounded-full border border-sidebar-border bg-sidebar-active px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground">
+            {enumLabel('role', user.role)}
+          </span>
+        )}
       </div>
 
       <nav
@@ -40,7 +51,14 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
       >
         {groups.map((group) => (
           <div key={group.titleKey}>
-            <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-muted/80">
+            <p
+              className={cn(
+                'px-2.5 pb-2 font-semibold',
+                isMnuPortal
+                  ? 'text-xs text-sidebar-muted ltr:uppercase ltr:tracking-[0.12em]'
+                  : 'text-[10px] uppercase tracking-[0.18em] text-sidebar-muted/80',
+              )}
+            >
               {t(group.titleKey)}
             </p>
             <ul className="space-y-1">
@@ -73,19 +91,36 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
                       onClick={onNavigate}
                       className={({ isActive }) =>
                         cn(
-                          'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors',
+                          'relative flex items-center gap-3 px-3 py-2 text-sm transition-colors',
+                          isMnuPortal
+                            ? 'rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mnu-gold))] focus-visible:ring-offset-0'
+                            : 'rounded-md px-2.5',
                           isActive
-                            ? 'bg-sidebar-active font-medium text-sidebar-foreground shadow-[inset_3px_0_0_#d9a441] rtl:shadow-[inset_-3px_0_0_#d9a441]'
-                            : 'text-sidebar-muted hover:bg-sidebar-active/60 hover:text-sidebar-foreground',
+                            ? isMnuPortal
+                              ? 'bg-white/[0.11] font-semibold text-sidebar-foreground ring-1 ring-inset ring-white/10'
+                              : 'bg-sidebar-active font-medium text-sidebar-foreground shadow-[inset_3px_0_0_#d9a441] rtl:shadow-[inset_-3px_0_0_#d9a441]'
+                            : isMnuPortal
+                              ? 'text-sidebar-muted hover:bg-white/[0.06] hover:text-sidebar-foreground'
+                              : 'text-sidebar-muted hover:bg-sidebar-active/60 hover:text-sidebar-foreground',
                         )
                       }
                     >
                       {({ isActive }) => (
                         <>
+                          {isMnuPortal && isActive ? (
+                            <span
+                              aria-hidden="true"
+                              className="absolute inset-y-1.5 start-0 w-[3px] rounded-e-full bg-[hsl(var(--mnu-gold))]"
+                            />
+                          ) : null}
                           <Icon
                             className={cn(
                               'h-4 w-4 shrink-0',
-                              isActive ? 'text-amber-400' : 'text-sidebar-muted',
+                              isActive
+                                ? isMnuPortal
+                                  ? 'text-[hsl(var(--mnu-gold))]'
+                                  : 'text-amber-400'
+                                : 'text-sidebar-muted',
                             )}
                             strokeWidth={1.8}
                             aria-hidden="true"
@@ -102,34 +137,36 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
         ))}
       </nav>
 
-      <div className="shrink-0 border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-3 rounded-lg bg-sidebar-active/50 p-2.5">
-          <Avatar className="h-9 w-9 border border-sidebar-border">
-            <AvatarFallback className="bg-sidebar-active text-xs text-sidebar-foreground">
-              {getInitials(user.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">
-              <bdi>{user.name}</bdi>
-            </p>
-            <p className="truncate text-[11px] text-sidebar-muted">
-              {enumLabel('role', user.role)}
-              {tr(user, 'department') ? ` · ${tr(user, 'department')}` : ''}
-            </p>
+      {!isMnuPortal ? (
+        <div className="shrink-0 border-t border-sidebar-border p-3">
+          <div className="flex items-center gap-3 rounded-lg bg-sidebar-active/50 p-2.5">
+            <Avatar className="h-9 w-9 border border-sidebar-border">
+              <AvatarFallback className="bg-sidebar-active text-xs text-sidebar-foreground">
+                {getInitials(user.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">
+                <bdi>{user.name}</bdi>
+              </p>
+              <p className="truncate text-[11px] text-sidebar-muted">
+                {enumLabel('role', user.role)}
+                {tr(user, 'department') ? ` · ${tr(user, 'department')}` : ''}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-sidebar-muted hover:bg-sidebar-border/60 hover:text-sidebar-foreground"
+              onClick={logout}
+              aria-label={t('auth.signOut')}
+              title={t('auth.signOut')}
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0 text-sidebar-muted hover:bg-sidebar-border/60 hover:text-sidebar-foreground"
-            onClick={logout}
-            aria-label={t('auth.signOut')}
-            title={t('auth.signOut')}
-          >
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-          </Button>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

@@ -8,7 +8,7 @@ web
 
 ## Users
 
-CampusCare is used by people at one real university. Five roles stay, and each person only does their own job:
+CampusCare is used by people at Mansoura National University (MNU). Five roles stay, and each person only does their own job:
 
 - Students and employees report maintenance problems and lost or found items, then follow their own requests, claims, and reports.
 - Maintenance managers review requests, assign technicians, and track the work.
@@ -20,9 +20,9 @@ The first screens to redesign are the login page, then the student and employee 
 
 ## Product Purpose
 
-CampusCare is that university’s tool for two jobs in one place: getting something on campus fixed, and getting a lost item back to its owner. It exists so those jobs move through a recorded path instead of informal messages. Success means a person can sign in, see only their own work, and carry a maintenance issue or a lost item through to a recorded outcome.
+CampusCare is Mansoura National University’s tool for two jobs in one place: getting something on campus fixed, and getting a lost item back to its owner. It exists so those jobs move through a recorded path instead of informal messages. Success means a person can sign in, see only their own work, and carry a maintenance issue or a lost item through to a recorded outcome.
 
-The university’s name is not decided yet. Do not invent one.
+The committed institution is Mansoura National University (MNU).
 
 ## Positioning
 
@@ -46,20 +46,20 @@ The current visual design is not a commitment. Replace it. Keep the jobs, the ro
 
 The login page is the first screen to replace. Student and employee screens come next. Whether manager, technician, officer, and admin screens are redesigned after that is undecided.
 
-The university’s name is undecided. No separate accessibility standard was chosen.
+The committed institution is Mansoura National University (MNU). No separate accessibility standard was chosen.
 
 ## Brand Commitments
 
-The product name is CampusCare. No voice guide, logo system, or visual identity was made binding. The only mark on hand is `client/public/favicon.svg`, and it is not a commitment to keep.
+The product name is CampusCare for Mansoura National University (MNU). The committed brand assets are `client/public/Mansoura National University Emblem.png` and `client/public/Mansoura National University Entrance.png` (`client/public/favicon.svg` remains as the browser favicon).
 
 ## Evidence on Hand
 
 - `MASTER_SPEC.md` and `specs/001-campuscare-platform/spec.md` — the written product behavior.
 - `client/src/i18n/locales/ar.ts` and `client/src/i18n/locales/en.ts` — the Arabic and English copy.
-- `client/public/favicon.svg` — the only icon asset found.
+- `client/public/Mansoura National University Emblem.png`, `client/public/Mansoura National University Entrance.png`, and `client/public/favicon.svg` — the MNU emblem, entrance photograph, and favicon.
 - Demo accounts for the five roles can be created by the project’s seed script. They are demo data, not evidence of a live campus.
 
-Do not invent a university name, testimonials, campus photography, usage numbers, or press.
+Do not invent testimonials, unverified campus photography, usage numbers, or press.
 
 ## Product Principles
 

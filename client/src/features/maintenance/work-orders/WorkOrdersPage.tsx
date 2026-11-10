@@ -8,9 +8,9 @@ import {
   Wrench,
   XCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -38,11 +38,23 @@ export function WorkOrdersPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
+  const rawStatusParam = searchParams.get('status');
+  const paramStatus: 'ALL' | WorkOrderStatus =
+    rawStatusParam && WORK_ORDER_STATUSES.includes(rawStatusParam as WorkOrderStatus)
+      ? (rawStatusParam as WorkOrderStatus)
+      : 'ALL';
+
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<'ALL' | WorkOrderStatus>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | WorkOrderStatus>(paramStatus);
   const [sourceFilter, setSourceFilter] = useState<'ALL' | 'REACTIVE' | 'PREVENTIVE'>('ALL');
+
+  useEffect(() => {
+    setStatusFilter(paramStatus);
+    setPage(1);
+  }, [paramStatus]);
 
   const [assignTarget, setAssignTarget] = useState<WorkOrderRecord | null>(null);
   const [cancelTarget, setCancelTarget] = useState<WorkOrderRecord | null>(null);
@@ -68,7 +80,10 @@ export function WorkOrdersPage() {
     mutationFn: (id: string) => workOrdersApi.start(id),
     onSuccess: async () => {
       setStartTarget(null);
-      await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['work-orders'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+      ]);
       toast.success(t('workOrders.workOrderStartedSuccess'));
     },
     onError: (err: unknown) => {
@@ -98,14 +113,14 @@ export function WorkOrdersPage() {
             >
               <span dir="ltr">{wo.workOrderNumber}</span>
             </Link>
-            <Badge variant="outline" className="text-[10px] py-0 px-1 font-normal">
+            <Badge variant="outline" className="text-xs py-0 px-1.5 font-normal">
               {enumLabel('sourceType', wo.sourceType)}
             </Badge>
           </div>
           <p className="truncate text-xs font-medium text-foreground max-w-[240px]">
             {tr(wo, 'title')}
           </p>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {enumLabel('maintenanceCategory', wo.category)}
           </span>
         </div>
@@ -169,7 +184,7 @@ export function WorkOrdersPage() {
               <span className="text-muted-foreground">{t('workOrders.unscheduled')}</span>
             )}
             {overdue && (
-              <span className="text-[10px] text-destructive uppercase tracking-wider block">
+              <span className="text-xs font-medium text-destructive ltr:uppercase ltr:tracking-wider block">
                 {t('workOrders.overdue')}
               </span>
             )}
@@ -187,11 +202,11 @@ export function WorkOrdersPage() {
             <Button
               size="sm"
               variant="outline"
-              className="h-8 px-2 text-xs text-emerald-600 hover:bg-emerald-50"
+              className="h-8 px-2.5 text-xs border-border bg-card text-foreground hover:border-[hsl(var(--mnu-gold))] hover:bg-[hsl(var(--mnu-gold-tint))] hover:text-foreground"
               onClick={() => setStartTarget(wo)}
               disabled={startMutation.isPending}
             >
-              <Play className="h-3.5 w-3.5 me-1 rtl:rotate-180" />
+              <Play className="h-3.5 w-3.5 me-1 text-[hsl(var(--mnu-gold-ink))] rtl:rotate-180" aria-hidden="true" />
               {t('workOrders.start')}
             </Button>
           )}
@@ -199,10 +214,10 @@ export function WorkOrdersPage() {
           {isTechnician && wo.status === 'IN_PROGRESS' && (
             <Button
               size="sm"
-              className="h-8 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="h-8 px-2.5 text-xs"
               onClick={() => setCompleteTarget(wo)}
             >
-              <CheckCircle2 className="h-3.5 w-3.5 me-1" />
+              <CheckCircle2 className="h-3.5 w-3.5 me-1" aria-hidden="true" />
               {t('workOrders.complete')}
             </Button>
           )}
@@ -266,8 +281,16 @@ export function WorkOrdersPage() {
         <select
           value={statusFilter}
           onChange={(e) => {
-            setStatusFilter(e.target.value as 'ALL' | WorkOrderStatus);
+            const nextStatus = e.target.value as 'ALL' | WorkOrderStatus;
+            setStatusFilter(nextStatus);
             setPage(1);
+            const nextParams = new URLSearchParams(searchParams);
+            if (nextStatus === 'ALL') {
+              nextParams.delete('status');
+            } else {
+              nextParams.set('status', nextStatus);
+            }
+            setSearchParams(nextParams, { replace: true });
           }}
           className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >

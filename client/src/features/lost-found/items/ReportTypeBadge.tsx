@@ -19,7 +19,11 @@ export function ReportTypeBadge({ reportType, className }: ReportTypeBadgeProps)
   return (
     <Badge
       variant="outline"
-      className={cn('font-semibold uppercase tracking-wide', REPORT_TYPE_STYLES[reportType], className)}
+      className={cn(
+        'font-semibold ltr:uppercase ltr:tracking-wide',
+        REPORT_TYPE_STYLES[reportType],
+        className,
+      )}
     >
       {enumLabel('reportType', reportType)}
     </Badge>

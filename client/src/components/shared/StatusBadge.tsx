@@ -8,91 +8,59 @@ interface StatusStyle {
   dotClassName: string;
 }
 
+const WARN_STYLE: StatusStyle = {
+  className:
+    'border-[hsl(var(--badge-warn-border)/0.6)] bg-[hsl(var(--badge-warn-bg))] text-[hsl(var(--badge-warn-fg))]',
+  dotClassName: 'bg-[hsl(var(--badge-warn-icon))]',
+};
+
+const ACTIVE_STYLE: StatusStyle = {
+  className: 'border-border bg-secondary text-secondary-foreground',
+  dotClassName: 'bg-primary',
+};
+
+const COMPLETE_STYLE: StatusStyle = {
+  className: 'border-primary/30 bg-primary/10 text-primary',
+  dotClassName: 'bg-primary',
+};
+
+const MUTED_STYLE: StatusStyle = {
+  className: 'border-border bg-muted text-muted-foreground',
+  dotClassName: 'bg-muted-foreground',
+};
+
+const QUIET_STYLE: StatusStyle = {
+  className: 'border-border bg-card text-muted-foreground',
+  dotClassName: 'bg-muted-foreground/70',
+};
+
+const DANGER_STYLE: StatusStyle = {
+  className: 'border-destructive/30 bg-destructive/10 text-destructive',
+  dotClassName: 'bg-destructive',
+};
+
 const STATUS_STYLES: Record<string, StatusStyle> = {
-  SUBMITTED: {
-    className: 'border-stone-300 bg-stone-100 text-stone-800',
-    dotClassName: 'bg-stone-500',
-  },
-  UNDER_REVIEW: {
-    className: 'border-amber-300 bg-amber-50 text-amber-900',
-    dotClassName: 'bg-amber-500',
-  },
-  APPROVED: {
-    className: 'border-teal-300 bg-teal-50 text-teal-900',
-    dotClassName: 'bg-teal-600',
-  },
-  REJECTED: {
-    className: 'border-red-300 bg-red-50 text-red-800',
-    dotClassName: 'bg-red-600',
-  },
-  IN_PROGRESS: {
-    className: 'border-sky-300 bg-sky-50 text-sky-900',
-    dotClassName: 'bg-sky-600',
-  },
-  COMPLETED: {
-    className: 'border-emerald-300 bg-emerald-50 text-emerald-900',
-    dotClassName: 'bg-emerald-600',
-  },
-  CLOSED: {
-    className: 'border-stone-300 bg-stone-100 text-stone-700',
-    dotClassName: 'bg-stone-500',
-  },
-  REOPENED: {
-    className: 'border-orange-300 bg-orange-50 text-orange-900',
-    dotClassName: 'bg-orange-600',
-  },
-  PENDING_ASSIGNMENT: {
-    className: 'border-amber-300 bg-amber-50 text-amber-900',
-    dotClassName: 'bg-amber-500',
-  },
-  ASSIGNED: {
-    className: 'border-teal-300 bg-teal-50 text-teal-900',
-    dotClassName: 'bg-teal-600',
-  },
-  CANCELLED: {
-    className: 'border-stone-300 bg-stone-100 text-stone-600',
-    dotClassName: 'bg-stone-400',
-  },
-  OPEN: {
-    className: 'border-teal-300 bg-teal-50 text-teal-900',
-    dotClassName: 'bg-teal-600',
-  },
-  MATCH_CONFIRMED: {
-    className: 'border-indigo-300 bg-indigo-50 text-indigo-900',
-    dotClassName: 'bg-indigo-600',
-  },
-  CLAIM_UNDER_REVIEW: {
-    className: 'border-amber-300 bg-amber-50 text-amber-900',
-    dotClassName: 'bg-amber-500',
-  },
-  APPROVED_FOR_HANDOVER: {
-    className: 'border-emerald-300 bg-emerald-50 text-emerald-900',
-    dotClassName: 'bg-emerald-600',
-  },
-  RETURNED: {
-    className: 'border-emerald-300 bg-emerald-50 text-emerald-900',
-    dotClassName: 'bg-emerald-600',
-  },
-  PENDING_REVIEW: {
-    className: 'border-amber-300 bg-amber-50 text-amber-900',
-    dotClassName: 'bg-amber-500',
-  },
-  UNDER_VERIFICATION: {
-    className: 'border-amber-300 bg-amber-50 text-amber-900',
-    dotClassName: 'bg-amber-500',
-  },
-  SUGGESTED: {
-    className: 'border-amber-300 bg-amber-50 text-amber-900',
-    dotClassName: 'bg-amber-500',
-  },
-  CONFIRMED: {
-    className: 'border-emerald-300 bg-emerald-50 text-emerald-900',
-    dotClassName: 'bg-emerald-600',
-  },
-  DISMISSED: {
-    className: 'border-stone-300 bg-stone-100 text-stone-600',
-    dotClassName: 'bg-stone-400',
-  },
+  SUBMITTED: ACTIVE_STYLE,
+  UNDER_REVIEW: WARN_STYLE,
+  APPROVED: ACTIVE_STYLE,
+  REJECTED: DANGER_STYLE,
+  IN_PROGRESS: WARN_STYLE,
+  COMPLETED: COMPLETE_STYLE,
+  CLOSED: MUTED_STYLE,
+  REOPENED: WARN_STYLE,
+  PENDING_ASSIGNMENT: WARN_STYLE,
+  ASSIGNED: ACTIVE_STYLE,
+  CANCELLED: QUIET_STYLE,
+  OPEN: ACTIVE_STYLE,
+  MATCH_CONFIRMED: COMPLETE_STYLE,
+  CLAIM_UNDER_REVIEW: WARN_STYLE,
+  APPROVED_FOR_HANDOVER: COMPLETE_STYLE,
+  RETURNED: COMPLETE_STYLE,
+  PENDING_REVIEW: WARN_STYLE,
+  UNDER_VERIFICATION: WARN_STYLE,
+  SUGGESTED: WARN_STYLE,
+  CONFIRMED: COMPLETE_STYLE,
+  DISMISSED: QUIET_STYLE,
 };
 
 interface StatusBadgeProps {
@@ -104,8 +72,8 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   useTranslation();
   const key = status.toUpperCase();
   const style = STATUS_STYLES[key] ?? {
-    className: 'border-stone-300 bg-stone-100 text-stone-700',
-    dotClassName: 'bg-stone-500',
+    className: 'border-border bg-secondary text-secondary-foreground',
+    dotClassName: 'bg-muted-foreground',
   };
 
   return (

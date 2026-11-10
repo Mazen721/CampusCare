@@ -15,11 +15,18 @@ import {
 import { FormField } from '@/components/shared/FormField';
 import { Textarea } from '@/components/ui/textarea';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
+import { tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
-import type { WorkOrderRecord } from '@/types/workOrders';
+
+export interface CompleteWorkOrderTarget {
+  id: string;
+  workOrderNumber: string;
+  title: string;
+  titleAr?: string;
+}
 
 interface CompleteWorkOrderDialogProps {
-  workOrder: WorkOrderRecord | null;
+  workOrder: CompleteWorkOrderTarget | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -34,6 +41,14 @@ export function CompleteWorkOrderDialog({
   const [resolutionDetails, setResolutionDetails] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setErrorMsg(null);
+      setResolutionDetails('');
+    }
+    onOpenChange(nextOpen);
+  };
+
   const completeMutation = useMutation({
     mutationFn: () => {
       if (!workOrder) throw new Error('No work order selected');
@@ -45,11 +60,15 @@ export function CompleteWorkOrderDialog({
       });
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['work-orders'] });
-      await queryClient.invalidateQueries({ queryKey: ['work-order', workOrder?.id] });
-      await queryClient.invalidateQueries({ queryKey: ['request'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['work-orders'] }),
+        queryClient.invalidateQueries({ queryKey: ['work-order', workOrder?.id] }),
+        queryClient.invalidateQueries({ queryKey: ['request'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+      ]);
       toast.success(t('workOrders.workOrderCompletedSuccess'));
       setResolutionDetails('');
+      setErrorMsg(null);
       onOpenChange(false);
     },
     onError: (err) => {
@@ -58,15 +77,16 @@ export function CompleteWorkOrderDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-emerald-600">
-            <CheckCircle2 className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-primary">
+            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
             {t('workOrders.completeWork')}
           </DialogTitle>
           <DialogDescription>
-            <span dir="ltr">{workOrder?.workOrderNumber}</span> — {workOrder?.title}
+            <span dir="ltr" className="font-mono tabular-nums">{workOrder?.workOrderNumber}</span>
+            {workOrder ? ` — ${tr(workOrder, 'title')}` : ''}
           </DialogDescription>
         </DialogHeader>
 
@@ -107,20 +127,19 @@ export function CompleteWorkOrderDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={completeMutation.isPending}
             >
               {t('common.cancel')}
             </Button>
             <Button
               type="submit"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
               disabled={
                 completeMutation.isPending || resolutionDetails.trim().length < 5
               }
             >
               {completeMutation.isPending && (
-                <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" aria-hidden="true" />
               )}
               {t('workOrders.completeWork')}
             </Button>

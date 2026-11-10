@@ -24,17 +24,18 @@ export function InsightSections({ insights, compact = false }: InsightSectionsPr
         const items = insights[section.key];
 
         return (
-          <div key={section.key} className="rounded-md border border-border/70 bg-muted/20 p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          <div key={section.key} className="rounded-lg border border-border/75 bg-secondary/35 p-4">
+            <h4 className="text-xs font-semibold text-muted-foreground ltr:uppercase ltr:tracking-[0.12em]">
               {section.title}
             </h4>
-            <ul className="mt-2 space-y-1.5">
+            <ul className="mt-2.5 space-y-1.5">
               {items.map((item, index) => (
                 <li
                   key={`${section.key}-${index}`}
-                  className="flex gap-2 text-sm leading-relaxed text-foreground"
+                  dir="auto"
+                  className="flex gap-2 text-start text-sm leading-relaxed text-foreground"
                 >
-                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary" aria-hidden="true" />
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -64,11 +65,11 @@ export function InsightReadOnlyCard({
   const { t } = useTranslation();
 
   return (
-    <Card>
+    <Card className="rounded-xl border-border bg-card shadow-none">
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            <p className="text-xs font-semibold text-primary ltr:uppercase ltr:tracking-[0.12em]">
               {t('ai.insights')}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">

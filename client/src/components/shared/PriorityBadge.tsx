@@ -6,19 +6,24 @@ import { cn } from '@/lib/utils';
 
 const PRIORITY_STYLES = {
   CRITICAL: {
-    className: 'border-red-800 bg-red-700 text-white',
+    className: 'border-destructive bg-destructive text-destructive-foreground',
+    iconClassName: '',
     Icon: AlertOctagon,
   },
   HIGH: {
-    className: 'border-amber-600 bg-amber-400 text-stone-950',
+    className:
+      'border-[hsl(var(--badge-warn-border)/0.6)] bg-[hsl(var(--badge-warn-bg))] text-[hsl(var(--badge-warn-fg))]',
+    iconClassName: 'text-[hsl(var(--badge-warn-icon))]',
     Icon: AlertTriangle,
   },
   MEDIUM: {
-    className: 'border-stone-300 bg-stone-100 text-stone-800',
+    className: 'border-border bg-secondary text-secondary-foreground',
+    iconClassName: 'text-muted-foreground',
     Icon: Minus,
   },
   LOW: {
-    className: 'border-stone-200 bg-white text-stone-600',
+    className: 'border-border bg-card text-muted-foreground',
+    iconClassName: 'text-muted-foreground',
     Icon: MoveDown,
   },
 } as const;
@@ -39,9 +44,9 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
   return (
     <Badge
       variant="outline"
-      className={cn('gap-1 font-semibold uppercase tracking-wide', style.className, className)}
+      className={cn('gap-1 font-semibold ltr:uppercase ltr:tracking-wide', style.className, className)}
     >
-      <Icon className="h-3 w-3" aria-hidden="true" />
+      <Icon className={cn('h-3 w-3', style.iconClassName)} aria-hidden="true" />
       {enumLabel('priority', key)}
     </Badge>
   );

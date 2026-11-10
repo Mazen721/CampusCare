@@ -19,13 +19,13 @@ const PasswordInput = React.forwardRef<
         ref={ref}
         type={visible ? 'text' : 'password'}
         dir="ltr"
-        className={cn('pe-10 text-start', className)}
+        className={cn('pe-10 text-start rtl:placeholder:text-right', className)}
         {...props}
       />
       <button
         type="button"
         onClick={() => setVisible((current) => !current)}
-        className="absolute end-1 top-1 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute end-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={visible ? t('auth.hidePassword') : t('auth.showPassword')}
         aria-pressed={visible}
       >

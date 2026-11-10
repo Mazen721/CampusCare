@@ -1,7 +1,7 @@
 import { PackagePlus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -26,15 +26,27 @@ type ViewFilter = 'all' | 'active' | 'archived';
 
 export function ItemsReportListPage({ scope }: ItemsReportListPageProps) {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const isMine = scope === 'mine';
+  const paramType = searchParams.get('type');
+  const initialReportType: 'ALL' | ReportType =
+    scope === 'all' && (paramType === 'LOST' || paramType === 'FOUND') ? paramType : 'ALL';
   const [viewFilter, setViewFilter] = useState<ViewFilter>(
     scope === 'archived' ? 'archived' : 'all',
   );
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search);
-  const [reportType, setReportType] = useState<'ALL' | ReportType>('ALL');
+  const [reportType, setReportType] = useState<'ALL' | ReportType>(initialReportType);
   const [status, setStatus] = useState<'ALL' | ItemStatus>('ALL');
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    if (scope !== 'all') return;
+    const nextType: 'ALL' | ReportType =
+      paramType === 'LOST' || paramType === 'FOUND' ? paramType : 'ALL';
+    setReportType(nextType);
+    setPage(1);
+  }, [paramType, scope]);
 
   const effectiveScope = isMine
     ? undefined
