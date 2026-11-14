@@ -1,11 +1,24 @@
-import { CalendarDays, ChevronDown, LogOut, Menu, UserRound, X } from 'lucide-react';
+import {
+  CalendarDays,
+  ChevronDown,
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  UserRound,
+  X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BrandMark } from '@/components/shared/BrandMark';
 import { LanguageToggle } from '@/components/shared/LanguageToggle';
 import { NotificationBell } from '@/components/shared/NotificationBell';
-import { isMnuPortalRole } from '@/components/shared/navigation';
+import {
+  getNavigation,
+  isMnuPortalRole,
+  type NavigationItem,
+} from '@/components/shared/navigation';
 import { SidebarContent } from '@/components/shared/Sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -65,7 +78,7 @@ function getPageTitle(pathname: string, t: (key: string) => string): string {
   return 'CampusCare';
 }
 
-function UserMenu() {
+function UserMenu({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -85,7 +98,7 @@ function UserMenu() {
           <Avatar className="h-8 w-8">
             <AvatarFallback className="text-xs">{getInitials(displayName)}</AvatarFallback>
           </Avatar>
-          <span className="hidden min-w-0 sm:block">
+          <span className={cn('hidden min-w-0', compact ? '2xl:block' : 'sm:block')}>
             <bdi className="block max-w-[140px] truncate text-xs font-semibold leading-tight text-foreground">
               {displayName}
             </bdi>
@@ -126,13 +139,78 @@ function UserMenu() {
   );
 }
 
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'cc-sidebar-collapsed';
+
+function readSidebarCollapsedPreference(): boolean {
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Horizontal pill navigation displayed in the top bar when the desktop sidebar is collapsed.
+ */
+function DesktopFastNav({ items }: { items: NavigationItem[] }) {
+  const { t } = useTranslation();
+
+  return (
+    <nav
+      aria-label={t('nav.groupOverview')}
+      className="flex min-w-0 flex-wrap items-center gap-1"
+    >
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) =>
+              cn(
+                'inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground',
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Icon
+                  className={cn(
+                    'h-3.5 w-3.5 shrink-0',
+                    isActive ? 'text-[hsl(var(--mnu-gold))]' : 'text-muted-foreground',
+                  )}
+                  aria-hidden="true"
+                />
+                <span>{t(item.labelKey)}</span>
+              </>
+            )}
+          </NavLink>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function AppShell() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(readSidebarCollapsedPreference);
 
   const isMnuPortal = isMnuPortalRole(user?.role);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(sidebarCollapsed));
+    } catch {
+      // Ignore storage errors in restricted environments
+    }
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     document.body.classList.toggle('mnu-portal-surface', isMnuPortal);
@@ -152,6 +230,9 @@ export function AppShell() {
   const headerDate = isMnuPortal
     ? formatDate(new Date(), { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
+  const fastNavItems = getNavigation(user.role).flatMap((group) =>
+    group.items.filter((item) => !item.soon),
+  );
 
   return (
     <div className={cn('min-h-screen bg-background', isMnuPortal && 'mnu-portal-surface')}>
@@ -162,9 +243,11 @@ export function AppShell() {
         CampusCare
       </a>
 
-      <aside className="fixed inset-y-0 start-0 z-40 hidden w-72 lg:block">
-        <SidebarContent />
-      </aside>
+      {!sidebarCollapsed ? (
+        <aside className="fixed inset-y-0 start-0 z-40 hidden w-72 lg:block">
+          <SidebarContent onCollapse={() => setSidebarCollapsed(true)} />
+        </aside>
+      ) : null}
 
       <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
         <DialogContent
@@ -193,7 +276,12 @@ export function AppShell() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex min-h-screen flex-col lg:ps-72">
+      <div
+        className={cn(
+          'flex min-h-screen flex-col transition-[padding] duration-200',
+          sidebarCollapsed ? 'lg:ps-0' : 'lg:ps-72',
+        )}
+      >
         <header
           className={cn(
             'sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border px-3 backdrop-blur sm:gap-3 sm:px-6 lg:hidden',
@@ -213,7 +301,10 @@ export function AppShell() {
             <BrandMark portal={isMnuPortal} compactOnMobile className="min-w-0" />
           </div>
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <LanguageToggle className="gap-1 px-1.5 text-xs sm:gap-1.5 sm:px-2.5 sm:text-sm" />
+            <LanguageToggle
+              compactOnMobile
+              className="gap-1 px-1.5 text-xs sm:gap-1.5 sm:px-2.5 sm:text-sm"
+            />
             <NotificationBell poll={false} />
             <UserMenu />
           </div>
@@ -221,22 +312,53 @@ export function AppShell() {
 
         <header
           className={cn(
-            'sticky top-0 z-30 hidden h-16 shrink-0 items-center justify-between border-b border-border px-8 backdrop-blur lg:flex',
+            'sticky top-0 z-30 hidden min-h-16 shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-2 backdrop-blur lg:flex 2xl:px-8',
             isMnuPortal ? 'bg-card/95' : 'bg-background/90',
           )}
         >
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">CampusCare</span>
-            <span className="text-border" aria-hidden="true">
-              /
-            </span>
-            <span className={cn('text-foreground', isMnuPortal ? 'font-semibold' : 'font-medium')}>
-              {title}
-            </span>
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              aria-label={sidebarCollapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
+              aria-expanded={!sidebarCollapsed}
+              className="h-9 shrink-0 gap-1.5 rounded-lg border-border bg-card px-2.5 text-xs font-semibold text-foreground shadow-xs hover:bg-secondary/60"
+            >
+              {sidebarCollapsed ? (
+                <PanelLeftOpen className="h-4 w-4 text-primary rtl:rotate-180" aria-hidden="true" />
+              ) : (
+                <PanelLeftClose className="h-4 w-4 text-primary rtl:rotate-180" aria-hidden="true" />
+              )}
+              <span className={cn('hidden', sidebarCollapsed ? '2xl:inline' : 'xl:inline')}>
+                {t('nav.menu')}
+              </span>
+            </Button>
+
+            {sidebarCollapsed ? (
+              <DesktopFastNav items={fastNavItems} />
+            ) : (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">CampusCare</span>
+                <span className="text-border" aria-hidden="true">
+                  /
+                </span>
+                <span className={cn('text-foreground', isMnuPortal ? 'font-semibold' : 'font-medium')}>
+                  {title}
+                </span>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex shrink-0 items-center gap-2">
             {headerDate ? (
-              <span className="hidden items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs font-medium text-muted-foreground xl:inline-flex">
+              <span
+                className={cn(
+                  'hidden items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs font-medium text-muted-foreground',
+                  sidebarCollapsed ? '2xl:inline-flex' : 'xl:inline-flex',
+                )}
+              >
                 <CalendarDays
                   className="h-3.5 w-3.5 text-[hsl(var(--mnu-gold-ink))]"
                   aria-hidden="true"
@@ -246,7 +368,7 @@ export function AppShell() {
             ) : null}
             <LanguageToggle />
             <NotificationBell />
-            <UserMenu />
+            <UserMenu compact={sidebarCollapsed} />
           </div>
         </header>
 

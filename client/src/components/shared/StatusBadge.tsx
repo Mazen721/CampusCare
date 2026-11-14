@@ -8,59 +8,54 @@ interface StatusStyle {
   dotClassName: string;
 }
 
-const WARN_STYLE: StatusStyle = {
-  className:
-    'border-[hsl(var(--badge-warn-border)/0.6)] bg-[hsl(var(--badge-warn-bg))] text-[hsl(var(--badge-warn-fg))]',
-  dotClassName: 'bg-[hsl(var(--badge-warn-icon))]',
+const EMERALD_STYLE: StatusStyle = {
+  className: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700',
+  dotClassName: 'bg-emerald-600',
 };
 
-const ACTIVE_STYLE: StatusStyle = {
-  className: 'border-border bg-secondary text-secondary-foreground',
+const GOLD_STYLE: StatusStyle = {
+  className: 'border-amber-500/30 bg-amber-500/[0.12] text-amber-800',
+  dotClassName: 'bg-amber-600',
+};
+
+const NAVY_STYLE: StatusStyle = {
+  className: 'border-primary/20 bg-primary/[0.08] text-primary',
   dotClassName: 'bg-primary',
 };
 
-const COMPLETE_STYLE: StatusStyle = {
-  className: 'border-primary/30 bg-primary/10 text-primary',
-  dotClassName: 'bg-primary',
-};
-
-const MUTED_STYLE: StatusStyle = {
-  className: 'border-border bg-muted text-muted-foreground',
-  dotClassName: 'bg-muted-foreground',
-};
-
-const QUIET_STYLE: StatusStyle = {
-  className: 'border-border bg-card text-muted-foreground',
-  dotClassName: 'bg-muted-foreground/70',
-};
-
-const DANGER_STYLE: StatusStyle = {
-  className: 'border-destructive/30 bg-destructive/10 text-destructive',
+const CRIMSON_STYLE: StatusStyle = {
+  className: 'border-destructive/25 bg-destructive/10 text-destructive',
   dotClassName: 'bg-destructive',
 };
 
+const MUTED_STYLE: StatusStyle = {
+  className: 'border-border bg-secondary/60 text-muted-foreground',
+  dotClassName: 'bg-muted-foreground/70',
+};
+
 const STATUS_STYLES: Record<string, StatusStyle> = {
-  SUBMITTED: ACTIVE_STYLE,
-  UNDER_REVIEW: WARN_STYLE,
-  APPROVED: ACTIVE_STYLE,
-  REJECTED: DANGER_STYLE,
-  IN_PROGRESS: WARN_STYLE,
-  COMPLETED: COMPLETE_STYLE,
+  SUBMITTED: NAVY_STYLE,
+  UNDER_REVIEW: GOLD_STYLE,
+  APPROVED: EMERALD_STYLE,
+  REJECTED: CRIMSON_STYLE,
+  OVERDUE: CRIMSON_STYLE,
+  IN_PROGRESS: GOLD_STYLE,
+  COMPLETED: EMERALD_STYLE,
   CLOSED: MUTED_STYLE,
-  REOPENED: WARN_STYLE,
-  PENDING_ASSIGNMENT: WARN_STYLE,
-  ASSIGNED: ACTIVE_STYLE,
-  CANCELLED: QUIET_STYLE,
-  OPEN: ACTIVE_STYLE,
-  MATCH_CONFIRMED: COMPLETE_STYLE,
-  CLAIM_UNDER_REVIEW: WARN_STYLE,
-  APPROVED_FOR_HANDOVER: COMPLETE_STYLE,
-  RETURNED: COMPLETE_STYLE,
-  PENDING_REVIEW: WARN_STYLE,
-  UNDER_VERIFICATION: WARN_STYLE,
-  SUGGESTED: WARN_STYLE,
-  CONFIRMED: COMPLETE_STYLE,
-  DISMISSED: QUIET_STYLE,
+  REOPENED: GOLD_STYLE,
+  PENDING_ASSIGNMENT: GOLD_STYLE,
+  ASSIGNED: NAVY_STYLE,
+  CANCELLED: MUTED_STYLE,
+  OPEN: NAVY_STYLE,
+  MATCH_CONFIRMED: EMERALD_STYLE,
+  CLAIM_UNDER_REVIEW: GOLD_STYLE,
+  APPROVED_FOR_HANDOVER: EMERALD_STYLE,
+  RETURNED: EMERALD_STYLE,
+  PENDING_REVIEW: GOLD_STYLE,
+  UNDER_VERIFICATION: GOLD_STYLE,
+  SUGGESTED: GOLD_STYLE,
+  CONFIRMED: EMERALD_STYLE,
+  DISMISSED: MUTED_STYLE,
 };
 
 interface StatusBadgeProps {
@@ -71,10 +66,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   useTranslation();
   const key = status.toUpperCase();
-  const style = STATUS_STYLES[key] ?? {
-    className: 'border-border bg-secondary text-secondary-foreground',
-    dotClassName: 'bg-muted-foreground',
-  };
+  const style = STATUS_STYLES[key] ?? NAVY_STYLE;
 
   return (
     <Badge variant="outline" className={cn('font-medium', style.className, className)}>

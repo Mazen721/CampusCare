@@ -9,44 +9,51 @@ interface DashboardPeriodSelectProps {
   value: DashboardPeriod;
   onChange: (period: DashboardPeriod) => void;
   className?: string;
-  selectClassName?: string;
 }
 
 export function DashboardPeriodSelect({
   value,
   onChange,
   className,
-  selectClassName,
 }: DashboardPeriodSelectProps) {
   const { t } = useTranslation();
 
-  const labels: Record<DashboardPeriod, string> = {
-    '7d': t('dashboard.period7d'),
-    '30d': t('dashboard.period30d'),
-    '90d': t('dashboard.period90d'),
-    all: t('common.all'),
+  const labels: Record<DashboardPeriod, { short: string; full: string }> = {
+    '7d': { short: t('dashboard.periodShort7d'), full: t('dashboard.period7d') },
+    '30d': { short: t('dashboard.periodShort30d'), full: t('dashboard.period30d') },
+    '90d': { short: t('dashboard.periodShort90d'), full: t('dashboard.period90d') },
+    all: { short: t('common.all'), full: t('common.all') },
   };
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <label htmlFor="dashboard-period" className="shrink-0 text-xs font-medium text-muted-foreground">
-        {t('dashboard.period')}
-      </label>
-      <select
-        id="dashboard-period"
-        value={value}
-        onChange={(event) => onChange(event.target.value as DashboardPeriod)}
-        className={cn(
-          'h-9 rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          selectClassName,
-        )}
-      >
-        {DASHBOARD_PERIODS.map((period) => (
-          <option key={period} value={period}>
-            {labels[period]}
-          </option>
-        ))}
-      </select>
+    <div
+      role="group"
+      aria-label={t('dashboard.period')}
+      className={cn(
+        'inline-flex h-9 items-center rounded-lg border border-border/80 bg-card p-1 text-xs shadow-xs',
+        className,
+      )}
+    >
+      {DASHBOARD_PERIODS.map((period) => {
+        const active = value === period;
+        return (
+          <button
+            key={period}
+            type="button"
+            aria-pressed={active}
+            aria-label={labels[period].full}
+            onClick={() => onChange(period)}
+            className={cn(
+              'rounded-md px-2.5 py-1 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              active
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {labels[period].short}
+          </button>
+        );
+      })}
     </div>
   );
 }

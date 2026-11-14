@@ -131,7 +131,7 @@ describe('Day 6 — demo seed (T067)', () => {
     expect(await ClaimRequest.countDocuments({})).toBe(5);
     expect(await Notification.countDocuments({})).toBe(9);
     expect(await ActivityLog.countDocuments({})).toBe(12);
-    expect(await AiInsightCache.countDocuments({})).toBe(1);
+    expect(await AiInsightCache.countDocuments({})).toBe(4);
   });
 
   it('seeds demo numbers separately and leaves counters zeroed', async () => {

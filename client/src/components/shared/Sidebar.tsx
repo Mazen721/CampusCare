@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react';
+import { LogOut, PanelLeftClose } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { BrandMark } from '@/components/shared/BrandMark';
@@ -12,9 +12,10 @@ import { cn, getInitials } from '@/lib/utils';
 
 interface SidebarContentProps {
   onNavigate?: () => void;
+  onCollapse?: () => void;
 }
 
-export function SidebarContent({ onNavigate }: SidebarContentProps) {
+export function SidebarContent({ onNavigate, onCollapse }: SidebarContentProps) {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
 
@@ -25,8 +26,19 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-5">
+      <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-sidebar-border px-5">
         <BrandMark inverted portal={isMnuPortal} />
+        {onCollapse ? (
+          <button
+            type="button"
+            onClick={onCollapse}
+            aria-label={t('nav.collapseSidebar')}
+            title={t('nav.collapseSidebar')}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sidebar-muted transition-colors hover:bg-white/[0.08] hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mnu-gold))] focus-visible:ring-offset-0"
+          >
+            <PanelLeftClose className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-2 border-b border-sidebar-border px-5 py-3.5">

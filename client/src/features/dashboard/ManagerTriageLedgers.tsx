@@ -1,31 +1,23 @@
-import type { LucideIcon } from 'lucide-react';
-import {
-  CheckCircle2,
-  ChevronRight,
-  ClipboardCheck,
-  Inbox,
-  TriangleAlert,
-  Wrench,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import type { TFunction } from 'i18next';
+import { CheckCircle2, Inbox, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorState } from '@/components/shared/ErrorState';
+import { LoadingState } from '@/components/shared/LoadingState';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Badge } from '@/components/ui/badge';
-import { PortalLedgerCard } from '@/features/dashboard/PortalLedgerCard';
-import { PortalLedgerRow } from '@/features/dashboard/PortalLedgerRow';
 import { PortalViewAllLink } from '@/features/dashboard/PortalViewAllLink';
 import { requestsApi } from '@/features/maintenance/requests/requestsApi';
 import { workOrdersApi } from '@/features/maintenance/work-orders/workOrdersApi';
-import { formatLocation, tr } from '@/i18n/localize';
+import { pickLang, tr } from '@/i18n/localize';
 import { getErrorMessage } from '@/lib/api';
-import { enumLabel } from '@/lib/labels';
 import { cn, formatDate, formatNumber } from '@/lib/utils';
 import type { ManagerMetrics } from '@/types/dashboard';
 import type { MaintenanceRequestRecord } from '@/types/maintenance';
-import type { Priority, RequestStatus } from '@/types/meta';
+import type { Priority } from '@/types/meta';
 import type { WorkOrderRecord } from '@/types/workOrders';
 
 const PRIORITY_RANK: Record<Priority, number> = {
@@ -35,11 +27,28 @@ const PRIORITY_RANK: Record<Priority, number> = {
   LOW: 3,
 };
 
-const REQUEST_STATUS_RANK: Partial<Record<RequestStatus, number>> = {
-  REOPENED: 0,
-  SUBMITTED: 1,
-  UNDER_REVIEW: 2,
-};
+type TriageTab = 'unassigned' | 'overdue';
+
+interface TriageRowItem {
+  id: string;
+  to: string;
+  title: string;
+  code: string;
+  building: string;
+  date: string;
+  priority: Priority;
+  status: string;
+  actionLabel: string;
+  usePriorityBadge: boolean;
+}
+
+interface HealthMetricItem {
+  key: string;
+  label: string;
+  value: string;
+  pct: number;
+  barClass: string;
+}
 
 function isWorkOrderOverdue(workOrder: WorkOrderRecord): boolean {
   if (workOrder.status === 'COMPLETED' || workOrder.status === 'CANCELLED') {
@@ -51,114 +60,407 @@ function isWorkOrderOverdue(workOrder: WorkOrderRecord): boolean {
   return new Date(workOrder.expectedCompletion).getTime() < Date.now();
 }
 
-function comparePendingRequests(a: MaintenanceRequestRecord, b: MaintenanceRequestRecord): number {
-  const priorityDiff = (PRIORITY_RANK[a.priority] ?? 4) - (PRIORITY_RANK[b.priority] ?? 4);
-  if (priorityDiff !== 0) return priorityDiff;
-
-  const statusDiff = (REQUEST_STATUS_RANK[a.status] ?? 3) - (REQUEST_STATUS_RANK[b.status] ?? 3);
-  if (statusDiff !== 0) return statusDiff;
-
-  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+function getBuildingLabel(
+  location: { buildingName: string; buildingNameAr?: string } | null | undefined,
+  fallback: string,
+): string {
+  if (!location) return fallback;
+  return pickLang(location.buildingName, location.buildingNameAr) || fallback;
 }
 
-function compareDispatchWorkOrders(a: WorkOrderRecord, b: WorkOrderRecord): number {
-  const overdueDiff = Number(isWorkOrderOverdue(b)) - Number(isWorkOrderOverdue(a));
-  if (overdueDiff !== 0) return overdueDiff;
-
-  const unassignedDiff =
-    Number(a.status !== 'PENDING_ASSIGNMENT') - Number(b.status !== 'PENDING_ASSIGNMENT');
-  if (unassignedDiff !== 0) return unassignedDiff;
-
-  const priorityDiff = (PRIORITY_RANK[a.priority] ?? 4) - (PRIORITY_RANK[b.priority] ?? 4);
-  if (priorityDiff !== 0) return priorityDiff;
-
-  if (a.expectedCompletion && b.expectedCompletion) {
-    return new Date(a.expectedCompletion).getTime() - new Date(b.expectedCompletion).getTime();
-  }
-  if (a.expectedCompletion) return -1;
-  if (b.expectedCompletion) return 1;
-
-  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+function comparePriorityAsc(a: Priority, b: Priority): number {
+  return (PRIORITY_RANK[a] ?? 4) - (PRIORITY_RANK[b] ?? 4);
 }
 
-interface ManagerSummaryStripProps {
-  to: string;
-  icon: LucideIcon;
-  label: string;
-  tone: 'gold' | 'danger' | 'neutral';
-  summary: ReactNode;
+function buildUnassignedRows(
+  workOrders: WorkOrderRecord[],
+  requests: MaintenanceRequestRecord[],
+  t: TFunction,
+): TriageRowItem[] {
+  const fallbackBuilding = t('common.none');
+
+  const workOrderRows: TriageRowItem[] = workOrders.map((wo) => ({
+    id: `wo-${wo.id}`,
+    to: `/work-orders/${wo.id}`,
+    title: tr(wo, 'title'),
+    code: wo.workOrderNumber,
+    building: getBuildingLabel(wo.location, fallbackBuilding),
+    date: wo.expectedCompletion ?? wo.createdAt,
+    priority: wo.priority,
+    status: wo.status,
+    actionLabel: t('dashboard.actionAssign'),
+    usePriorityBadge: wo.priority === 'CRITICAL' || wo.priority === 'HIGH',
+  }));
+
+  const requestRows: TriageRowItem[] = requests.map((req) => ({
+    id: `req-${req.id}`,
+    to: `/maintenance/requests/${req.id}`,
+    title: tr(req, 'title'),
+    code: req.requestNumber,
+    building: getBuildingLabel(req.location, fallbackBuilding),
+    date: req.createdAt,
+    priority: req.priority,
+    status: req.status,
+    actionLabel: t('dashboard.actionReview'),
+    usePriorityBadge: req.priority === 'CRITICAL' || req.priority === 'HIGH',
+  }));
+
+  return [...workOrderRows, ...requestRows]
+    .sort((a, b) => {
+      const priorityDiff = comparePriorityAsc(a.priority, b.priority);
+      if (priorityDiff !== 0) return priorityDiff;
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    })
+    .slice(0, 5);
 }
 
-function ManagerSummaryStrip({
-  to,
-  icon: Icon,
+function buildOverdueRows(workOrders: WorkOrderRecord[], t: TFunction): TriageRowItem[] {
+  const fallbackBuilding = t('common.none');
+
+  return workOrders.slice(0, 5).map((wo) => ({
+    id: `overdue-${wo.id}`,
+    to: `/work-orders/${wo.id}`,
+    title: tr(wo, 'title'),
+    code: wo.workOrderNumber,
+    building: getBuildingLabel(wo.location, fallbackBuilding),
+    date: wo.expectedCompletion ?? wo.createdAt,
+    priority: wo.priority,
+    status: 'OVERDUE',
+    actionLabel: t('dashboard.actionInspect'),
+    usePriorityBadge: false,
+  }));
+}
+
+function buildHealthBreakdown(metrics: ManagerMetrics, t: TFunction): HealthMetricItem[] {
+  const totalWorkOrders = metrics.activeWorkOrders + metrics.completedWorkOrders;
+  const openAndCompleted = Math.max(totalWorkOrders, metrics.overdueWorkOrders);
+  const onTimeSlaPct =
+    openAndCompleted > 0
+      ? Math.max(
+          0,
+          Math.round(((openAndCompleted - metrics.overdueWorkOrders) / openAndCompleted) * 100),
+        )
+      : 0;
+
+  const resolvedRequests =
+    metrics.requestsByStatus.COMPLETED + metrics.requestsByStatus.CLOSED;
+  const resolutionRatePct =
+    metrics.totalRequests > 0 ? Math.round((resolvedRequests / metrics.totalRequests) * 100) : 0;
+  const woCompletionPct =
+    totalWorkOrders > 0 ? Math.round((metrics.completedWorkOrders / totalWorkOrders) * 100) : 0;
+  const serviceRatingPct =
+    metrics.feedback.averageRating !== null
+      ? Math.round((metrics.feedback.averageRating / 5) * 100)
+      : 0;
+
+  const slaBarTone =
+    onTimeSlaPct >= 85
+      ? 'bg-emerald-600'
+      : onTimeSlaPct >= 60
+        ? 'bg-amber-600'
+        : 'bg-destructive';
+
+  return [
+    {
+      key: 'sla',
+      label: t('dashboard.onTimeSlaRate'),
+      value: `${formatNumber(onTimeSlaPct)}%`,
+      pct: onTimeSlaPct,
+      barClass: slaBarTone,
+    },
+    {
+      key: 'resolution',
+      label: t('dashboard.resolutionRate'),
+      value: `${formatNumber(resolutionRatePct)}%`,
+      pct: resolutionRatePct,
+      barClass: 'bg-primary',
+    },
+    {
+      key: 'completion',
+      label: t('dashboard.workOrderCompletionRate'),
+      value: `${formatNumber(woCompletionPct)}%`,
+      pct: woCompletionPct,
+      barClass: 'bg-emerald-600',
+    },
+    {
+      key: 'quality',
+      label: t('dashboard.serviceQuality'),
+      value:
+        metrics.feedback.averageRating !== null
+          ? `${formatNumber(metrics.feedback.averageRating, {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            })} / 5`
+          : t('dashboard.noRatingYet'),
+      pct: serviceRatingPct,
+      barClass: 'bg-amber-600',
+    },
+  ];
+}
+
+function TriageTabButton({
+  selected,
   label,
-  tone,
-  summary,
-}: ManagerSummaryStripProps) {
+  count,
+  alertTone = false,
+  onClick,
+}: {
+  selected: boolean;
+  label: string;
+  count: number;
+  alertTone?: boolean;
+  onClick: () => void;
+}) {
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-border/75 pb-3 text-xs">
-      <Link
-        to={to}
+    <button
+      type="button"
+      role="tab"
+      aria-selected={selected}
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        selected ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      <span>{label}</span>
+      <span
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          tone === 'danger'
-            ? 'border-destructive/35 bg-destructive/10 font-semibold text-destructive hover:border-destructive'
-            : tone === 'gold'
-              ? 'border-[hsl(var(--mnu-gold)/0.6)] bg-[hsl(var(--mnu-gold-tint))] font-semibold text-[hsl(var(--mnu-navy))] hover:border-[hsl(var(--mnu-gold))]'
-              : 'border-border bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
+          alertTone ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-foreground',
         )}
       >
-        <Icon
-          className={cn(
-            'h-3.5 w-3.5 shrink-0',
-            tone === 'danger'
-              ? 'text-destructive'
-              : tone === 'gold'
-                ? 'text-[hsl(var(--mnu-gold-ink))]'
-                : 'text-muted-foreground',
-          )}
-          aria-hidden="true"
+        {formatNumber(count)}
+      </span>
+    </button>
+  );
+}
+
+function TriageLedgerRow({ item }: { item: TriageRowItem }) {
+  return (
+    <li className="flex flex-col gap-3 px-6 py-4 transition-colors hover:bg-secondary/35 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1 space-y-1">
+        <p dir="auto" className="truncate text-sm font-semibold text-foreground">
+          {item.title}
+        </p>
+        <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span dir="ltr" className="font-mono font-medium tabular-nums">
+            {item.code}
+          </span>
+          <span aria-hidden="true">•</span>
+          <bdi className="truncate">{item.building}</bdi>
+          <span aria-hidden="true">•</span>
+          <span className="tabular-nums">{formatDate(item.date)}</span>
+        </p>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2.5">
+        {item.usePriorityBadge ? (
+          <PriorityBadge priority={item.priority} />
+        ) : (
+          <StatusBadge status={item.status} />
+        )}
+        <Link
+          to={item.to}
+          className="inline-flex h-8 items-center rounded-lg border border-border/80 bg-card px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {item.actionLabel}
+        </Link>
+      </div>
+    </li>
+  );
+}
+
+function TriageQueuePanel({
+  activeTab,
+  onTabChange,
+  unassignedTotal,
+  overdueTotal,
+  rows,
+  isLoading,
+  activeError,
+  onRetry,
+}: {
+  activeTab: TriageTab;
+  onTabChange: (tab: TriageTab) => void;
+  unassignedTotal: number;
+  overdueTotal: number;
+  rows: TriageRowItem[];
+  isLoading: boolean;
+  activeError: string | null;
+  onRetry: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex min-w-0 flex-col rounded-xl border border-border/80 bg-card shadow-xs lg:col-span-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/75 px-6 py-4">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold tracking-[-0.01em] text-foreground">
+            {t('dashboard.triageQueueTitle')}
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t('dashboard.triageQueueDesc')}
+          </p>
+        </div>
+
+        <div
+          role="tablist"
+          aria-label={t('dashboard.triageQueueTitle')}
+          className="inline-flex rounded-lg border border-border/80 bg-secondary/50 p-1 text-xs"
+        >
+          <TriageTabButton
+            selected={activeTab === 'unassigned'}
+            label={t('dashboard.unassignedQueueTab')}
+            count={unassignedTotal}
+            onClick={() => onTabChange('unassigned')}
+          />
+          <TriageTabButton
+            selected={activeTab === 'overdue'}
+            label={t('dashboard.overdueEscalationsTab')}
+            count={overdueTotal}
+            alertTone={overdueTotal > 0}
+            onClick={() => onTabChange('overdue')}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col">
+        {isLoading ? (
+          <LoadingState
+            label={t('common.loading')}
+            className="min-h-[240px] flex-1 border-0 bg-transparent px-6 py-8"
+          />
+        ) : activeError ? (
+          <ErrorState
+            message={activeError}
+            onRetry={onRetry}
+            className="min-h-[240px] flex-1 border-0 bg-transparent px-6 py-8"
+          />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title={
+              activeTab === 'unassigned'
+                ? t('dashboard.noUnassignedQueueTitle')
+                : t('dashboard.noOverdueEscalationsTitle')
+            }
+            description={
+              activeTab === 'unassigned'
+                ? t('dashboard.noUnassignedQueueDesc')
+                : t('dashboard.noOverdueEscalationsDesc')
+            }
+            icon={activeTab === 'unassigned' ? Inbox : CheckCircle2}
+            className="min-h-[240px] flex-1 border-0 bg-transparent px-6 py-8"
+          />
+        ) : (
+          <ul className="divide-y divide-border/75">
+            {rows.map((item) => (
+              <TriageLedgerRow key={item.id} item={item} />
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between border-t border-border/75 px-6 py-3">
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {activeTab === 'unassigned'
+            ? t('dashboard.awaitingReviewCount', { count: formatNumber(unassignedTotal) })
+            : t('dashboard.overdueCountPill', { count: formatNumber(overdueTotal) })}
+        </span>
+        <PortalViewAllLink
+          to={activeTab === 'unassigned' ? '/maintenance/request-queue' : '/work-orders'}
+          label={t('common.viewAll')}
         />
-        <span className="tabular-nums">{label}</span>
-        <ChevronRight className="h-3.5 w-3.5 opacity-75 rtl:rotate-180" aria-hidden="true" />
-      </Link>
-      <span className="tabular-nums text-muted-foreground">{summary}</span>
+      </div>
     </div>
   );
 }
 
-interface ManagerTriageLedgersProps {
-  metrics: ManagerMetrics;
+function SlaHealthPanel({ metrics }: { metrics: ManagerMetrics }) {
+  const { t } = useTranslation();
+  const healthBreakdown = buildHealthBreakdown(metrics, t);
+
+  return (
+    <div className="flex min-w-0 flex-col justify-between rounded-xl border border-border/80 bg-card p-6 shadow-xs lg:col-span-4">
+      <div className="space-y-5">
+        <div className="border-b border-border/75 pb-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold tracking-[-0.01em] text-foreground">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>{t('dashboard.slaHealthTitle')}</span>
+          </h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {t('dashboard.slaHealthDesc')}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {healthBreakdown.map((metric) => (
+            <div key={metric.key} className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="font-medium text-foreground">{metric.label}</span>
+                <span className="shrink-0 font-semibold tabular-nums text-muted-foreground">
+                  {metric.value}
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className={cn('h-full rounded-full transition-[width] duration-200', metric.barClass)}
+                  style={{ width: `${Math.max(0, Math.min(100, metric.pct))}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-border/80 bg-secondary/45 px-4 py-3 text-xs">
+        <span className="flex items-center gap-1.5 font-medium text-muted-foreground">
+          <TriangleAlert
+            className={cn(
+              'h-3.5 w-3.5 shrink-0',
+              metrics.overdueWorkOrders > 0 ? 'text-destructive' : 'text-emerald-600',
+            )}
+            aria-hidden="true"
+          />
+          <span>{t('dashboard.overdue')}</span>
+        </span>
+        <span
+          className={cn(
+            'font-bold tabular-nums',
+            metrics.overdueWorkOrders > 0 ? 'text-destructive' : 'text-emerald-700',
+          )}
+        >
+          {formatNumber(metrics.overdueWorkOrders)}
+        </span>
+      </div>
+    </div>
+  );
 }
 
 /**
- * Live two-column operational triage ledgers pairing incoming/reopened requests
- * awaiting review with overdue, unassigned, and active work orders.
+ * Spacious 12-column Bento workspace pairing a tabbed triage/escalation ledger (8 cols)
+ * with an SLA Health & Resolution Rate breakdown card (4 cols).
  */
-export function ManagerTriageLedgers({ metrics }: ManagerTriageLedgersProps) {
+export function ManagerTriageLedgers({ metrics }: { metrics: ManagerMetrics }) {
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<TriageTab>('unassigned');
 
   const requestsQuery = useQuery({
     queryKey: ['maintenance-requests', 'manager-dashboard-triage'],
     queryFn: async () => {
       const [submitted, reopened, underReview] = await Promise.all([
-        requestsApi.list({ status: 'SUBMITTED', limit: 5 }),
-        requestsApi.list({ status: 'REOPENED', limit: 5 }),
-        requestsApi.list({ status: 'UNDER_REVIEW', limit: 5 }),
+        requestsApi.list({ status: 'SUBMITTED', limit: 6 }),
+        requestsApi.list({ status: 'REOPENED', limit: 6 }),
+        requestsApi.list({ status: 'UNDER_REVIEW', limit: 6 }),
       ]);
 
-      const merged = new Map<string, MaintenanceRequestRecord>();
+      const merged = new Map<string, (typeof submitted.data)[number]>();
       [...reopened.data, ...submitted.data, ...underReview.data].forEach((request) => {
         merged.set(request.id, request);
       });
 
-      const items = [...merged.values()].sort(comparePendingRequests).slice(0, 5);
-
       return {
-        items,
-        totalPending: submitted.total + reopened.total + underReview.total,
-        reopenedTotal: reopened.total,
+        items: [...merged.values()],
+        total: submitted.total + reopened.total + underReview.total,
       };
     },
   });
@@ -167,223 +469,78 @@ export function ManagerTriageLedgers({ metrics }: ManagerTriageLedgersProps) {
     queryKey: ['work-orders', 'manager-dashboard-dispatch'],
     queryFn: async () => {
       const [pendingAssignment, assigned, inProgress] = await Promise.all([
-        workOrdersApi.list({ status: 'PENDING_ASSIGNMENT', limit: 8 }),
+        workOrdersApi.list({ status: 'PENDING_ASSIGNMENT', limit: 10 }),
         workOrdersApi.list({ status: 'ASSIGNED', limit: 15 }),
         workOrdersApi.list({ status: 'IN_PROGRESS', limit: 15 }),
       ]);
 
-      const merged = new Map<string, WorkOrderRecord>();
+      const allOpen = new Map<string, WorkOrderRecord>();
       [...pendingAssignment.data, ...assigned.data, ...inProgress.data].forEach((wo) => {
-        merged.set(wo.id, wo);
+        allOpen.set(wo.id, wo);
       });
 
-      const items = [...merged.values()].sort(compareDispatchWorkOrders).slice(0, 5);
+      const overdue = [...allOpen.values()]
+        .filter(isWorkOrderOverdue)
+        .sort((a, b) => {
+          const priorityDiff = comparePriorityAsc(a.priority, b.priority);
+          if (priorityDiff !== 0) return priorityDiff;
+          return (
+            new Date(a.expectedCompletion ?? a.createdAt).getTime() -
+            new Date(b.expectedCompletion ?? b.createdAt).getTime()
+          );
+        });
 
       return {
-        items,
+        unassigned: pendingAssignment.data,
         unassignedTotal: pendingAssignment.total,
+        overdue,
       };
     },
   });
 
-  const pendingRequests = requestsQuery.data?.items ?? [];
-  const livePendingTotal = requestsQuery.data?.totalPending ?? 0;
-  const liveReopenedTotal = requestsQuery.data?.reopenedTotal ?? 0;
+  const unassignedRows = buildUnassignedRows(
+    workOrdersQuery.data?.unassigned ?? [],
+    requestsQuery.data?.items ?? [],
+    t,
+  );
+  const overdueRows = buildOverdueRows(workOrdersQuery.data?.overdue ?? [], t);
 
-  const dispatchWorkOrders = workOrdersQuery.data?.items ?? [];
-  const unassignedTotal = workOrdersQuery.data?.unassignedTotal ?? 0;
+  const unassignedTotal =
+    (requestsQuery.data?.total ?? 0) + (workOrdersQuery.data?.unassignedTotal ?? 0);
+  const overdueTotal = Math.max(
+    metrics.overdueWorkOrders,
+    workOrdersQuery.data?.overdue.length ?? 0,
+  );
+
+  const isLoading =
+    activeTab === 'unassigned'
+      ? requestsQuery.isLoading || workOrdersQuery.isLoading
+      : workOrdersQuery.isLoading;
 
   const requestsError = requestsQuery.error ? getErrorMessage(requestsQuery.error) : null;
   const workOrdersError = workOrdersQuery.error ? getErrorMessage(workOrdersQuery.error) : null;
-
-  const dispatchTone: 'danger' | 'gold' | 'neutral' =
-    metrics.overdueWorkOrders > 0
-      ? 'danger'
-      : unassignedTotal > 0
-        ? 'gold'
-        : 'neutral';
-
-  const dispatchPillLabel =
-    metrics.overdueWorkOrders > 0
-      ? t('dashboard.overdueCountPill', { count: formatNumber(metrics.overdueWorkOrders) })
-      : unassignedTotal > 0
-        ? t('dashboard.unassignedCountSummary', { count: formatNumber(unassignedTotal) })
-        : t('dashboard.overdueCountPill', { count: formatNumber(0) });
-
-  const dispatchPillTo =
-    metrics.overdueWorkOrders === 0 && unassignedTotal > 0
-      ? '/work-orders?status=PENDING_ASSIGNMENT'
-      : '/work-orders';
-
-  const dispatchPillIcon =
-    metrics.overdueWorkOrders > 0
-      ? TriangleAlert
-      : unassignedTotal > 0
-        ? ClipboardCheck
-        : CheckCircle2;
+  const activeError =
+    activeTab === 'unassigned' ? (requestsError ?? workOrdersError) : workOrdersError;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
-      <PortalLedgerCard
-        title={t('dashboard.pendingRequestQueueTitle')}
-        description={t('dashboard.pendingRequestQueueDesc')}
-        icon={Inbox}
-        headerAction={
-          <PortalViewAllLink to="/maintenance/request-queue" label={t('common.viewAll')} />
-        }
-        subHeader={
-          <ManagerSummaryStrip
-            to="/maintenance/request-queue"
-            icon={Inbox}
-            tone={livePendingTotal > 0 ? 'gold' : 'neutral'}
-            label={t('dashboard.awaitingReviewCount', {
-              count: formatNumber(livePendingTotal),
-            })}
-            summary={
-              <>
-                {liveReopenedTotal > 0 ? (
-                  <>
-                    <strong className="font-semibold text-foreground">
-                      {t('dashboard.reopenedCountSummary', {
-                        count: formatNumber(liveReopenedTotal),
-                      })}
-                    </strong>
-                    {' · '}
-                  </>
-                ) : null}
-                {t('dashboard.managerTotalRequestsHint', {
-                  total: formatNumber(metrics.totalRequests),
-                })}
-              </>
-            }
-          />
-        }
-        isLoading={requestsQuery.isLoading}
-        loadingLabel={t('common.loading')}
-        error={requestsError}
-        onRetry={() => void requestsQuery.refetch()}
-        isEmpty={pendingRequests.length === 0}
-        emptyTitle={t('requests.queueClearTitle')}
-        emptyDescription={t('dashboard.noPendingRequestsDesc')}
-        emptyIcon={Inbox}
-        emptyAction={{
-          label: t('dashboard.viewAllRequests'),
-          to: '/maintenance/requests',
+    <section
+      aria-label={t('dashboard.triageQueueTitle')}
+      className="grid gap-6 lg:grid-cols-12"
+    >
+      <TriageQueuePanel
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        unassignedTotal={unassignedTotal}
+        overdueTotal={overdueTotal}
+        rows={activeTab === 'unassigned' ? unassignedRows : overdueRows}
+        isLoading={isLoading}
+        activeError={activeError}
+        onRetry={() => {
+          void requestsQuery.refetch();
+          void workOrdersQuery.refetch();
         }}
-      >
-        <ul className="divide-y divide-border/75">
-          {pendingRequests.map((request) => (
-            <PortalLedgerRow
-              key={request.id}
-              to={`/maintenance/requests/${request.id}`}
-              title={tr(request, 'title')}
-              code={request.requestNumber}
-              metaItems={
-                [
-                  tr(request.requester, 'name'),
-                  enumLabel('maintenanceCategory', request.category),
-                ].filter(Boolean) as string[]
-              }
-              date={request.createdAt}
-              location={request.location ? formatLocation(request.location) : undefined}
-              badges={
-                <>
-                  <StatusBadge status={request.status} />
-                  <PriorityBadge priority={request.priority} />
-                </>
-              }
-            />
-          ))}
-        </ul>
-      </PortalLedgerCard>
-
-      <PortalLedgerCard
-        title={t('dashboard.workOrderDispatchTitle')}
-        description={t('dashboard.workOrderDispatchDesc')}
-        icon={Wrench}
-        headerAction={<PortalViewAllLink to="/work-orders" label={t('common.viewAll')} />}
-        subHeader={
-          <ManagerSummaryStrip
-            to={dispatchPillTo}
-            icon={dispatchPillIcon}
-            tone={dispatchTone}
-            label={dispatchPillLabel}
-            summary={
-              <>
-                {metrics.overdueWorkOrders > 0 && unassignedTotal > 0 ? (
-                  <>
-                    <strong className="font-semibold text-foreground">
-                      {t('dashboard.unassignedCountSummary', {
-                        count: formatNumber(unassignedTotal),
-                      })}
-                    </strong>
-                    {' · '}
-                  </>
-                ) : null}
-                {t('dashboard.activeTechniciansSummary', {
-                  count: formatNumber(metrics.technicianWorkload.length),
-                })}
-              </>
-            }
-          />
-        }
-        isLoading={workOrdersQuery.isLoading}
-        loadingLabel={t('common.loading')}
-        error={workOrdersError}
-        onRetry={() => void workOrdersQuery.refetch()}
-        isEmpty={dispatchWorkOrders.length === 0}
-        emptyTitle={t('dashboard.noActiveDispatchTitle')}
-        emptyDescription={t('dashboard.managerNoDispatchDesc')}
-        emptyIcon={Wrench}
-        emptyAction={{
-          label: t('nav.workOrders'),
-          to: '/work-orders',
-        }}
-      >
-        <ul className="divide-y divide-border/75">
-          {dispatchWorkOrders.map((workOrder) => {
-            const overdue = isWorkOrderOverdue(workOrder);
-            const assignee =
-              tr(workOrder.assignedTechnician, 'name') || t('workOrders.unassigned');
-            const categoryLabel = enumLabel('maintenanceCategory', workOrder.category);
-            const metaItems = workOrder.expectedCompletion
-              ? [
-                  assignee,
-                  categoryLabel,
-                  t('dashboard.dueByLabel', {
-                    date: formatDate(workOrder.expectedCompletion),
-                  }),
-                ]
-              : [assignee, categoryLabel];
-
-            return (
-              <PortalLedgerRow
-                key={workOrder.id}
-                to={`/work-orders/${workOrder.id}`}
-                title={tr(workOrder, 'title')}
-                code={workOrder.workOrderNumber}
-                metaItems={metaItems}
-                date={workOrder.expectedCompletion ? undefined : workOrder.createdAt}
-                location={workOrder.location ? formatLocation(workOrder.location) : undefined}
-                badges={
-                  <>
-                    {overdue ? (
-                      <Badge
-                        variant="outline"
-                        className="shrink-0 border-destructive/40 bg-destructive/10 font-semibold text-destructive ltr:uppercase ltr:tracking-wide"
-                      >
-                        {t('common.overdue')}
-                      </Badge>
-                    ) : null}
-                    <StatusBadge status={workOrder.status} />
-                    <PriorityBadge priority={workOrder.priority} />
-                  </>
-                }
-              />
-            );
-          })}
-        </ul>
-      </PortalLedgerCard>
-    </div>
+      />
+      <SlaHealthPanel metrics={metrics} />
+    </section>
   );
 }

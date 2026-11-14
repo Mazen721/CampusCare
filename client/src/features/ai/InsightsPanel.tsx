@@ -1,4 +1,4 @@
-import { RefreshCw, Sparkles, TriangleAlert } from 'lucide-react';
+import { RefreshCw, Sparkles, TriangleAlert, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,35 +10,44 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getErrorMessage } from '@/lib/api';
-import { formatDate, formatNumber } from '@/lib/utils';
+import { cn, formatDate, formatNumber } from '@/lib/utils';
 import type { InsightStats, MaintenanceInsightsResponse } from '@/types/insights';
 
 function formatDateTime(value: string): string {
   return formatDate(value, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-function StatBlock({
-  label,
-  value,
-  className = '',
-}: {
+interface PulseTileProps {
   label: string;
   value: string | number;
-  className?: string;
-}) {
+  note?: string;
+  tone?: 'default' | 'danger' | 'emerald' | 'gold';
+}
+
+function PulseTile({ label, value, note, tone = 'default' }: PulseTileProps) {
+  const valueColor =
+    tone === 'danger'
+      ? 'text-destructive'
+      : tone === 'emerald'
+        ? 'text-emerald-700'
+        : tone === 'gold'
+          ? 'text-amber-800'
+          : 'text-foreground';
+
   return (
-    <div className={`bg-background px-3.5 py-2.5 ${className}`}>
-      <p className="text-[11px] font-medium text-muted-foreground ltr:uppercase ltr:tracking-[0.08em]">
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-bold leading-tight tabular-nums text-foreground">
+    <div className="rounded-lg bg-secondary/45 px-4 py-3">
+      <p className="truncate text-xs font-medium text-muted-foreground">{label}</p>
+      <p className={cn('mt-1.5 text-xl font-bold leading-none tabular-nums', valueColor)}>
         {typeof value === 'number' ? formatNumber(value) : value}
       </p>
+      {note ? (
+        <p className="mt-1.5 truncate text-xs tabular-nums text-muted-foreground">{note}</p>
+      ) : null}
     </div>
   );
 }
 
-function StatsGrid({
+function ExecutivePulseStrip({
   stats,
   scope = 'maintenance',
 }: {
@@ -50,35 +59,49 @@ function StatsGrid({
   if (scope === 'admin' && stats.users && stats.maintenance && stats.lostFound) {
     const { users, maintenance, lostFound } = stats;
     const duePlansCount = maintenance.duePreventivePlans?.length ?? 0;
+    const pendingTriageCount =
+      lostFound.pendingMatchesCount +
+      lostFound.pendingClaimsCount +
+      lostFound.claimsAwaitingHandover;
 
     return (
-      <div className="space-y-2.5">
-        <p className="text-[11px] font-semibold text-muted-foreground ltr:uppercase ltr:tracking-[0.12em]">
-          {t('ai.systemStats')}
-        </p>
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/80 bg-border/75 sm:grid-cols-5">
-          <StatBlock
-            label={t('ai.activeAccounts')}
-            value={`${users.active} / ${users.total}`}
-          />
-          <StatBlock
-            label={t('ai.openBacklog')}
-            value={`${maintenance.openBacklog} (${maintenance.requestsInPeriod})`}
-          />
-          <StatBlock
-            label={t('ai.overdueWorkOrders')}
-            value={`${maintenance.overdueWorkOrders} · ${duePlansCount} ${t('ai.duePreventivePlans')}`}
-          />
-          <StatBlock
-            label={t('ai.openLostFound')}
-            value={lostFound.openLostItems + lostFound.openFoundItems}
-          />
-          <StatBlock
-            className="col-span-2 sm:col-span-1"
-            label={t('ai.pendingMatchesClaims')}
-            value={`${lostFound.pendingMatchesCount} / ${lostFound.pendingClaimsCount + lostFound.claimsAwaitingHandover}`}
-          />
-        </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <PulseTile
+          label={t('ai.activeAccounts')}
+          value={`${formatNumber(users.active)} / ${formatNumber(users.total)}`}
+          note={t('dashboard.adminFieldTechniciansHint', {
+            count: formatNumber(users.technicians),
+          })}
+        />
+        <PulseTile
+          label={t('ai.openBacklog')}
+          value={maintenance.openBacklog}
+          note={
+            maintenance.overdueWorkOrders > 0
+              ? t('ai.overdueCountInline', {
+                  count: formatNumber(maintenance.overdueWorkOrders),
+                })
+              : t('ai.allClear')
+          }
+          tone={maintenance.overdueWorkOrders > 0 ? 'danger' : 'default'}
+        />
+        <PulseTile
+          label={t('ai.duePlansShort')}
+          value={duePlansCount}
+          note={duePlansCount > 0 ? t('dashboard.pendingReview') : t('ai.onSchedule')}
+          tone={duePlansCount > 0 ? 'gold' : 'emerald'}
+        />
+        <PulseTile
+          label={t('ai.pendingMatchesClaims')}
+          value={pendingTriageCount}
+          note={t('ai.matchesAndClaimsSplit', {
+            matches: formatNumber(lostFound.pendingMatchesCount),
+            claims: formatNumber(
+              lostFound.pendingClaimsCount + lostFound.claimsAwaitingHandover,
+            ),
+          })}
+          tone={pendingTriageCount > 0 ? 'gold' : 'emerald'}
+        />
       </div>
     );
   }
@@ -86,100 +109,27 @@ function StatsGrid({
   const requests = stats.requests;
   const workOrders = stats.workOrders;
   const change = requests?.changePercent;
+  const overdueCount = workOrders?.overdue ?? 0;
 
   return (
-    <div className="space-y-2">
-      <p className="text-[11px] font-semibold text-muted-foreground ltr:uppercase ltr:tracking-[0.12em]">
-        {t('ai.systemStats')}
-      </p>
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/80 bg-border/75 sm:grid-cols-5">
-        <StatBlock label={t('dashboard.requests')} value={requests?.total ?? '—'} />
-        <StatBlock
-          label={t('ai.changeVsPrevious')}
-          value={change === undefined ? '—' : `${change > 0 ? '+' : ''}${change}%`}
-        />
-        <StatBlock label={t('ai.openBacklog')} value={requests?.openBacklog ?? '—'} />
-        <StatBlock label={t('ai.activeWorkOrders')} value={workOrders?.active ?? '—'} />
-        <StatBlock
-          className="col-span-2 sm:col-span-1"
-          label={t('ai.overdueWorkOrders')}
-          value={workOrders?.overdue ?? '—'}
-        />
-      </div>
-    </div>
-  );
-}
-
-function AdminOperationalSnapshot({ stats }: { stats: InsightStats }) {
-  const { t } = useTranslation();
-  const claims = stats.lostFound?.activeClaims ?? [];
-  const matches = stats.lostFound?.suggestedMatches ?? [];
-  const overdueWOs = stats.maintenance?.overdueDetails ?? [];
-  const duePlans = stats.maintenance?.duePreventivePlans ?? [];
-  const roster = stats.users?.technicianRoster ?? [];
-
-  if (
-    claims.length === 0 &&
-    matches.length === 0 &&
-    overdueWOs.length === 0 &&
-    duePlans.length === 0 &&
-    roster.length === 0
-  ) {
-    return null;
-  }
-
-  return (
-    <div className="space-y-2">
-      <p className="text-[11px] font-semibold text-muted-foreground ltr:uppercase ltr:tracking-[0.12em]">
-        {t('ai.platformHighlights')}
-      </p>
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="min-w-0 rounded-lg border border-border/75 bg-secondary/35 p-3">
-          <p className="text-xs font-semibold text-foreground">
-            {t('ai.overdueAndPreventiveWatch')}
-          </p>
-          <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-            {overdueWOs.slice(0, 3).map((wo) => (
-              <li key={wo.code} className="truncate">
-                <span className="font-medium text-foreground" dir="ltr">
-                  {wo.code}
-                </span>{' '}
-                · {wo.title} · {wo.technician} ({wo.location})
-              </li>
-            ))}
-            {duePlans.slice(0, 2).map((plan) => (
-              <li key={plan.title} className="truncate">
-                <span className="font-medium text-foreground">{plan.title}</span> ·{' '}
-                {plan.technician} ({plan.location})
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="min-w-0 rounded-lg border border-border/75 bg-secondary/35 p-3">
-          <p className="text-xs font-semibold text-foreground">
-            {t('ai.activeClaimsWatch')} & {t('ai.suggestedMatchesWatch')}
-          </p>
-          <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-            {claims.slice(0, 3).map((claim) => (
-              <li key={claim.code} className="truncate">
-                <span className="font-medium text-foreground" dir="ltr">
-                  {claim.code}
-                </span>{' '}
-                · {claim.itemTitle} · {claim.claimant} ({claim.status})
-              </li>
-            ))}
-            {matches.slice(0, 2).map((match, idx) => (
-              <li key={`${match.lostCode ?? idx}-${match.foundCode ?? idx}`} className="truncate">
-                <span className="font-medium text-foreground" dir="ltr">
-                  {match.lostCode} ↔ {match.foundCode}
-                </span>{' '}
-                · {match.lostTitle} ({match.score}%)
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <PulseTile
+        label={t('ai.requestsInPeriod')}
+        value={requests?.total ?? '—'}
+        note={
+          change === undefined
+            ? undefined
+            : `${t('ai.changeVsPrevious')}: ${change > 0 ? '+' : ''}${formatNumber(change)}%`
+        }
+      />
+      <PulseTile label={t('ai.openBacklog')} value={requests?.openBacklog ?? '—'} />
+      <PulseTile label={t('ai.activeWorkOrders')} value={workOrders?.active ?? '—'} />
+      <PulseTile
+        label={t('ai.overdueWorkOrders')}
+        value={overdueCount}
+        note={overdueCount > 0 ? t('dashboard.managerOverdueHint') : t('ai.allClear')}
+        tone={overdueCount > 0 ? 'danger' : 'emerald'}
+      />
     </div>
   );
 }
@@ -187,11 +137,13 @@ function AdminOperationalSnapshot({ stats }: { stats: InsightStats }) {
 interface InsightsPanelProps {
   defaultPeriod?: InsightsPeriod;
   scope?: 'maintenance' | 'admin';
+  onClose?: () => void;
 }
 
 export function InsightsPanel({
   defaultPeriod = '7d',
   scope = 'maintenance',
+  onClose,
 }: InsightsPanelProps) {
   const { t, i18n } = useTranslation();
   const [period, setPeriod] = useState<InsightsPeriod>(defaultPeriod);
@@ -235,57 +187,99 @@ export function InsightsPanel({
   const errorMessage = insightsQuery.error ? getErrorMessage(insightsQuery.error) : null;
 
   return (
-    <Card className="rounded-xl border-border bg-card shadow-none">
-      <CardHeader className="gap-4 border-b border-border/75 pb-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-[-0.01em] text-foreground">
-            <Sparkles className="h-4 w-4 shrink-0 text-[hsl(var(--badge-warn-icon))]" aria-hidden="true" />
-            {scope === 'admin' ? t('ai.adminInsightsTitle') : t('ai.insightsTitle')}
-          </CardTitle>
-          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-            {scope === 'admin'
-              ? t('ai.adminStatsCalculatedNotice')
-              : t('ai.statsCalculatedNotice')}
-          </p>
+    <Card className="relative overflow-hidden rounded-xl border-border/80 bg-card shadow-xs">
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[3px] bg-[hsl(var(--mnu-gold))]"
+      />
+
+      <CardHeader className="gap-4 border-b border-border/75 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/[0.12] text-amber-800">
+            <Sparkles className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <CardTitle className="text-base font-semibold tracking-[-0.01em] text-foreground">
+              {scope === 'admin' ? t('ai.adminInsightsTitle') : t('ai.insightsTitle')}
+            </CardTitle>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              {scope === 'admin' ? t('ai.adminBriefSubtitle') : t('ai.briefSubtitle')}
+            </p>
+          </div>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
-          <label htmlFor="insights-period" className="sr-only">
-            {t('dashboard.period')}
-          </label>
-          <select
-            id="insights-period"
-            value={period}
-            onChange={(event) => setPeriod(event.target.value as InsightsPeriod)}
-            className="h-9 rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <div
+            role="tablist"
+            aria-label={t('dashboard.period')}
+            className="inline-flex rounded-lg border border-border/80 bg-secondary/50 p-1 text-xs"
           >
-            {periods.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            {periods.map((option) => {
+              const selected = period === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setPeriod(option.value)}
+                  className={cn(
+                    'rounded-md px-2.5 py-1 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    selected
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+
           <Button
             variant="outline"
             size="sm"
             onClick={() => regenerate.mutate()}
             disabled={regenerate.isPending || insightsQuery.isLoading}
-            className="h-9 gap-1.5 border-border bg-card text-xs font-semibold text-foreground shadow-sm hover:border-[hsl(var(--badge-warn-border))] hover:bg-[hsl(var(--badge-warn-bg))] hover:text-foreground"
+            className="h-9 gap-1.5 rounded-lg border-border/80 bg-card text-xs font-semibold text-foreground hover:border-amber-500/40 hover:bg-amber-500/[0.08]"
           >
             <RefreshCw
               className={`h-3.5 w-3.5 ${regenerate.isPending ? 'animate-spin' : ''}`}
               aria-hidden="true"
             />
-            {t('ai.regenerate')}
+            <span>{t('ai.regenerate')}</span>
           </Button>
+
+          {onClose ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              aria-label={t('common.close')}
+              className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          ) : null}
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 p-5">
+      <CardContent className="space-y-6 p-6">
         {insightsQuery.isLoading ? (
-          <div className="space-y-3" aria-busy="true" aria-label={t('common.loading')}>
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
+          <div className="space-y-4" aria-busy="true" aria-label={t('common.loading')}>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Skeleton className="h-20 rounded-lg" />
+              <Skeleton className="h-20 rounded-lg" />
+              <Skeleton className="h-20 rounded-lg" />
+              <Skeleton className="h-20 rounded-lg" />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-36 rounded-xl" />
+            </div>
           </div>
         ) : errorMessage ? (
           <ErrorState
@@ -296,16 +290,15 @@ export function InsightsPanel({
           />
         ) : data ? (
           <>
-            <StatsGrid stats={data.stats} scope={scope} />
-            {scope === 'admin' ? <AdminOperationalSnapshot stats={data.stats} /> : null}
+            <ExecutivePulseStrip stats={data.stats} scope={scope} />
 
             {!data.available ? (
               <div
                 role="status"
-                className="flex items-start gap-2.5 rounded-lg border border-[hsl(var(--badge-warn-border)/0.6)] bg-[hsl(var(--badge-warn-bg))] px-3.5 py-3 text-sm text-[hsl(var(--badge-warn-fg))]"
+                className="flex items-start gap-2.5 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-sm text-foreground"
               >
                 <TriangleAlert
-                  className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--badge-warn-icon))]"
+                  className="mt-0.5 h-4 w-4 shrink-0 text-amber-700"
                   aria-hidden="true"
                 />
                 <div>
@@ -318,22 +311,22 @@ export function InsightsPanel({
             ) : null}
 
             {data.insights ? (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-[11px] font-semibold text-primary ltr:uppercase ltr:tracking-[0.12em]">
+                  <p className="text-xs font-semibold text-muted-foreground">
                     {data.available ? t('ai.insights') : t('ai.lastCachedInsight')}
                   </p>
                   {data.generatedAt ? (
                     <p className="text-xs tabular-nums text-muted-foreground">
-                      {formatDateTime(data.generatedAt)} ·{' '}
-                      {formatDate(data.rangeStart)} – {formatDate(data.rangeEnd)}
+                      {formatDateTime(data.generatedAt)} · {formatDate(data.rangeStart)} –{' '}
+                      {formatDate(data.rangeEnd)}
                     </p>
                   ) : null}
                 </div>
                 <InsightSections insights={data.insights} />
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
+              <p className="rounded-lg border border-dashed border-border/80 bg-secondary/30 px-4 py-6 text-center text-sm text-muted-foreground">
                 {t('ai.noCachedInsight')}
               </p>
             )}

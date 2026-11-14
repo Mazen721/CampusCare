@@ -6,24 +6,23 @@ import { cn } from '@/lib/utils';
 
 const PRIORITY_STYLES = {
   CRITICAL: {
-    className: 'border-destructive bg-destructive text-destructive-foreground',
-    iconClassName: '',
+    className: 'border-destructive/25 bg-destructive/10 text-destructive',
+    iconClassName: 'text-destructive',
     Icon: AlertOctagon,
   },
   HIGH: {
-    className:
-      'border-[hsl(var(--badge-warn-border)/0.6)] bg-[hsl(var(--badge-warn-bg))] text-[hsl(var(--badge-warn-fg))]',
-    iconClassName: 'text-[hsl(var(--badge-warn-icon))]',
+    className: 'border-destructive/25 bg-destructive/10 text-destructive',
+    iconClassName: 'text-destructive',
     Icon: AlertTriangle,
   },
   MEDIUM: {
-    className: 'border-border bg-secondary text-secondary-foreground',
-    iconClassName: 'text-muted-foreground',
+    className: 'border-amber-500/30 bg-amber-500/[0.12] text-amber-800',
+    iconClassName: 'text-amber-700',
     Icon: Minus,
   },
   LOW: {
-    className: 'border-border bg-card text-muted-foreground',
-    iconClassName: 'text-muted-foreground',
+    className: 'border-primary/20 bg-primary/[0.08] text-primary',
+    iconClassName: 'text-primary',
     Icon: MoveDown,
   },
 } as const;

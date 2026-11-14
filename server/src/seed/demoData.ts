@@ -2358,20 +2358,20 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       lang: 'ar' as const,
       insights: {
         observations: [
-          'تشكل مشكلات العتاد والسباكة غالبية الطلبات خلال هذه الفترة.',
-          'تجاوز أمر العمل WO-2005 تاريخ إكماله المتوقع في مجمع الهندسة.',
+          'تستحوذ أعطال التجهيزات والسباكة على الحصة الأكبر من بلاغات الفترة الحالية.',
+          'تجاوز أمر العمل WO-2005 في مجمع الهندسة موعد الإنجاز المحدد ويحتاج متابعة عاجلة.',
         ],
         repeatedPatterns: [
-          'تتكرر طلبات مجمع الهندسة حول تجهيزات المختبرات وشبكات المعامل.',
-          'تسجل مباني المكتبة والإدارة بلاغات متكررة بشأن أنظمة التكييف.',
+          'تتكرر بلاغات مجمع الهندسة حول تجهيزات المختبرات وشبكات المعامل.',
+          'تسجل المكتبة المركزية ومبنى الإدارة بلاغات متكررة في أنظمة التكييف.',
         ],
         operationalRisks: [
-          'تأخر استبدال محول الشبكة في WO-2005 لدى كريم الطنطاوي قد يسبب انقطاع الاتصال خلال أوقات الذروة.',
-          'تبريد غرفة الخوادم يمثل أعلى خطر تشغيلي حالياً.',
+          'تأخر استبدال محول الشبكة في WO-2005 لدى كريم الطنطاوي يهدد استقرار الاتصال أوقات الذروة.',
+          'ضعف تبريد غرفة الخوادم يمثل أعلى أولوية تشغيلية لتفادي توقف الخدمات.',
         ],
         preventiveRecommendations: [
-          'تقديم موعد فحص فلاتر التكييف في المكتبة بإشراف إبراهيم عبد الفتاح.',
-          'جدولة فحص دوري لمعدات الشبكة قبل بدء الامتحانات.',
+          'إبراهيم عبد الفتاح: تقديم فحص فلاتر التكييف في المكتبة المركزية هذا الأسبوع.',
+          'فريق الصيانة: جدولة فحص شامل لمعدات الشبكات قبل انطلاق فترة الامتحانات.',
         ],
       },
     },
@@ -2381,20 +2381,20 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       lang: 'en' as const,
       insights: {
         observations: [
-          'Hardware and plumbing issues account for most requests in this period.',
-          'Work order WO-2005 is past its expected completion date in the Engineering complex.',
+          'Hardware and plumbing issues account for the largest share of active requests.',
+          'Engineering work order WO-2005 has passed its target completion date.',
         ],
         repeatedPatterns: [
-          'Engineering complex requests cluster around laboratory equipment and lab networking.',
-          'Library and administration areas report recurring climate-control issues.',
+          'Engineering requests cluster around laboratory fixtures and lab network hardware.',
+          'The Central Library and Administration wing show recurring HVAC complaints.',
         ],
         operationalRisks: [
-          'Overdue network switch replacement WO-2005 assigned to Karim El-Tantawy may affect connectivity during peak hours.',
-          'Server room cooling remains the highest operational risk.',
+          'Delayed switch replacement on WO-2005 risks peak-hour network drops in Engineering.',
+          'Server room cooling load remains the highest operational risk on campus.',
         ],
         preventiveRecommendations: [
-          'Bring forward the HVAC filter inspection for the library with Ibrahim Abdel-Fattah.',
-          'Schedule a network hardware health check before the next exam period.',
+          'Ibrahim Abdel-Fattah: Move up the library HVAC filter inspection this week.',
+          'Maintenance Team: Schedule a pre-exam health check across core network switches.',
         ],
       },
     },
@@ -2404,20 +2404,20 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       lang: 'ar' as const,
       insights: {
         observations: [
-          'تضم منظومة جامعة المنصورة الأهلية (MNU) 13 حساباً (منها 5 فنيين) و58 موقعاً نشطاً موزعة على 6 مبانٍ ومجمعات جامعية، مع 24 طلب صيانة و18 بلاغ مفقودات ومعثورات.',
-          'سجل مجمع الكليات الهندسية والتكنولوجية أعلى كثافة نشاط مشترك بين بلاغات الصيانة والمفقودات تلاه مبنى إدارة الجامعة والمكتبة المركزية ومجمع الكليات الطبية.',
+          'يتصدر مجمع الكليات الهندسية كثافة البلاغات المشتركة، يليه مبنى الإدارة والمكتبة المركزية.',
+          'تتركز الفجوة التشغيلية الحالية في تأخر مهام الشبكات وتراكم مراجعة المفقودات.',
         ],
         repeatedPatterns: [
-          'تتركز بلاغات المفقودات المفتوحة (9 أغراض) في الهواتف والحقائب والأجهزة الإلكترونية داخل مجمع الكليات الهندسية ومجمع الكليات الطبية.',
-          'الفني كريم الطنطاوي في حالة انشغال (BUSY) وسامح رضوان خارج الدوام (OFF_DUTY)، بينما تتركز المهام الحرجة على الشبكات والتكييف المركزي.',
+          'تتجمع المفقودات المفتوحة حول الهواتف والأجهزة الإلكترونية في المجمعين الهندسي والطبي.',
+          'ضغط المهام الحرجة مرتفع على فريقي الشبكات والتكييف مع غياب فني واحد عن المناوبة.',
         ],
         operationalRisks: [
-          'تجاوز أمران للعمل (منها WO-2005) موعد الإنجاز المتوقع، كما توجد خطة صيانة وقائية مستحقة (فحص فلاتر التكييف الأسبوعي) بانتظار التوليد.',
-          'يوجد تطابقان مقترحان للمفقودات (مثل LF-2003 وLF-2004) وطلبات استلام قيد المراجعة والتحقق (CLM-2001 وCLM-2002) وطلب معتمد بانتظار التسليم (CLM-2003).',
+          'تجاوز WO-2005 موعده، كما أن خطة فحص فلاتر التكييف الأسبوعية مستحقة للتوليد.',
+          'تنتظر تطابقات LF-2003 وLF-2004 وطلبات الاستلام CLM-2001 إلى CLM-2003 الحسم والتسليم.',
         ],
         preventiveRecommendations: [
-          'توجيه أ. أحمد الدسوقي (مسؤول المفقودات) لحسم التطابقات المقترحة واستكمال التحقق والتسليم لطلبات الاستلام CLM-2001 وCLM-2002 وCLM-2003.',
-          'متابعة م. محمود المتولي (مدير الصيانة) لتوليد خطة فحص فلاتر التكييف المستحقة وإعادة موازنة مهام الشبكات المتأخرة قبل ذروة الاختبارات.',
+          'أ. أحمد الدسوقي: حسم التطابقات المقترحة واستكمال تسليم طلبات الاستلام المعلقة خلال 48 ساعة.',
+          'م. محمود المتولي: توليد خطة التكييف المستحقة وإعادة توزيع مهام الشبكات قبل الامتحانات.',
         ],
       },
     },
@@ -2427,20 +2427,20 @@ export async function seedDemoData(passwordHash: string): Promise<DemoDataCounts
       lang: 'en' as const,
       insights: {
         observations: [
-          'The Mansoura National University (MNU) platform spans 13 accounts (including 5 technicians) and 58 active locations across 6 campus buildings, with 24 maintenance requests and 18 lost & found reports.',
-          'Engineering & Technological Complex A & B records the highest combined maintenance and lost & found activity, followed by Administration & Central Library and the Medical Sector Complex.',
+          'Engineering Complex A & B leads combined campus load, followed by Administration & Library.',
+          'Current bottlenecks sit in overdue network repairs and pending lost & found handovers.',
         ],
         repeatedPatterns: [
-          'Open lost & found items (9 reports) cluster around phones, bags, and electronics in the Engineering and Medical complexes.',
-          'Technician Karim El-Tantawy is marked BUSY and Sameh Radwan is OFF_DUTY while critical workload concentrates in Network and Air Conditioning.',
+          'Open lost items cluster around phones and electronics in the Engineering and Medical complexes.',
+          'Critical workload concentrates in Network and HVAC while technician capacity is tight.',
         ],
         operationalRisks: [
-          'Two work orders (including WO-2005) are overdue, and the Weekly HVAC filter inspection preventive plan is past due for generation.',
-          'Two suggested item matches (including LF-2003 / LF-2004) and active ownership claims (CLM-2001, CLM-2002, and approved CLM-2003 awaiting handover) need officer action.',
+          'Work order WO-2005 is overdue and the weekly library HVAC plan awaits generation.',
+          'Suggested matches for LF-2003 and LF-2004 plus claims CLM-2001 to CLM-2003 risk stalling.',
         ],
         preventiveRecommendations: [
-          'Direct Ahmed El-Desouky (Lost & Found Officer) to review pending match suggestions and complete verification and handover for CLM-2001, CLM-2002, and CLM-2003.',
-          'Coordinate with Eng. Mahmoud El-Metwally (Maintenance Manager) to generate the due library HVAC preventive work order and clear overdue network work order WO-2005.',
+          'Ahmed El-Desouky: Resolve open item matches and clear claims CLM-2001 to CLM-2003 within 48 hours.',
+          'Eng. Mahmoud El-Metwally: Generate the due HVAC preventive order and rebalance network tasks.',
         ],
       },
     },

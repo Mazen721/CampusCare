@@ -45,3 +45,7 @@ Desktop.ini
 .specify/
 node_modules/
 dist/
+
+# Local previews & generated docs
+/CampusCare_User_Guide.pdf
+/dashboard-concept-preview.html

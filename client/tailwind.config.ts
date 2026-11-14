@@ -68,6 +68,7 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
+        xs: '0 1px 2px 0 rgb(4 21 62 / 0.05)',
         panel: '0 1px 2px rgba(23, 33, 28, 0.04), 0 8px 24px -16px rgba(23, 33, 28, 0.18)',
       },
       keyframes: {

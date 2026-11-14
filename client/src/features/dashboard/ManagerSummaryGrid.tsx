@@ -51,6 +51,8 @@ export function ManagerSummaryGrid({ metrics }: ManagerSummaryGridProps) {
         })
       : t('dashboard.noRatingYet');
 
+  const totalOrders = metrics.activeWorkOrders + metrics.completedWorkOrders;
+
   const items: PortalSummaryMetric[] = [
     {
       key: 'pending-review',
@@ -62,6 +64,10 @@ export function ManagerSummaryGrid({ metrics }: ManagerSummaryGridProps) {
       to: '/maintenance/request-queue',
       icon: Inbox,
       accent: pendingReviewCount > 0 ? 'gold' : 'navy',
+      progress:
+        metrics.totalRequests > 0
+          ? Math.round((pendingReviewCount / metrics.totalRequests) * 100)
+          : 0,
     },
     {
       key: 'active-work-orders',
@@ -73,6 +79,7 @@ export function ManagerSummaryGrid({ metrics }: ManagerSummaryGridProps) {
       to: '/work-orders',
       icon: Wrench,
       accent: 'navy',
+      progress: totalOrders > 0 ? Math.round((metrics.activeWorkOrders / totalOrders) * 100) : 0,
     },
     {
       key: 'overdue-work-orders',
@@ -84,7 +91,11 @@ export function ManagerSummaryGrid({ metrics }: ManagerSummaryGridProps) {
           : t('dashboard.technicianOnTrackHint'),
       to: '/work-orders',
       icon: TriangleAlert,
-      accent: metrics.overdueWorkOrders > 0 ? 'danger' : 'navy',
+      accent: metrics.overdueWorkOrders > 0 ? 'danger' : 'emerald',
+      progress:
+        metrics.activeWorkOrders > 0
+          ? Math.min(100, Math.round((metrics.overdueWorkOrders / metrics.activeWorkOrders) * 100))
+          : 0,
     },
     {
       key: 'avg-resolution',
@@ -93,7 +104,13 @@ export function ManagerSummaryGrid({ metrics }: ManagerSummaryGridProps) {
       hint: qualityHint,
       to: '/maintenance/feedback',
       icon: Timer,
-      accent: 'navy',
+      accent: 'emerald',
+      progress:
+        metrics.feedback.averageRating !== null
+          ? Math.round((metrics.feedback.averageRating / 5) * 100)
+          : totalOrders > 0
+            ? Math.round((metrics.completedWorkOrders / totalOrders) * 100)
+            : 0,
     },
   ];
 
