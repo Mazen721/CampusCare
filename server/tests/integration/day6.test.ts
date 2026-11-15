@@ -124,13 +124,13 @@ afterAll(async () => {
 
 describe('Day 6 — demo seed (T067)', () => {
   it('seeds the full cross-module demo dataset', async () => {
-    expect(await MaintenanceRequest.countDocuments({})).toBe(24);
-    expect(await WorkOrder.countDocuments({})).toBe(18);
-    expect(await PreventivePlan.countDocuments({})).toBe(3);
-    expect(await LostFoundItem.countDocuments({})).toBe(18);
-    expect(await ClaimRequest.countDocuments({})).toBe(5);
-    expect(await Notification.countDocuments({})).toBe(9);
-    expect(await ActivityLog.countDocuments({})).toBe(12);
+    expect(await MaintenanceRequest.countDocuments({})).toBe(34);
+    expect(await WorkOrder.countDocuments({})).toBe(30);
+    expect(await PreventivePlan.countDocuments({})).toBe(5);
+    expect(await LostFoundItem.countDocuments({})).toBe(26);
+    expect(await ClaimRequest.countDocuments({})).toBe(9);
+    expect(await Notification.countDocuments({})).toBe(14);
+    expect(await ActivityLog.countDocuments({})).toBe(16);
     expect(await AiInsightCache.countDocuments({})).toBe(4);
   });
 
@@ -177,15 +177,16 @@ describe('Day 6 — dashboard (T060)', () => {
     };
 
     expect(weekMetrics.totalRequests).toBeGreaterThan(0);
-    expect(weekMetrics.totalRequests).toBeLessThan(24);
+    expect(weekMetrics.totalRequests).toBeLessThan(34);
     expect(typeof weekMetrics.requestsByStatus.SUBMITTED).toBe('number');
     expect(typeof weekMetrics.requestsByStatus.CLOSED).toBe('number');
     expect(weekMetrics.requestsByCategory.length).toBeGreaterThan(0);
     expect(weekMetrics.requestsByBuilding.length).toBeGreaterThan(0);
-    expect(weekMetrics.activeWorkOrders).toBe(5);
+    expect(weekMetrics.activeWorkOrders).toBe(8);
     expect(weekMetrics.overdueWorkOrders).toBe(2);
     expect(weekMetrics.technicianWorkload).toHaveLength(5);
-    expect(weekMetrics.averageResolutionHours).toBeNull();
+    expect(weekMetrics.averageResolutionHours).toBeGreaterThan(0);
+    expect(weekMetrics.feedback.total).toBe(4);
 
     const all = await request(app)
       .get('/api/v1/dashboard')
@@ -196,13 +197,13 @@ describe('Day 6 — dashboard (T060)', () => {
     expect(all.body.rangeStart).toBeNull();
     const allMetrics = all.body.metrics as typeof weekMetrics;
 
-    expect(allMetrics.totalRequests).toBe(24);
+    expect(allMetrics.totalRequests).toBe(34);
     expect(allMetrics.totalRequests).toBeGreaterThanOrEqual(weekMetrics.totalRequests);
-    expect(allMetrics.completedWorkOrders).toBe(9);
+    expect(allMetrics.completedWorkOrders).toBe(17);
     expect(allMetrics.overdueWorkOrders).toBe(2);
     expect(allMetrics.averageResolutionHours).toBeGreaterThan(0);
-    expect(allMetrics.feedback.total).toBe(4);
-    expect(allMetrics.feedback.averageRating).toBe(4.3);
+    expect(allMetrics.feedback.total).toBe(8);
+    expect(allMetrics.feedback.averageRating).toBe(4.5);
     expect(allMetrics.feedback.distribution).toHaveLength(5);
   });
 
@@ -214,12 +215,12 @@ describe('Day 6 — dashboard (T060)', () => {
       .expect(200);
 
     expect(admin.body.role).toBe('SUPER_ADMIN');
-    expect(admin.body.totals.users).toBeGreaterThanOrEqual(11);
+    expect(admin.body.totals.users).toBeGreaterThanOrEqual(12);
     expect(admin.body.totals.technicians).toBe(5);
-    expect(admin.body.totals.maintenanceRequests).toBeGreaterThanOrEqual(24);
-    expect(admin.body.totals.workOrders).toBeGreaterThanOrEqual(18);
-    expect(admin.body.totals.lostItems).toBe(9);
-    expect(admin.body.totals.foundItems).toBe(9);
+    expect(admin.body.totals.maintenanceRequests).toBeGreaterThanOrEqual(34);
+    expect(admin.body.totals.workOrders).toBeGreaterThanOrEqual(30);
+    expect(admin.body.totals.lostItems).toBe(12);
+    expect(admin.body.totals.foundItems).toBe(14);
     expect(admin.body.latestInsights).not.toBeNull();
     expect(admin.body.latestInsights.period).toBe('7d');
 
@@ -231,11 +232,11 @@ describe('Day 6 — dashboard (T060)', () => {
 
     expect(technician.body.role).toBe('TECHNICIAN');
     expect(technician.body.counts).toMatchObject({
-      assigned: 1,
-      inProgress: 1,
+      assigned: 2,
+      inProgress: 2,
       overdue: 1,
     });
-    expect(technician.body.schedule).toHaveLength(2);
+    expect(technician.body.schedule).toHaveLength(4);
     expect(technician.body.schedule[0].location).toBeTruthy();
 
     const officer = await request(app)
@@ -246,15 +247,15 @@ describe('Day 6 — dashboard (T060)', () => {
 
     expect(officer.body.role).toBe('LOST_FOUND_OFFICER');
     expect(officer.body.counts).toMatchObject({
-      totalLostItems: 9,
-      totalFoundItems: 9,
-      openLostItems: 5,
-      openFoundItems: 4,
-      pendingMatches: 2,
-      pendingClaims: 1,
-      underVerificationClaims: 1,
-      claimsAwaitingHandover: 1,
-      completedHandovers: 1,
+      totalLostItems: 12,
+      totalFoundItems: 14,
+      openLostItems: 6,
+      openFoundItems: 5,
+      pendingMatches: 3,
+      pendingClaims: 2,
+      underVerificationClaims: 2,
+      claimsAwaitingHandover: 2,
+      completedHandovers: 2,
     });
 
     const student = await request(app)
@@ -264,9 +265,9 @@ describe('Day 6 — dashboard (T060)', () => {
       .expect(200);
 
     expect(student.body.role).toBe('STUDENT_EMPLOYEE');
-    expect(student.body.requests.total).toBe(10);
-    expect(student.body.claims.total).toBe(1);
-    expect(student.body.reports).toMatchObject({ total: 3, lost: 3, found: 0 });
+    expect(student.body.requests.total).toBe(14);
+    expect(student.body.claims.total).toBe(3);
+    expect(student.body.reports).toMatchObject({ total: 5, lost: 4, found: 1 });
     expect(student.body.notifications.unreadCount).toBe(3);
     expect(student.body.requests.recent).toHaveLength(5);
   });
@@ -314,7 +315,7 @@ describe('Day 6 — activity logs (T062)', () => {
 
     expect(response.body.page).toBe(1);
     expect(response.body.limit).toBe(5);
-    expect(response.body.total).toBe(12);
+    expect(response.body.total).toBe(16);
     expect(response.body.data).toHaveLength(5);
 
     const entry = response.body.data[0] as {
@@ -421,7 +422,7 @@ describe('Day 6 — preventive maintenance (T064–T066)', () => {
       .get('/api/v1/preventive-maintenance')
       .set('Authorization', bearer('SUPER_ADMIN'))
       .expect(200);
-    expect(adminView.body.total).toBe(3);
+    expect(adminView.body.total).toBe(5);
 
     await request(app)
       .get('/api/v1/preventive-maintenance')

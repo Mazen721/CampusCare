@@ -121,11 +121,12 @@ export function BrowseItemsPage() {
       ) : (
         <>
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{total}</span>{' '}
+            <p className="text-sm font-medium tabular-nums text-muted-foreground">
               {t('lostFound.count', { count: total })}
             </p>
-            <p className="text-xs text-muted-foreground">{t('lostFound.page', { page })}</p>
+            <p className="text-xs tabular-nums text-muted-foreground">
+              {t('lostFound.page', { page })}
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
